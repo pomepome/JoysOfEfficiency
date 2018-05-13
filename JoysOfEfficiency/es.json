@@ -1,0 +1,12 @@
+﻿{
+  "taste.love.male": "Él ama este regalo",
+  "taste.love.female": "Ella ama este regalo",
+  "taste.like.male": "Él le gusta este regalo",
+  "taste.like.female": "Ella le gusta este regalo",
+  "taste.neutral.male": "Él tiene un sentimiento neutral acerca de este regalo",
+  "taste.neutral.female": "Ella tiene un sentimiento neutral acerca de este regalo",
+  "taste.dislike.male": "No le gusta este regalo",
+  "taste.dislike.female": "No le gusta este regalo",
+  "taste.hate.male": "Él odia este regalo",
+  "taste.hate.female": "Ella odia este regalo"
+}
