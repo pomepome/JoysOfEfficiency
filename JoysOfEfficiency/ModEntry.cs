@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Netcode;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
@@ -80,19 +81,22 @@ namespace JoysOfEfficiency
                     return;
                 }
                 bool watered = false;
-                foreach (KeyValuePair<Vector2, TerrainFeature> kv in player.currentLocation.terrainFeatures)
+                foreach (SerializableDictionary<Vector2,TerrainFeature> dic in player.currentLocation.terrainFeatures)
                 {
-                    Vector2 location = kv.Key;
-                    TerrainFeature tf = kv.Value;
-                    Point centre = tf.getBoundingBox(location).Center;
-                    if(bb.IsInternalPoint(centre.X, centre.Y) && tf is HoeDirt dirt)
+                    foreach (KeyValuePair<Vector2, TerrainFeature> kv in dic)
                     {
-                        if(dirt.crop != null && dirt.state == 0 && player.Stamina >= 2 && can.WaterLeft > 0)
+                        Vector2 location = kv.Key;
+                        TerrainFeature tf = kv.Value;
+                        Point centre = tf.getBoundingBox(location).Center;
+                        if (bb.IsInternalPoint(centre.X, centre.Y) && tf is HoeDirt dirt)
                         {
-                            dirt.state = 1;
-                            player.Stamina -= 2;
-                            can.WaterLeft--;
-                            watered = true;
+                            if (dirt.crop != null && dirt.state == 0 && player.Stamina >= 2 && can.WaterLeft > 0)
+                            {
+                                Helper.Reflection.GetField<int>(dirt, "state").SetValue(1);
+                                player.Stamina -= 2;
+                                can.WaterLeft--;
+                                watered = true;
+                            }
                         }
                     }
                 }
@@ -112,7 +116,7 @@ namespace JoysOfEfficiency
                 List<NPC> npcList = player.currentLocation.characters.Where(a => a.isVillager()).ToList();
                 foreach(NPC npc in npcList)
                 {
-                    RectangleE npcRect = new RectangleE(npc.position.X, npc.position.Y - npc.sprite.getHeight() - Game1.tileSize / 1.5f, npc.sprite.getWidth() * 3 + npc.sprite.getWidth() / 1.5f, (npc.sprite.getHeight() * 3.5f));
+                    RectangleE npcRect = new RectangleE(npc.position.X, npc.position.Y - npc.Sprite.getHeight() - Game1.tileSize / 1.5f, npc.Sprite.getWidth() * 3 + npc.Sprite.getWidth() / 1.5f, (npc.Sprite.getHeight() * 3.5f));
 
                     if (npcRect.IsInternalPoint(Game1.getMouseX() + Game1.viewport.X, Game1.getMouseY() + Game1.viewport.Y))
                     {
@@ -160,11 +164,10 @@ namespace JoysOfEfficiency
             IReflectionHelper reflection = Helper.Reflection;
             if (config.HowManyStonesLeft && args.Button == config.KeyShowStonesLeft)
             {
-                LetAnimalsInHome();
                 Player player = Game1.player;
                 if(player.currentLocation is MineShaft mine)
                 {
-                    int stonesLeft = reflection.GetField<int>(mine, "stonesLeftOnThisLevel").GetValue();
+                    int stonesLeft = reflection.GetField<NetIntDelta>(mine, "netStonesLeftOnThisLevel").GetValue();
                     if (stonesLeft == 0)
                     {
                         ShowHUDMessage("There are no stones in this level.");
@@ -198,23 +201,23 @@ namespace JoysOfEfficiency
             {
                 if (building is Coop coop)
                 {
-                    if (coop.indoors is AnimalHouse house)
+                    if (coop.indoors.Get() is AnimalHouse house)
                     {
-                        if (house.animals.Any() && coop.animalDoorOpen)
+                        if (house.animals.Any() && coop.animalDoorOpen.Get())
                         {
-                            coop.animalDoorOpen = false;
-                            Helper.Reflection.GetField<int>(coop, "animalDoorMotion").SetValue(2);
+                            Helper.Reflection.GetField<NetBool>(coop, "animalDoorOpen").SetValue(new NetBool(false));
+                            Helper.Reflection.GetField<NetInt>(coop, "animalDoorMotion").SetValue(new NetInt(2));
                         }
                     }
                 }
                 else if (building is Barn barn)
                 {
-                    if (barn.indoors is AnimalHouse house)
+                    if (barn.indoors.Get() is AnimalHouse house)
                     {
-                        if (house.animals.Any() && barn.animalDoorOpen)
+                        if (house.animals.Any() && barn.animalDoorOpen.Get())
                         {
-                            barn.animalDoorOpen = false;
-                            Helper.Reflection.GetField<int>(barn, "animalDoorMotion").SetValue(2);
+                            Helper.Reflection.GetField<NetBool>(barn, "animalDoorOpen").SetValue(new NetBool(false));
+                            Helper.Reflection.GetField<NetInt>(barn, "animalDoorMotion").SetValue(new NetInt(2));
                         }
                     }
                 }
@@ -239,23 +242,23 @@ namespace JoysOfEfficiency
             {
                 if (building is Coop coop)
                 {
-                    if (coop.indoors is AnimalHouse house)
+                    if (coop.indoors.Get() is AnimalHouse house)
                     {
-                        if (house.animals.Any() && !coop.animalDoorOpen)
+                        if (house.animals.Any() && !coop.animalDoorOpen.Get())
                         {
-                            coop.animalDoorOpen = true;
-                            Helper.Reflection.GetField<int>(coop, "animalDoorMotion").SetValue(-2);
+                            Helper.Reflection.GetField<NetBool>(coop, "animalDoorOpen").SetValue(new NetBool(true));
+                            Helper.Reflection.GetField<NetInt>(coop, "animalDoorMotion").SetValue(new NetInt(-2));
                         }
                     }
                 }
                 else if(building is Barn barn)
                 {
-                    if (barn.indoors is AnimalHouse house)
+                    if (barn.indoors.Get() is AnimalHouse house)
                     {
-                        if (house.animals.Any() && !barn.animalDoorOpen)
+                        if (house.animals.Any() && !barn.animalDoorOpen.Get())
                         {
-                            barn.animalDoorOpen = true;
-                            Helper.Reflection.GetField<int>(barn, "animalDoorMotion").SetValue(-3);
+                            Helper.Reflection.GetField<NetBool>(barn, "animalDoorOpen").SetValue(new NetBool(true));
+                            Helper.Reflection.GetField<NetInt>(barn, "animalDoorMotion").SetValue(new NetInt(-3));
                         }
                     }
                 }
@@ -277,16 +280,22 @@ namespace JoysOfEfficiency
             List<FarmAnimal> list = new List<FarmAnimal>();
             if(player.currentLocation is Farm farm)
             {
-                foreach(KeyValuePair<long,FarmAnimal> animal in farm.animals)
+                foreach(SerializableDictionary<long,FarmAnimal> animal in farm.animals)
                 {
-                    list.Add(animal.Value);
+                    foreach (KeyValuePair<long, FarmAnimal> kv in animal)
+                    {
+                        list.Add(kv.Value);
+                    }
                 }
             }
             else if(player.currentLocation is AnimalHouse house)
             {
-                foreach (KeyValuePair<long, FarmAnimal> animal in house.animals)
+                foreach (SerializableDictionary<long, FarmAnimal> animal in house.animals)
                 {
-                    list.Add(animal.Value);
+                    foreach (KeyValuePair<long, FarmAnimal> kv in animal)
+                    {
+                        list.Add(kv.Value);
+                    }
                 }
             }
             return list;
@@ -295,10 +304,13 @@ namespace JoysOfEfficiency
         private void LetAnimalsInHome()
         {
             Farm farm = Game1.getFarm();
-            foreach (KeyValuePair<long, FarmAnimal> kv in farm.animals.ToList())
+            foreach (SerializableDictionary<long, FarmAnimal> dic in farm.animals.ToList())
             {
-                FarmAnimal animal = kv.Value;
-                animal.warpHome(farm, animal);
+                foreach (KeyValuePair<long, FarmAnimal> kv in dic)
+                {
+                    FarmAnimal animal = kv.Value;
+                    animal.warpHome(farm, animal);
+                }
             }
         }
 
