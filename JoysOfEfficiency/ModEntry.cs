@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
@@ -18,6 +19,7 @@ using StardewValley.Tools;
 
 namespace JoysOfEfficiency
 {
+
     using Player = StardewValley.Farmer;
     using SVObject = StardewValley.Object;
     public class ModEntry : Mod
@@ -25,6 +27,9 @@ namespace JoysOfEfficiency
 
         private Config config = null;
         private string hoverText;
+        private bool catchingTreasure = false;
+        private bool caughtFish = false;
+        private int fishIndex = -1;
 
         public override void Entry(IModHelper helper)
         {
@@ -40,27 +45,19 @@ namespace JoysOfEfficiency
             GraphicsEvents.OnPostRenderHudEvent += OnPostRenderHUD;
         }
 
+        #region EventHandlers
+
         private void OnGameUpdate(object sender, EventArgs args)
         {
-            if (!Context.IsWorldReady || !Context.IsPlayerFree)
+            if (!Context.IsWorldReady)
             {
                 return;
             }
             Player player = Game1.player;
             IReflectionHelper reflection = Helper.Reflection;
-            if (config.EasierFishing)
+            if (config.AutoFishing && Game1.activeClickableMenu != null && Game1.activeClickableMenu is BobberBar bar)
             {
-                if (Game1.activeClickableMenu != null && (Game1.activeClickableMenu is BobberBar bar))
-                {
-                    IReflectedField<Vector2> field1 = reflection.GetField<Vector2>(bar, "fishShake");
-                    IReflectedField<float> field2 = reflection.GetField<float>(bar, "distanceFromCatching");
-                    IReflectedField<bool> field3 = reflection.GetField<bool>(bar, "bobberInBar");
-                    Vector2 fishMovement = new Vector2(field1.GetValue().X * 0.7f, field1.GetValue().Y * 0.7f);
-                    field1.SetValue(fishMovement);
-                    float delta = field3.GetValue() ? 0.0006125f : 0.000125f;
-                    float distanceFromCatching = Math.Min(field2.GetValue() + delta, 1.0f);
-                    field2.SetValue(distanceFromCatching);
-                }
+                AutoFishing(bar);
             }
             if (config.AutoWaterNearbyCrops && player.currentLocation.IsFarm)
             {
@@ -70,12 +67,12 @@ namespace JoysOfEfficiency
                 {
                     //Search Watering Can To Use
                     can = item as WateringCan;
-                    if(can != null)
+                    if (can != null)
                     {
                         break;
                     }
                 }
-                if(can == null)
+                if (can == null)
                 {
                     return;
                 }
@@ -85,9 +82,9 @@ namespace JoysOfEfficiency
                     Vector2 location = kv.Key;
                     TerrainFeature tf = kv.Value;
                     Point centre = tf.getBoundingBox(location).Center;
-                    if(bb.IsInternalPoint(centre.X, centre.Y) && tf is HoeDirt dirt)
+                    if (bb.IsInternalPoint(centre.X, centre.Y) && tf is HoeDirt dirt)
                     {
-                        if(dirt.crop != null && dirt.state == 0 && player.Stamina >= 2 && can.WaterLeft > 0)
+                        if (dirt.crop != null && dirt.state == 0 && player.Stamina >= 2 && can.WaterLeft > 0)
                         {
                             dirt.state = 1;
                             player.Stamina -= 2;
@@ -96,57 +93,79 @@ namespace JoysOfEfficiency
                         }
                     }
                 }
-                if(watered)
+                if (watered)
                 {
                     Game1.playSound("slosh");
                 }
             }
-            if(config.GiftInformation)
+            if (config.GiftInformation)
             {
                 hoverText = null;
                 if (player.CurrentTool != null || player.CurrentItem == null || (player.CurrentItem is SVObject && (player.CurrentItem as SVObject).bigCraftable))
                 {
                     //Rejects tools, nothing, and bigCraftable objects(chests, machines, statues etc.)
-                    return;
                 }
-                List<NPC> npcList = player.currentLocation.characters.Where(a => a.isVillager()).ToList();
-                foreach(NPC npc in npcList)
+                else
                 {
-                    RectangleE npcRect = new RectangleE(npc.position.X, npc.position.Y - npc.sprite.getHeight() - Game1.tileSize / 1.5f, npc.sprite.getWidth() * 3 + npc.sprite.getWidth() / 1.5f, (npc.sprite.getHeight() * 3.5f));
+                    List<NPC> npcList = player.currentLocation.characters.Where(a => a.isVillager()).ToList();
+                    foreach (NPC npc in npcList)
+                    {
+                        RectangleE npcRect = new RectangleE(npc.position.X, npc.position.Y - npc.sprite.getHeight() - Game1.tileSize / 1.5f, npc.sprite.getWidth() * 3 + npc.sprite.getWidth() / 1.5f, (npc.sprite.getHeight() * 3.5f));
 
-                    if (npcRect.IsInternalPoint(Game1.getMouseX() + Game1.viewport.X, Game1.getMouseY() + Game1.viewport.Y))
-                    {
-                        //Mouse hovered on the NPC
-                        StringBuilder key = new StringBuilder("taste.");
-                        switch (npc.getGiftTasteForThisItem(player.CurrentItem))
+                        if (npcRect.IsInternalPoint(Game1.getMouseX() + Game1.viewport.X, Game1.getMouseY() + Game1.viewport.Y))
                         {
-                            case 0: key.Append("love."); break;
-                            case 2: key.Append("like."); break;
-                            case 4: key.Append("dislike."); break;
-                            case 6: key.Append("hate."); break;
-                            default: key.Append("neutral."); break;
+                            //Mouse hovered on the NPC
+                            StringBuilder key = new StringBuilder("taste.");
+                            switch (npc.getGiftTasteForThisItem(player.CurrentItem))
+                            {
+                                case 0: key.Append("love."); break;
+                                case 2: key.Append("like."); break;
+                                case 4: key.Append("dislike."); break;
+                                case 6: key.Append("hate."); break;
+                                default: key.Append("neutral."); break;
+                            }
+                            switch (npc.gender)
+                            {
+                                case 0: key.Append("male"); break;
+                                default: key.Append("female"); break;
+                            }
+                            Translation translation = Helper.Translation.Get(key.ToString());
+                            hoverText = translation?.ToString();
                         }
-                        switch (npc.gender)
-                        {
-                            case 0: key.Append("male"); break;
-                            default: key.Append("female"); break;
-                        }
-                        Translation translation = Helper.Translation.Get(key.ToString());
-                        hoverText = translation?.ToString();
                     }
                 }
-                if(config.AutoPetNearbyAnimals)
+            }
+            if (config.AutoPetNearbyAnimals)
+            {
+                int radius = 3 * Game1.tileSize;
+                RectangleE bb = new RectangleE(player.position.X - radius, player.position.Y - radius, radius * 2, radius * 2);
+                List<FarmAnimal> animalList = GetAnimalsList(player);
+                foreach (FarmAnimal animal in animalList)
                 {
-                    int radius = 3 * Game1.tileSize;
-                    RectangleE bb = new RectangleE(player.position.X - radius, player.position.Y - radius, radius * 2, radius * 2);
-                    List<FarmAnimal> animalList = GetAnimalsList(player);
-                    foreach(FarmAnimal animal in animalList)
+                    if (bb.IsInternalPoint(animal.position.X, animal.position.Y) && !animal.wasPet)
                     {
-                        if(bb.IsInternalPoint(animal.position.X, animal.position.Y) && !animal.wasPet)
-                        {
-                            animal.pet(player);
-                        }
+                        animal.pet(player);
                     }
+                }
+            }
+            if (player.CurrentTool is FishingRod rod)
+            {
+                IReflectedField<int> whichFish = reflection.GetField<int>(rod, "whichFish");
+                if (rod.isNibbling && !rod.isReeling && !rod.hit && !rod.pullingOutOfWater && !rod.fishCaught)
+                {
+                    if (config.AutoFishing)
+                    {
+                        rod.DoFunction(player.currentLocation, 1, 1, 1, player);
+                        rod.hit = true;
+                    }
+                }
+                if(!rod.inUse())
+                {
+                    caughtFish = false;
+                }
+                if (config.MuchFasterBiting)
+                {
+                    rod.timeUntilFishingBite -= 1000;
                 }
             }
         }
@@ -193,6 +212,8 @@ namespace JoysOfEfficiency
                 return;
             }
             Log("BeforeSave");
+            LetAnimalsInHome();
+
             Farm farm = Game1.getFarm();
             foreach (Building building in farm.buildings)
             {
@@ -228,7 +249,6 @@ namespace JoysOfEfficiency
                 return;
             }
             Log("PostSave");
-            LetAnimalsInHome();
             if(Game1.isRaining || Game1.isSnowing)
             {
                 Log("Don't open because of rainy/snowy weather.");
@@ -260,6 +280,58 @@ namespace JoysOfEfficiency
                     }
                 }
             }
+        }
+
+        #endregion
+
+        #region Utilities
+
+        public void AutoFishing(BobberBar bar)
+        {
+            IReflectionHelper reflection = Helper.Reflection;
+
+            IReflectedField<float> bobberSpeed = reflection.GetField<float>(bar, "bobberBarSpeed");
+
+            float barPos = reflection.GetField<float>(bar, "bobberBarPos").GetValue();
+            int barHeight = reflection.GetField<int>(bar, "bobberBarHeight").GetValue();
+            float fishPos = reflection.GetField<float>(bar, "bobberPosition").GetValue();
+            float treasurePos = reflection.GetField<float>(bar, "treasurePosition").GetValue();
+            float distanceFromCatching = reflection.GetField<float>(bar, "distanceFromCatching").GetValue();
+            bool treasureCaught = reflection.GetField<bool>(bar, "treasureCaught").GetValue();
+            bool treasure = reflection.GetField<bool>(bar, "treasure").GetValue();
+            float treasureApeearTimer = reflection.GetField<float>(bar, "treasureAppearTimer").GetValue();
+            float bobberBarSpeed = bobberSpeed.GetValue();
+
+            float up = barPos, down = barPos + barHeight;
+
+            if(treasure && treasureApeearTimer <= 0 && !treasureCaught)
+            {
+                if(!catchingTreasure && distanceFromCatching > 0.7f)
+                {
+                    catchingTreasure = true;
+                }
+                if(catchingTreasure && distanceFromCatching < 0.3f)
+                {
+                    catchingTreasure = false;
+                }
+                if (catchingTreasure)
+                {
+                    fishPos = treasurePos;
+                }
+            }
+
+            float strength = (fishPos - (barPos + barHeight / 2)) / 16f;
+            if(fishPos > down || fishPos < up)
+            {
+                bobberBarSpeed = strength;
+            }
+
+            bobberSpeed.SetValue(bobberBarSpeed);
+        }
+
+        private float Cap(float f, float min, float max)
+        {
+            return f < min ? min : (f > max ? max : f);
         }
 
         private void Log(string format, params object[] args)
@@ -352,5 +424,7 @@ namespace JoysOfEfficiency
             }
             item.drawInMenu(batch, new Vector2(x + (int)stringSize.X + 24, y + 16), 1.0f,1.0f,0.9f,false);
         }
+        
+        #endregion
     }
 }
