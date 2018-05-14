@@ -51,6 +51,7 @@
     <None Include="de.json" />
     <None Include="default.json" />
     <None Include="es.json" />
+    <None Include="ja.json" />
     <None Include="manifest.json" />
     <None Include="packages.config" />
     <None Include="pt.json" />

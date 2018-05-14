@@ -179,7 +179,6 @@ namespace JoysOfEfficiency
             IReflectionHelper reflection = Helper.Reflection;
             if (config.HowManyStonesLeft && args.Button == config.KeyShowStonesLeft)
             {
-                LetAnimalsInHome();
                 Player player = Game1.player;
                 if(player.currentLocation is MineShaft mine)
                 {
@@ -202,6 +201,10 @@ namespace JoysOfEfficiency
             if(Context.IsPlayerFree && !string.IsNullOrEmpty(hoverText) && Game1.player.CurrentItem != null)
             {
                 DrawSimpleTextbox(Game1.spriteBatch, hoverText, Game1.smallFont, Game1.player.CurrentItem);
+            }
+            if(Game1.activeClickableMenu != null && Game1.activeClickableMenu is BobberBar bar)
+            {
+                DrawFishingInfoBox(Game1.spriteBatch, bar, Game1.dialogueFont);
             }
         }
 
@@ -424,7 +427,206 @@ namespace JoysOfEfficiency
             }
             item.drawInMenu(batch, new Vector2(x + (int)stringSize.X + 24, y + 16), 1.0f,1.0f,0.9f,false);
         }
+
+        private void DrawFishingInfoBox(SpriteBatch batch, BobberBar bar, SpriteFont font)
+        {
+            IReflectionHelper reflection = Helper.Reflection;
+            ITranslationHelper translation = Helper.Translation;
+
+            int width = 0, height = 120;
+
+
+            float scale = 1.0f;
+
+
+            int whitchFish = reflection.GetField<int>(bar, "whichFish").GetValue();
+            int fishSize = reflection.GetField<int>(bar, "fishSize").GetValue();
+            int fishQuality = reflection.GetField<int>(bar, "fishQuality").GetValue();
+            bool treasure = reflection.GetField<bool>(bar, "treasure").GetValue();
+            bool treasureCaught = reflection.GetField<bool>(bar, "treasureCaught").GetValue();
+            float treasureAppearTimer = reflection.GetField<float>(bar, "treasureAppearTimer").GetValue() / 1000;
+            
+            SVObject fish = new SVObject(whitchFish, 1);
+
+            if (LocalizedContentManager.CurrentLanguageCode == LocalizedContentManager.LanguageCode.en)
+            {
+                scale = 0.7f;
+            }
+
+            string speciesText = TryFormat(translation.Get("fishinfo.species").ToString(), fish.DisplayName);
+            string sizeText = TryFormat(translation.Get("fishinfo.size").ToString(), GetFinalSize(fishSize));
+            string qualityText1 = translation.Get("fishinfo.quality").ToString();
+            string qualityText2 = translation.Get(GetKeyForQuality(fishQuality)).ToString();
+            string incomingText = TryFormat(translation.Get("fishinfo.treasure.incoming").ToString(), treasureAppearTimer);
+            string appearedText = translation.Get("fishinfo.treasure.appear").ToString();
+            string caughtText = translation.Get("fishinfo.treasure.caught").ToString();
+
+            {
+                Vector2 size = font.MeasureString(speciesText) * scale;
+                if (size.X > width)
+                {
+                    width = (int)size.X;
+                }
+                height += (int)size.Y;
+                size = font.MeasureString(sizeText) * scale;
+                if (size.X > width)
+                {
+                    width = (int)size.X;
+                }
+                height += (int)size.Y;
+                Vector2 temp = font.MeasureString(qualityText1);
+                Vector2 temp2 = font.MeasureString(qualityText2);
+                size = new Vector2(temp.X + temp2.X, Math.Max(temp.Y, temp2.Y));
+                if(size.X > width)
+                {
+                    width = (int)size.X;
+                }
+                height += (int)size.Y;
+            }
+
+            if (treasure)
+            {
+                if (treasureAppearTimer > 0)
+                {
+                    Vector2 size = font.MeasureString(incomingText) * scale;
+                    if (size.X > width)
+                    {
+                        width = (int)size.X;
+                    }
+                    height += (int)size.Y;
+                }
+                else
+                {
+                    if (!treasureCaught)
+                    {
+                        Vector2 size = font.MeasureString(appearedText) * scale;
+                        if (size.X > width)
+                        {
+                            width = (int)size.X;
+                        }
+                        height += (int)size.Y;
+                    }
+                    else
+                    {
+                        Vector2 size = font.MeasureString(caughtText) * scale;
+                        if (size.X > width)
+                        {
+                            width = (int)size.X;
+                        }
+                        height += (int)size.Y;
+                    }
+                }
+            }
+
+            width += 64;
+
+            int x = bar.xPositionOnScreen + bar.width + 96;
+            if (x + width > Game1.viewport.Width)
+            {
+                x = bar.xPositionOnScreen - width - 96;
+            }
+            int y = (int)Cap(bar.yPositionOnScreen, 0, Game1.viewport.Height - height);
+
+            IClickableMenu.drawTextureBox(batch, Game1.menuTexture, new Rectangle(0, 256, 60, 60), x, y, width, height, Color.White);
+            fish.drawInMenu(batch, new Vector2( x + width / 2 - 32, y + 16), 1.0f, 1.0f, 0.9f, false);
+
+
+            Vector2 stringSize = font.MeasureString("X");
+            Vector2 addition = new Vector2(0, stringSize.Y);
+            
+            Vector2 vec2 = new Vector2(x + 32, y + 80 + 16);
+            DrawString(batch, font, ref vec2, speciesText, Color.Black, scale, false);
+            DrawString(batch, font, ref vec2, sizeText, Color.Black, scale, false);
+            DrawString(batch, font, ref vec2, qualityText1, Color.Black, scale, true);
+            DrawString(batch, font, ref vec2, qualityText2, GetColorForQuality(fishQuality), scale);
+            vec2.X = x + 32;
+            if(treasure)
+            {
+                if(!treasureCaught)
+                {
+                    if (treasureAppearTimer > 0f)
+                    {
+                        DrawString(batch, font, ref vec2, incomingText, Color.Red, scale, false);
+                    }
+                    else
+                    {
+                        DrawString(batch, font, ref vec2, appearedText, Color.LightGoldenrodYellow, scale, false);
+                    }
+                }
+                else
+                {
+                    DrawString(batch, font, ref vec2, caughtText, Color.ForestGreen, scale, false);
+                }
+            }
+        }
+
+        private string GetKeyForQuality(int fishQuality)
+        {
+            switch (fishQuality)
+            {
+                case 1: return "quality.silver";
+                case 2: return "quality.gold";
+                case 3: return "quality.iridium";
+            }
+            return "quality.normal";
+        }
+
+        private Color GetColorForQuality(int fishQuality)
+        {
+            switch (fishQuality)
+            {
+                case 1: return Color.AliceBlue;
+                case 2: return Color.Gold ;
+                case 3: return Color.Purple;
+            }
+            return Color.WhiteSmoke;
+        }
         
+        private float Round(float val, int exponent)
+        {
+            return (float)Math.Round(val, exponent, MidpointRounding.AwayFromZero);
+        }
+        private float Floor(float val, int exponent)
+        {
+            int e = 1;
+            for(int i = 0;i < exponent;i++)
+            {
+                e *= 10;
+            }
+            return (float)Math.Floor(val * e) / e;
+        }
+
+        private void DrawString(SpriteBatch batch, SpriteFont font, ref Vector2 location, string text, Color color, float scale, bool next = false)
+        {
+            Vector2 stringSize = font.MeasureString(text) * scale;
+            batch.DrawString(font, text, location, color, 0f, Vector2.Zero, scale, SpriteEffects.None, 0f);
+            if (next)
+            {
+                location += new Vector2(stringSize.X, 0);
+            }
+            else
+            {
+                location += new Vector2(0, stringSize.Y + 4);
+            }
+        }
+        
+        private int GetFinalSize(int inch)
+        {
+            return LocalizedContentManager.CurrentLanguageCode == LocalizedContentManager.LanguageCode.en ? inch : (int)Math.Round(inch * 2.54);
+        }
+
+        private string TryFormat(string str, params object[] args)
+        {
+            try
+            {
+                string ret = string.Format(str, args);
+                return ret;
+            }
+            catch(Exception e)
+            {
+            }
+            return "";
+        }
         #endregion
     }
 }

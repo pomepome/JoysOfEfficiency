@@ -8,5 +8,15 @@
   "taste.dislike.male": "Er ist wie dieses Geschenk",
   "taste.dislike.female": "Sie ist wie dieses Geschenk",
   "taste.hate.male": "Er hasst dieses Geschenk",
-  "taste.hate.female": "Sie hasst dieses Geschenk"
+  "taste.hate.female": "Sie hasst dieses Geschenk",
+  "fishinfo.species": "Art: {0}",
+  "fishinfo.size": "Größe: {0}cm",
+  "fishinfo.quality": "Qualität: ",
+  "fishinfo.treasure.incoming": "Schatz ist eingehend in {0:f1}s.",
+  "fishinfo.treasure.appear": "Schatz erschienen!",
+  "fishinfo.treasure.caught": "Schatz gefangen!",
+  "quality.normal": "Normal",
+  "quality.silver": "Silber",
+  "quality.gold": "Gold",
+  "quality.iridium": "Iridium"
 }

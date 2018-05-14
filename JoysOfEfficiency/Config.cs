@@ -14,6 +14,7 @@ namespace JoysOfEfficiency
         public bool AutoAnimalDoor { get; set; } = true;
         public bool AutoFishing { get; set; } = false;
         public bool AutoReelRod { get; set; } = true;
-        public bool MuchFasterBiting { get; set; } = true;
+        public bool MuchFasterBiting { get; set; } = false;
+        public bool FishingInfo { get; set; } = true;
     }
 }
