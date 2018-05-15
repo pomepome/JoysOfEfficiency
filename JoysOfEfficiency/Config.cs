@@ -16,5 +16,6 @@ namespace JoysOfEfficiency
         public bool AutoReelRod { get; set; } = true;
         public bool MuchFasterBiting { get; set; } = false;
         public bool FishingInfo { get; set; } = true;
+        public float CPUThresholdFishing { get; set; } = 0.2f;
     }
 }

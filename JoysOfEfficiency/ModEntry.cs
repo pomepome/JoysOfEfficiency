@@ -28,8 +28,6 @@ namespace JoysOfEfficiency
         private Config config = null;
         private string hoverText;
         private bool catchingTreasure = false;
-        private bool caughtFish = false;
-        private int fishIndex = -1;
 
         public override void Entry(IModHelper helper)
         {
@@ -55,10 +53,6 @@ namespace JoysOfEfficiency
             }
             Player player = Game1.player;
             IReflectionHelper reflection = Helper.Reflection;
-            if (config.AutoFishing && Game1.activeClickableMenu != null && Game1.activeClickableMenu is BobberBar bar)
-            {
-                AutoFishing(bar);
-            }
             if (config.AutoWaterNearbyCrops && player.currentLocation.IsFarm)
             {
                 RectangleE bb = Expand(player.GetBoundingBox(), 3 * Game1.tileSize);
@@ -159,10 +153,6 @@ namespace JoysOfEfficiency
                         rod.hit = true;
                     }
                 }
-                if(!rod.inUse())
-                {
-                    caughtFish = false;
-                }
                 if (config.MuchFasterBiting)
                 {
                     rod.timeUntilFishingBite -= 1000;
@@ -202,9 +192,17 @@ namespace JoysOfEfficiency
             {
                 DrawSimpleTextbox(Game1.spriteBatch, hoverText, Game1.smallFont, Game1.player.CurrentItem);
             }
-            if(Game1.activeClickableMenu != null && Game1.activeClickableMenu is BobberBar bar)
+            if (Game1.activeClickableMenu != null && Game1.activeClickableMenu is BobberBar bar)
             {
-                DrawFishingInfoBox(Game1.spriteBatch, bar, Game1.dialogueFont);
+                if (config.FishingInfo)
+                {
+                    DrawFishingInfoBox(Game1.spriteBatch, bar, Game1.dialogueFont);
+                }
+
+                if (config.AutoFishing)
+                {
+                    AutoFishing(bar);
+                }
             }
         }
 
@@ -324,7 +322,10 @@ namespace JoysOfEfficiency
             }
 
             float strength = (fishPos - (barPos + barHeight / 2)) / 16f;
-            if(fishPos > down || fishPos < up)
+            float distance = fishPos - up;
+
+            float threshold = Cap(config.CPUThresholdFishing, 0, 0.5f);
+            if (distance < threshold * barHeight || distance > (1 - threshold) * barHeight)
             {
                 bobberBarSpeed = strength;
             }
@@ -576,7 +577,7 @@ namespace JoysOfEfficiency
             switch (fishQuality)
             {
                 case 1: return Color.AliceBlue;
-                case 2: return Color.Gold ;
+                case 2: return Color.Tomato;
                 case 3: return Color.Purple;
             }
             return Color.WhiteSmoke;
