@@ -14,6 +14,7 @@ using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Locations;
 using StardewValley.Menus;
+using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
 using StardewValley.Tools;
 
@@ -37,7 +38,7 @@ namespace JoysOfEfficiency
 
             SaveEvents.BeforeSave += OnBeforeSave;
 
-            SaveEvents.AfterLoad += OnPostSave;
+            //SaveEvents.AfterLoad += OnPostSave;
             TimeEvents.AfterDayStarted += OnPostSave;
 
             GraphicsEvents.OnPostRenderHudEvent += OnPostRenderHUD;
@@ -95,9 +96,9 @@ namespace JoysOfEfficiency
             if (config.GiftInformation)
             {
                 hoverText = null;
-                if (player.CurrentTool != null || player.CurrentItem == null || (player.CurrentItem is SVObject && (player.CurrentItem as SVObject).bigCraftable))
+                if (player.CurrentTool != null || player.CurrentItem == null ||(player.CurrentItem is SVObject && (player.CurrentItem as SVObject).bigCraftable) || !(player.CurrentItem is Furniture))
                 {
-                    //Rejects tools, nothing, and bigCraftable objects(chests, machines, statues etc.)
+                    //Rejects tools, nothing, and bigCraftable objects(chests, machines, statues etc.) and Furnitures
                 }
                 else
                 {
@@ -158,11 +159,15 @@ namespace JoysOfEfficiency
                     rod.timeUntilFishingBite -= 1000;
                 }
             }
+            if(config.AutoGate)
+            {
+                TryToggleGate(player);
+            }
         }
 
         private void OnButtonPressed(object sender, EventArgsInput args)
         {
-            if (!Context.IsWorldReady || !Context.IsMainPlayer)
+            if (!Context.IsWorldReady)
             {
                 return;
             }
@@ -170,7 +175,7 @@ namespace JoysOfEfficiency
             if (config.HowManyStonesLeft && args.Button == config.KeyShowStonesLeft)
             {
                 Player player = Game1.player;
-                if(player.currentLocation is MineShaft mine)
+                if (player.currentLocation is MineShaft mine)
                 {
                     int stonesLeft = reflection.GetField<int>(mine, "stonesLeftOnThisLevel").GetValue();
                     if (stonesLeft == 0)
@@ -286,6 +291,109 @@ namespace JoysOfEfficiency
         #endregion
 
         #region Utilities
+
+        public void TryToggleGate(Player player)
+        {
+            GameLocation location = player.currentLocation;
+
+            foreach (KeyValuePair<Vector2, SVObject> kv in location.Objects)
+            {
+                Vector2 loc = kv.Key;
+                if (!(kv.Value is Fence fence) || !fence.isGate)
+                {
+                    continue;
+                }
+
+                RectangleE bb = Expand(fence.getBoundingBox(loc), 2 * Game1.tileSize);
+                if (!bb.IsInternalPoint(player.Position.X, player.Position.Y))
+                {
+                    //It won't work if player is far away.
+                    continue;
+                }
+
+                bool? isUpDown = IsUpsideDown(location, fence);
+                if (isUpDown == null)
+                {
+                    continue;
+                }
+
+                int gatePosition = fence.gatePosition;
+                bool flag = IsPlayerManipulatable(player, fence.TileLocation, isUpDown);
+
+
+                if(flag && gatePosition == 0)
+                {
+                    fence.gatePosition = 88;
+                    Game1.playSound("doorClose");
+                }
+                if(!flag && gatePosition >= 88)
+                {
+                    fence.gatePosition = 0;
+                    Game1.playSound("doorClose");
+                }
+            }
+        }
+
+        private bool? IsUpsideDown(GameLocation location, Fence fence)
+        {
+            int num2 = 0;
+            Vector2 tileLocation = fence.TileLocation;
+            int whichType = fence.whichType;
+            tileLocation.X += 1f;
+            if (Game1.currentLocation.objects.ContainsKey(tileLocation) && Game1.currentLocation.objects[tileLocation].GetType() == typeof(Fence) && ((Fence)Game1.currentLocation.objects[tileLocation]).countsForDrawing(whichType))
+            {
+                num2 += 100;
+            }
+            tileLocation.X -= 2f;
+            if (Game1.currentLocation.objects.ContainsKey(tileLocation) && Game1.currentLocation.objects[tileLocation].GetType() == typeof(Fence) && ((Fence)Game1.currentLocation.objects[tileLocation]).countsForDrawing(whichType))
+            {
+                num2 += 10;
+            }
+            tileLocation.X += 1f;
+            tileLocation.Y += 1f;
+            if (Game1.currentLocation.objects.ContainsKey(tileLocation) && Game1.currentLocation.objects[tileLocation].GetType() == typeof(Fence) && ((Fence)Game1.currentLocation.objects[tileLocation]).countsForDrawing(whichType))
+            {
+                num2 += 500;
+            }
+            tileLocation.Y -= 2f;
+            if (Game1.currentLocation.objects.ContainsKey(tileLocation) && Game1.currentLocation.objects[tileLocation].GetType() == typeof(Fence) && ((Fence)Game1.currentLocation.objects[tileLocation]).countsForDrawing(whichType))
+            {
+                num2 += 1000;
+            }
+
+            if(fence.isGate)
+            {
+                if(num2 == 110)
+                {
+                    return true;
+                }
+                else if(num2 == 1500)
+                {
+                    return false;
+                }
+            }
+
+            return null;
+        }
+
+        private bool IsPlayerManipulatable(Player player, Vector2 fenceLocation, bool? isUpDown)
+        {
+            if(isUpDown == null)
+            {
+                return false;
+            }
+            Vector2 playerTileLocation = player.getTileLocation();
+            if(isUpDown == true)
+            {
+                return (playerTileLocation.X == fenceLocation.X) && (playerTileLocation.Y <= fenceLocation.Y + 1 && playerTileLocation.Y >= fenceLocation.Y - 1);
+            }
+            return (playerTileLocation.X >= fenceLocation.X - 1 && playerTileLocation.X <= fenceLocation.X + 1) && (playerTileLocation.Y == fenceLocation.Y);
+        }
+
+        private bool isSolidFence(SVObject obj)
+        {
+            return obj != null && (obj is Fence) && !(obj as Fence).isGate;
+        }
 
         public void AutoFishing(BobberBar bar)
         {
