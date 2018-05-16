@@ -6,7 +6,7 @@ namespace JoysOfEfficiency
 {
     public class Config
     {
-        public bool HowManyStonesLeft{ get; set; } = true;
+        public bool HowManyStonesLeft { get; set; } = true;
         public SButton KeyShowStonesLeft { get; set; } = SButton.H;
         public bool AutoWaterNearbyCrops { get; set; } = true;
         public bool GiftInformation { get; set; } = true;
@@ -18,5 +18,8 @@ namespace JoysOfEfficiency
         public bool FishingInfo { get; set; } = true;
         public float CPUThresholdFishing { get; set; } = 0.2f;
         public bool AutoGate { get; set; } = true;
+        public bool AutoEat { get; set; } = false;
+        public float StaminaToEatRatio { get; set; } = 0.2f;
+        public float HealthToEatRatio { get; set; } = 0.2f;
     }
 }

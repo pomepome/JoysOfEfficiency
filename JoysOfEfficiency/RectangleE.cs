@@ -30,6 +30,16 @@ namespace JoysOfEfficiency
             Height = height;
         }
 
+        public bool IsInternalPoint(Point point)
+        {
+            return IsInternalPoint(point.X, point.Y);
+        }
+
+        public bool IsInternalPoint(Vector2 locationVec)
+        {
+            return IsInternalPoint(locationVec.X, locationVec.Y);
+        }
+
         public bool IsInternalPoint(float x, float y)
         {
             return x >= X && x <= X + Width && y >= Y && y < Y + Height;

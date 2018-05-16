@@ -18,5 +18,8 @@
   "quality.normal": "Normal",
   "quality.silver": "Prata",
   "quality.gold": "Ouro",
-  "quality.iridium": "Irídio"
+  "quality.iridium": "Irídio",
+  "stones.none": "Na tym piętrze nie ma kamieni",
+  "stones.one": "Na tym piętrze jest kamień",
+  "stones.many": "Na tym piętrze jest {0} kamieni"
 }

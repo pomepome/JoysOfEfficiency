@@ -34,11 +34,10 @@ namespace JoysOfEfficiency
         {
             config = helper.ReadConfig<Config>();
             GameEvents.UpdateTick += OnGameUpdate;
+
             InputEvents.ButtonPressed += OnButtonPressed;
 
             SaveEvents.BeforeSave += OnBeforeSave;
-
-            //SaveEvents.AfterLoad += OnPostSave;
             TimeEvents.AfterDayStarted += OnPostSave;
 
             GraphicsEvents.OnPostRenderHudEvent += OnPostRenderHUD;
@@ -96,9 +95,8 @@ namespace JoysOfEfficiency
             if (config.GiftInformation)
             {
                 hoverText = null;
-                if (player.CurrentTool != null || player.CurrentItem == null ||(player.CurrentItem is SVObject && (player.CurrentItem as SVObject).bigCraftable) || !(player.CurrentItem is Furniture))
+                if (player.CurrentItem == null || !player.CurrentItem.canBeGivenAsGift())
                 {
-                    //Rejects tools, nothing, and bigCraftable objects(chests, machines, statues etc.) and Furnitures
                 }
                 else
                 {
@@ -163,6 +161,10 @@ namespace JoysOfEfficiency
             {
                 TryToggleGate(player);
             }
+            if(config.AutoEat)
+            {
+                TryToEatIfNeeded(player);
+            }
         }
 
         private void OnButtonPressed(object sender, EventArgsInput args)
@@ -172,6 +174,7 @@ namespace JoysOfEfficiency
                 return;
             }
             IReflectionHelper reflection = Helper.Reflection;
+            ITranslationHelper translation = Helper.Translation;
             if (config.HowManyStonesLeft && args.Button == config.KeyShowStonesLeft)
             {
                 Player player = Game1.player;
@@ -180,12 +183,19 @@ namespace JoysOfEfficiency
                     int stonesLeft = reflection.GetField<int>(mine, "stonesLeftOnThisLevel").GetValue();
                     if (stonesLeft == 0)
                     {
-                        ShowHUDMessage("There are no stones in this level.");
+                        ShowHUDMessage(translation.Get("stones.none"));
                     }
                     else
                     {
                         bool single = stonesLeft == 1;
-                        ShowHUDMessage(Format("There {0} {1} stone{2} left.", (single ? "is" : "are"), stonesLeft, (single ? "" : "s")));
+                        if(single)
+                        {
+                            ShowHUDMessage(translation.Get("stones.one"));
+                        }
+                        else
+                        {
+                            ShowHUDMessage(Format(translation.Get("stones.many"), stonesLeft));
+                        }
                     }
                 }
             }
@@ -292,6 +302,40 @@ namespace JoysOfEfficiency
 
         #region Utilities
 
+        private void TryToEatIfNeeded(Player player)
+        {
+            if(Game1.isEating)
+            {
+                return;
+            }
+            if(player.Stamina <= player.MaxStamina * config.StaminaToEatRatio || player.health <= player.maxHealth * config.HealthToEatRatio)
+            {
+                SVObject itemToEat = null;
+                foreach(SVObject item in player.items.OfType<SVObject>())
+                {
+                    if(item.Edibility > 0)
+                    {
+                        //It's a edible item
+                        if(itemToEat == null || (itemToEat.Edibility / itemToEat.salePrice() < item.Edibility / item.salePrice()))
+                        {
+                            //Found good edibility per price or just first food
+                            itemToEat = item;
+                        }
+                    }
+                }
+                if(itemToEat != null)
+                {
+                    Log("You ate {0}.", itemToEat.DisplayName);
+                    Game1.playerEatObject(itemToEat);
+                    itemToEat.Stack--;
+                    if(itemToEat.Stack == 0)
+                    {
+                        player.removeItemFromInventory(itemToEat);
+                    }
+                }
+            }
+        }
+
         public void TryToggleGate(Player player)
         {
             GameLocation location = player.currentLocation;
@@ -305,7 +349,7 @@ namespace JoysOfEfficiency
                 }
 
                 RectangleE bb = Expand(fence.getBoundingBox(loc), 2 * Game1.tileSize);
-                if (!bb.IsInternalPoint(player.Position.X, player.Position.Y))
+                if (!bb.IsInternalPoint(player.Position))
                 {
                     //It won't work if player is far away.
                     continue;
@@ -318,7 +362,7 @@ namespace JoysOfEfficiency
                 }
 
                 int gatePosition = fence.gatePosition;
-                bool flag = IsPlayerManipulatable(player, fence.TileLocation, isUpDown);
+                bool flag = IsPlayerInClose(player, fence.TileLocation, isUpDown);
 
 
                 if(flag && gatePosition == 0)
@@ -376,7 +420,7 @@ namespace JoysOfEfficiency
             return null;
         }
 
-        private bool IsPlayerManipulatable(Player player, Vector2 fenceLocation, bool? isUpDown)
+        private bool IsPlayerInClose(Player player, Vector2 fenceLocation, bool? isUpDown)
         {
             if(isUpDown == null)
             {
@@ -388,11 +432,6 @@ namespace JoysOfEfficiency
                 return (playerTileLocation.X == fenceLocation.X) && (playerTileLocation.Y <= fenceLocation.Y + 1 && playerTileLocation.Y >= fenceLocation.Y - 1);
             }
             return (playerTileLocation.X >= fenceLocation.X - 1 && playerTileLocation.X <= fenceLocation.X + 1) && (playerTileLocation.Y == fenceLocation.Y);
-        }
-
-        private bool isSolidFence(SVObject obj)
-        {
-            return obj != null && (obj is Fence) && !(obj as Fence).isGate;
         }
 
         public void AutoFishing(BobberBar bar)

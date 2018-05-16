@@ -18,5 +18,8 @@
   "quality.normal": "Normal",
   "quality.silver": "Silber",
   "quality.gold": "Gold",
-  "quality.iridium": "Iridium"
+  "quality.iridium": "Iridium",
+  "stones.none": "Es gibt keinen Stein auf dieser Etage",
+  "stones.one": "Auf diese Etage gibt es einen Stein",
+  "stones.many": "Es gibt {0} Steine ​​in diesem Stockwerk"
 }

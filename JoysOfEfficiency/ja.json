@@ -10,7 +10,7 @@
   "taste.hate.male": "彼はこの贈り物が大嫌いみたいだ",
   "taste.hate.female": "彼女はこの贈り物が大嫌いみたいだ",
   "fishinfo.species": "種: {0}",
-  "fishinfo.size": "大きさ: {0}inch",
+  "fishinfo.size": "大きさ: {0}センチ",
   "fishinfo.quality": "品質: ",
   "fishinfo.treasure.incoming": "{0:f1}秒後に宝箱が出現する",
   "fishinfo.treasure.appear": "宝箱が出現した",
@@ -18,5 +18,8 @@
   "quality.normal": "普通",
   "quality.silver": "銀",
   "quality.gold": "金",
-  "quality.iridium": "イリジウム"
+  "quality.iridium": "イリジウム",
+  "stones.none": "この階に石は残っていない",
+  "stones.one": "この階に石は一つだけある",
+  "stones.many": "この階に石は{0}個ある"
 }

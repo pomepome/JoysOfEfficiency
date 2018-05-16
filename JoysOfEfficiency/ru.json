@@ -18,5 +18,8 @@
   "quality.normal": "Нормальный",
   "quality.silver": "Серебро",
   "quality.gold": "Золото",
-  "quality.iridium": "Иридиум"
+  "quality.iridium": "Иридиум",
+  "stones.none": "На этом этаже нет камней",
+  "stones.one": "На этом этаже есть камень",
+  "stones.many": "На этом этаже есть {0} камни"
 }

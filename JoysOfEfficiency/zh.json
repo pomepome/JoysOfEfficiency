@@ -18,5 +18,8 @@
   "quality.normal": "一般",
   "quality.silver": "银",
   "quality.gold": "金",
-  "quality.iridium": "铱"
+  "quality.iridium": "铱",
+  "stones.none": "这个层没留有石头",
+  "stones.one": "这个层石头有只一个",
+  "stones.many": "这个楼层有{0}块石头"
 }
