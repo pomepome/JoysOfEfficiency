@@ -308,6 +308,23 @@ namespace JoysOfEfficiency
             {
                 return;
             }
+            {
+                bool flag = false;
+                if (config.HealthToEatRatio < 0 || config.HealthToEatRatio > 0.8f)
+                {
+                    config.HealthToEatRatio = Cap(config.HealthToEatRatio, 0, 0.8f);
+                    flag = true;
+                }
+                if (config.StaminaToEatRatio < 0 || config.StaminaToEatRatio > 0.8f)
+                {
+                    config.StaminaToEatRatio = Cap(config.StaminaToEatRatio, 0, 0.8f);
+                    flag = true;
+                }
+                if(flag)
+                {
+                    Helper.WriteConfig(config);
+                }
+            }
             if(player.Stamina <= player.MaxStamina * config.StaminaToEatRatio || player.health <= player.maxHealth * config.HealthToEatRatio)
             {
                 SVObject itemToEat = null;
