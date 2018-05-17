@@ -23,5 +23,6 @@ namespace JoysOfEfficiency
         public float HealthToEatRatio { get; set; } = 0.2f;
         public bool AutoHarvest { get; set; } = true;
         public bool AutoDestroyDeadCrops { get; set; } = true;
+        public bool AutoRefillWateringCan { get; set; } = true;
     }
 }

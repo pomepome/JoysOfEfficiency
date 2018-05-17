@@ -54,7 +54,7 @@ namespace JoysOfEfficiency
             }
             Player player = Game1.player;
             IReflectionHelper reflection = Helper.Reflection;
-            if (config.AutoWaterNearbyCrops && player.currentLocation.IsFarm)
+            if (config.AutoWaterNearbyCrops)
             {
                 RectangleE bb = ExpandE(player.GetBoundingBox(), 3.0f * Game1.tileSize);
                 WateringCan can = null;
@@ -172,6 +172,23 @@ namespace JoysOfEfficiency
             if(config.AutoDestroyDeadCrops)
             {
                 DestroyNearDeadCrops(player);
+            }
+            if(config.AutoRefillWateringCan)
+            {
+                WateringCan can = null;
+                foreach(Item item in player.Items)
+                {
+                    if(item is WateringCan wc && wc.WaterLeft < wc.waterCanMax)
+                    {
+                        can = wc;
+                    }
+                }
+                if(can != null && IsThereAnyWaterNear(player.currentLocation, player.getTileLocation()))
+                {
+                    can.WaterLeft = can.waterCanMax;
+                    Game1.playSound("slosh");
+                    DelayedAction.playSoundAfterDelay("glug", 250);
+                }
             }
         }
 
@@ -309,6 +326,23 @@ namespace JoysOfEfficiency
         #endregion
 
         #region Utilities
+
+        private bool IsThereAnyWaterNear(GameLocation location, Vector2 tileLocation)
+        {
+            for (int i = -1; i <= 1; i++)
+            {
+                for (int j = -1; j <= 1; j++)
+                {
+                    Vector2 toCheck = tileLocation + new Vector2(i, j);
+                    int x = (int)toCheck.X, y = (int)toCheck.Y;
+                    if(location.doesTileHaveProperty(x, y, "Water", "Back") != null || location.doesTileHaveProperty(x, y, "WaterSource", "Back") != null)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
 
         private void DestroyNearDeadCrops(Player player)
         {
