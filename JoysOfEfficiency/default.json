@@ -8,5 +8,18 @@
   "taste.dislike.male": "He dislikes this gift",
   "taste.dislike.female": "She dislikes this gift",
   "taste.hate.male": "He hates this gift",
-  "taste.hate.female": "She hates this gift"
+  "taste.hate.female": "She hates this gift",
+  "fishinfo.species": "Species: {0}",
+  "fishinfo.size": "Size: {0}inch",
+  "fishinfo.quality": "Quality: ",
+  "fishinfo.treasure.incoming": "Treasure is incoming in {0:f1}s.",
+  "fishinfo.treasure.appear": "Treasure appeared!",
+  "fishinfo.treasure.caught": "Treasure caught!",
+  "quality.normal": "Normal",
+  "quality.silver": "Silver",
+  "quality.gold": "Gold",
+  "quality.iridium": "Iridium",
+  "stones.none": "There are no stones on this floor",
+  "stones.one": "There is a stone on this floor",
+  "stones.many": "There are {0} stones on this floor"
 }

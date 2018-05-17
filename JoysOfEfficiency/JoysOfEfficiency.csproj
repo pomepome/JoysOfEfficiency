@@ -24,7 +24,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
+    <DebugType>none</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
@@ -32,7 +32,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Netcode">
+    <Reference Include="Netcode, Version=1.0.0.0, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\Games\steamapps\common\Stardew Valley\Netcode.dll</HintPath>
     </Reference>
     <Reference Include="System" />
@@ -54,6 +55,7 @@
     <None Include="de.json" />
     <None Include="default.json" />
     <None Include="es.json" />
+    <None Include="ja.json" />
     <None Include="manifest.json" />
     <None Include="packages.config" />
     <None Include="pt.json" />
@@ -68,4 +70,9 @@
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Pathoschild.Stardew.ModBuildConfig.2.0.2\build\Pathoschild.Stardew.ModBuildConfig.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Pathoschild.Stardew.ModBuildConfig.2.0.2\build\Pathoschild.Stardew.ModBuildConfig.targets'))" />
   </Target>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties manifest_1json__JSONSchema="" />
+    </VisualStudio>
+  </ProjectExtensions>
 </Project>

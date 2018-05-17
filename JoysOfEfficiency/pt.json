@@ -8,5 +8,18 @@
   "taste.dislike.male": "Ele não gosta deste presente,",
   "taste.dislike.female": "Ela não gosta deste presente",
   "taste.hate.male": "Ele odeia este presente",
-  "taste.hate.female": "Ela odeia este presente"
+  "taste.hate.female": "Ela odeia este presente",
+  "fishinfo.species": "Espécie: {0}",
+  "fishinfo.size": "Tamanho: {0}cm",
+  "fishinfo.quality": "Qualidade: ",
+  "fishinfo.treasure.incoming": "Tesouro é recebido em {0:f1}s.",
+  "fishinfo.treasure.appear": "Apareceu o tesouro!",
+  "fishinfo.treasure.caught": "Tesouro pego!",
+  "quality.normal": "Normal",
+  "quality.silver": "Prata",
+  "quality.gold": "Ouro",
+  "quality.iridium": "Irídio",
+  "stones.none": "Na tym piętrze nie ma kamieni",
+  "stones.one": "Na tym piętrze jest kamień",
+  "stones.many": "Na tym piętrze jest {0} kamieni"
 }

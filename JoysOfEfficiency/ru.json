@@ -8,5 +8,18 @@
   "taste.dislike.male": "Он не любит этот подарок",
   "taste.dislike.female": "Она не любит этот подарок",
   "taste.hate.male": "Он ненавидит этот подарок",
-  "taste.hate.female": "Она ненавидит этот подарок"
+  "taste.hate.female": "Она ненавидит этот подарок",
+  "fishinfo.species": "Виды: {0}",
+  "fishinfo.size": "Размер: {0}cm",
+  "fishinfo.quality": "Качество: ",
+  "fishinfo.treasure.incoming": "Сокровища входящих в {0:f1}s.",
+  "fishinfo.treasure.appear": "Сокровища появилась!",
+  "fishinfo.treasure.caught": "Сокровища поймали!",
+  "quality.normal": "Нормальный",
+  "quality.silver": "Серебро",
+  "quality.gold": "Золото",
+  "quality.iridium": "Иридиум",
+  "stones.none": "На этом этаже нет камней",
+  "stones.one": "На этом этаже есть камень",
+  "stones.many": "На этом этаже есть {0} камни"
 }
