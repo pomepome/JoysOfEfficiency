@@ -30,6 +30,11 @@ namespace JoysOfEfficiency
             Height = height;
         }
 
+        public bool CollideWith(Rectangle rect)
+        {
+            return IsInternalPoint(rect.Center);
+        }
+
         public bool IsInternalPoint(Point point)
         {
             return IsInternalPoint(point.X, point.Y);

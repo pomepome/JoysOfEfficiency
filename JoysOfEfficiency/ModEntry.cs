@@ -12,6 +12,7 @@ using StardewModdingAPI.Events;
 using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Buildings;
+using StardewValley.Characters;
 using StardewValley.Locations;
 using StardewValley.Menus;
 using StardewValley.Objects;
@@ -55,7 +56,7 @@ namespace JoysOfEfficiency
             IReflectionHelper reflection = Helper.Reflection;
             if (config.AutoWaterNearbyCrops && player.currentLocation.IsFarm)
             {
-                RectangleE bb = Expand(player.GetBoundingBox(), 3 * Game1.tileSize);
+                RectangleE bb = ExpandE(player.GetBoundingBox(), 3.0f * Game1.tileSize);
                 WateringCan can = null;
                 foreach (Item item in player.Items)
                 {
@@ -66,30 +67,29 @@ namespace JoysOfEfficiency
                         break;
                     }
                 }
-                if (can == null)
+                if (can != null)
                 {
-                    return;
-                }
-                bool watered = false;
-                foreach (KeyValuePair<Vector2, TerrainFeature> kv in player.currentLocation.terrainFeatures)
-                {
-                    Vector2 location = kv.Key;
-                    TerrainFeature tf = kv.Value;
-                    Point centre = tf.getBoundingBox(location).Center;
-                    if (bb.IsInternalPoint(centre.X, centre.Y) && tf is HoeDirt dirt)
+                    bool watered = false;
+                    foreach (KeyValuePair<Vector2, TerrainFeature> kv in player.currentLocation.terrainFeatures)
                     {
-                        if (dirt.crop != null && dirt.state == 0 && player.Stamina >= 2 && can.WaterLeft > 0)
+                        Vector2 location = kv.Key;
+                        TerrainFeature tf = kv.Value;
+                        Point centre = tf.getBoundingBox(location).Center;
+                        if (bb.IsInternalPoint(centre.X, centre.Y) && tf is HoeDirt dirt)
                         {
-                            dirt.state = 1;
-                            player.Stamina -= 2;
-                            can.WaterLeft--;
-                            watered = true;
+                            if (dirt.crop != null && !dirt.crop.dead && dirt.state == 0 && player.Stamina >= 2 && can.WaterLeft > 0)
+                            {
+                                dirt.state = 1;
+                                player.Stamina -= 2;
+                                can.WaterLeft--;
+                                watered = true;
+                            }
                         }
                     }
-                }
-                if (watered)
-                {
-                    Game1.playSound("slosh");
+                    if (watered)
+                    {
+                        Game1.playSound("slosh");
+                    }
                 }
             }
             if (config.GiftInformation)
@@ -164,6 +164,14 @@ namespace JoysOfEfficiency
             if(config.AutoEat)
             {
                 TryToEatIfNeeded(player);
+            }
+            if(config.AutoHarvest)
+            {
+                HarvestNearCrops(player);
+            }
+            if(config.AutoDestroyDeadCrops)
+            {
+                DestroyNearDeadCrops(player);
             }
         }
 
@@ -302,6 +310,263 @@ namespace JoysOfEfficiency
 
         #region Utilities
 
+        private void DestroyNearDeadCrops(Player player)
+        {
+            GameLocation location = player.currentLocation;
+            int radius = 2 * Game1.tileSize;
+            Rectangle bb = new Rectangle((int)player.position.X - radius, (int)player.position.Y - radius, 2 * radius, 2 * radius);
+            foreach (KeyValuePair<Vector2, TerrainFeature> kv in location.terrainFeatures)
+            {
+                Vector2 loc = kv.Key;
+                if(kv.Value is HoeDirt dirt)
+                {
+                    if(!bb.Intersects(dirt.getBoundingBox(loc)))
+                    {
+                        continue;
+                    }
+                    if(dirt.crop != null && dirt.crop.dead)
+                    {
+                        dirt.destroyCrop(loc);
+                    }
+                }
+            }
+        }
+
+        private void HarvestNearCrops(Player player)
+        {
+            GameLocation location = player.currentLocation;
+            int radius = Game1.tileSize;
+            Rectangle bb = new Rectangle((int)player.position.X - radius, (int)player.position.Y - radius, 2 * radius, 2 * radius);
+            foreach (KeyValuePair<Vector2, TerrainFeature> kv in location.terrainFeatures)
+            {
+                Vector2 loc = kv.Key;
+                if (kv.Value is HoeDirt dirt)
+                {
+                    if (!bb.Intersects(dirt.getBoundingBox(loc)) || dirt.crop == null)
+                    {
+                        continue;
+                    }
+                    if(dirt.readyForHarvest())
+                    {
+                        if (Harvest((int)loc.X, (int)loc.Y, dirt))
+                        {
+                            if (dirt.crop.regrowAfterHarvest == -1 || dirt.crop.forageCrop)
+                            {
+                                //destroy crop if it does not reqrow.
+                                dirt.destroyCrop(loc);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public bool Harvest(int xTile, int yTile, HoeDirt soil, JunimoHarvester junimoHarvester = null)
+        {
+            IReflectionHelper reflection = Helper.Reflection;
+            Crop crop = soil.crop;
+
+            if (crop.dead)
+            {
+                if (junimoHarvester != null)
+                {
+                    return true;
+                }
+                return false;
+            }
+            if (crop.forageCrop)
+            {
+                SVObject @object = null;
+                int howMuch = 3;
+                int num = crop.whichForageCrop;
+                if (num == 1)
+                {
+                    @object = new SVObject(399, 1, false, -1, 0);
+                }
+                if (Game1.player.professions.Contains(16))
+                {
+                    @object.quality = 4;
+                }
+                else if (Game1.random.NextDouble() < Game1.player.ForagingLevel / 30f)
+                {
+                    @object.quality = 2;
+                }
+                else if (Game1.random.NextDouble() < Game1.player.ForagingLevel / 15f)
+                {
+                    @object.quality = 1;
+                }
+                Game1.stats.ItemsForaged += (uint)@object.Stack;
+                if (junimoHarvester != null)
+                {
+                    junimoHarvester.tryToAddItemToHut(@object);
+                    return true;
+                }
+                if (Game1.player.addItemToInventoryBool(@object, false))
+                {
+                    Vector2 vector = new Vector2(xTile, yTile);
+                    Game1.player.animateOnce(279 + Game1.player.facingDirection);
+                    Game1.player.canMove = false;
+                    Game1.playSound("harvest");
+                    DelayedAction.playSoundAfterDelay("coin", 260);
+                    if (crop.regrowAfterHarvest == -1)
+                    {
+                        Game1.currentLocation.temporarySprites.Add(new TemporaryAnimatedSprite(17, new Vector2(vector.X * (float)Game1.tileSize, vector.Y * (float)Game1.tileSize), Color.White, 7, Game1.random.NextDouble() < 0.5, 125f, 0, -1, -1f, -1, 0));
+                        Game1.currentLocation.temporarySprites.Add(new TemporaryAnimatedSprite(14, new Vector2(vector.X * (float)Game1.tileSize, vector.Y * (float)Game1.tileSize), Color.White, 7, Game1.random.NextDouble() < 0.5, 50f, 0, -1, -1f, -1, 0));
+                    }
+                    Game1.player.gainExperience(2, howMuch);
+                    return true;
+                }
+            }
+            else if (crop.currentPhase >= crop.phaseDays.Count - 1 && (!crop.fullyGrown || crop.dayOfCurrentPhase <= 0))
+            {
+                int num2 = 1;
+                int num3 = 0;
+                int num4 = 0;
+                if (crop.indexOfHarvest == 0)
+                {
+                    return true;
+                }
+                Random random = new Random(xTile * 7 + yTile * 11 + (int)Game1.stats.DaysPlayed + (int)Game1.uniqueIDForThisGame);
+                switch (soil.fertilizer)
+                {
+                    case 368:
+                        num4 = 1;
+                        break;
+                    case 369:
+                        num4 = 2;
+                        break;
+                }
+                double num5 = 0.2 * (Game1.player.FarmingLevel / 10.0) + 0.2 * num4 * ((Game1.player.FarmingLevel + 2.0) / 12.0) + 0.01;
+                double num6 = Math.Min(0.75, num5 * 2.0);
+                if (random.NextDouble() < num5)
+                {
+                    num3 = 2;
+                }
+                else if (random.NextDouble() < num6)
+                {
+                    num3 = 1;
+                }
+                if (crop.minHarvest > 1 || crop.maxHarvest > 1)
+                {
+                    num2 = random.Next(crop.minHarvest, Math.Min(crop.minHarvest + 1, crop.maxHarvest + 1 + Game1.player.FarmingLevel / crop.maxHarvestIncreasePerFarmingLevel));
+                }
+                if (crop.chanceForExtraCrops > 0.0)
+                {
+                    while (random.NextDouble() < Math.Min(0.9, crop.chanceForExtraCrops))
+                    {
+                        num2++;
+                    }
+                }
+                if (crop.harvestMethod == 1)
+                {
+                    if (junimoHarvester == null)
+                    {
+                        DelayedAction.playSoundAfterDelay("daggerswipe", 150);
+                    }
+                    if (junimoHarvester != null && Utility.isOnScreen(junimoHarvester.getTileLocationPoint(), Game1.tileSize, junimoHarvester.currentLocation))
+                    {
+                        Game1.playSound("harvest");
+                    }
+                    if (junimoHarvester != null && Utility.isOnScreen(junimoHarvester.getTileLocationPoint(), Game1.tileSize, junimoHarvester.currentLocation))
+                    {
+                        DelayedAction.playSoundAfterDelay("coin", 260);
+                    }
+                    for (int i = 0; i < num2; i++)
+                    {
+                        if (junimoHarvester != null)
+                        {
+                            junimoHarvester.tryToAddItemToHut(new SVObject(crop.indexOfHarvest, 1, false, -1, num3));
+                        }
+                        else
+                        {
+                            Game1.createObjectDebris(crop.indexOfHarvest, xTile, yTile, -1, num3, 1f, null);
+                        }
+                    }
+                    if (crop.regrowAfterHarvest == -1)
+                    {
+                        return true;
+                    }
+                    crop.dayOfCurrentPhase = crop.regrowAfterHarvest;
+                    crop.fullyGrown = true;
+                }
+                else if (junimoHarvester != null || Game1.player.addItemToInventoryBool(crop.programColored ? new ColoredObject(crop.indexOfHarvest, 1, crop.tintColor)
+                {
+                    quality = num3
+                } : new SVObject(crop.indexOfHarvest, 1, false, -1, num3), false))
+                {
+                    Vector2 vector2 = new Vector2((float)xTile, (float)yTile);
+                    if (junimoHarvester == null)
+                    {
+                        Game1.player.animateOnce(279 + Game1.player.facingDirection);
+                        Game1.player.canMove = false;
+                    }
+                    else
+                    {
+                        junimoHarvester.tryToAddItemToHut(crop.programColored ? new ColoredObject(crop.indexOfHarvest, 1, crop.tintColor)
+                        {
+                            quality = num3
+                        } : new SVObject(crop.indexOfHarvest, 1, false, -1, num3));
+                    }
+                    if (random.NextDouble() < (double)((float)Game1.player.LuckLevel / 1500f) + Game1.dailyLuck / 1200.0 + 9.9999997473787516E-05)
+                    {
+                        num2 *= 2;
+                        if (junimoHarvester == null || Utility.isOnScreen(junimoHarvester.getTileLocationPoint(), Game1.tileSize, junimoHarvester.currentLocation))
+                        {
+                            Game1.playSound("dwoop");
+                        }
+                    }
+                    else if (crop.harvestMethod == 0)
+                    {
+                        if (junimoHarvester == null || Utility.isOnScreen(junimoHarvester.getTileLocationPoint(), Game1.tileSize, junimoHarvester.currentLocation))
+                        {
+                            Game1.playSound("harvest");
+                        }
+                        if (junimoHarvester == null || Utility.isOnScreen(junimoHarvester.getTileLocationPoint(), Game1.tileSize, junimoHarvester.currentLocation))
+                        {
+                            DelayedAction.playSoundAfterDelay("coin", 260);
+                        }
+                        if (crop.regrowAfterHarvest == -1 && (junimoHarvester == null || junimoHarvester.currentLocation.Equals(Game1.currentLocation)))
+                        {
+                            Game1.currentLocation.temporarySprites.Add(new TemporaryAnimatedSprite(17, new Vector2(vector2.X * (float)Game1.tileSize, vector2.Y * (float)Game1.tileSize), Color.White, 7, Game1.random.NextDouble() < 0.5, 125f, 0, -1, -1f, -1, 0));
+                            Game1.currentLocation.temporarySprites.Add(new TemporaryAnimatedSprite(14, new Vector2(vector2.X * (float)Game1.tileSize, vector2.Y * (float)Game1.tileSize), Color.White, 7, Game1.random.NextDouble() < 0.5, 50f, 0, -1, -1f, -1, 0));
+                        }
+                    }
+                    if (crop.indexOfHarvest == 421)
+                    {
+                        crop.indexOfHarvest = 431;
+                        num2 = random.Next(1, 4);
+                    }
+                    for (int j = 0; j < num2 - 1; j++)
+                    {
+                        if (junimoHarvester == null)
+                        {
+                            Game1.createObjectDebris(crop.indexOfHarvest, xTile, yTile, -1, 0, 1f, null);
+                        }
+                        else
+                        {
+                            junimoHarvester.tryToAddItemToHut(new SVObject(crop.indexOfHarvest, 1, false, -1, 0));
+                        }
+                    }
+                    int num7 = Convert.ToInt32(Game1.objectInformation[crop.indexOfHarvest].Split('/')[1]);
+                    float num8 = (float)(16.0 * Math.Log(0.018 * (double)num7 + 1.0, 2.7182818284590451));
+                    if (junimoHarvester == null)
+                    {
+                        Game1.player.gainExperience(0, (int)Math.Round((double)num8));
+                    }
+                    if (crop.regrowAfterHarvest == -1)
+                    {
+                        return true;
+                    }
+                    crop.dayOfCurrentPhase = crop.regrowAfterHarvest;
+                    crop.fullyGrown = true;
+                }
+                else
+                {
+                }
+            }
+            return false;
+        }
+
         private void TryToEatIfNeeded(Player player)
         {
             if(Game1.isEating)
@@ -365,7 +630,7 @@ namespace JoysOfEfficiency
                     continue;
                 }
 
-                RectangleE bb = Expand(fence.getBoundingBox(loc), 2 * Game1.tileSize);
+                RectangleE bb = ExpandE(fence.getBoundingBox(loc), 2.0f * Game1.tileSize);
                 if (!bb.IsInternalPoint(player.Position))
                 {
                     //It won't work if player is far away.
@@ -375,11 +640,15 @@ namespace JoysOfEfficiency
                 bool? isUpDown = IsUpsideDown(location, fence);
                 if (isUpDown == null)
                 {
+                    if(!player.GetBoundingBox().Intersects(fence.getBoundingBox(loc)))
+                    {
+                        fence.gatePosition = 0;
+                    }
                     continue;
                 }
 
                 int gatePosition = fence.gatePosition;
-                bool flag = IsPlayerInClose(player, fence.TileLocation, isUpDown);
+                bool flag = IsPlayerInClose(player, fence, fence.TileLocation, isUpDown);
 
 
                 if(flag && gatePosition == 0)
@@ -437,11 +706,11 @@ namespace JoysOfEfficiency
             return null;
         }
 
-        private bool IsPlayerInClose(Player player, Vector2 fenceLocation, bool? isUpDown)
+        private bool IsPlayerInClose(Player player, Fence fence, Vector2 fenceLocation, bool? isUpDown)
         {
             if(isUpDown == null)
             {
-                return false;
+                return Expand(player.GetBoundingBox(), 2 * Game1.tileSize).Intersects(player.GetBoundingBox());
             }
             Vector2 playerTileLocation = player.getTileLocation();
             if(isUpDown == true)
@@ -552,9 +821,14 @@ namespace JoysOfEfficiency
             Game1.addHUDMessage(hudMessage);
         }
 
-        private RectangleE Expand(Rectangle rect, int radius)
+        private RectangleE ExpandE(Rectangle rect, float radius)
         {
             return new RectangleE(rect.Left - radius, rect.Top - radius, 2 * radius, 2 * radius);
+        }
+
+        private Rectangle Expand(Rectangle rect, int radius)
+        {
+            return new Rectangle(rect.Left - radius, rect.Top - radius, 2 * radius, 2 * radius);
         }
 
         private void DrawSimpleTextbox(SpriteBatch batch, string text, SpriteFont font, Item item)

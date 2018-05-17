@@ -21,5 +21,7 @@ namespace JoysOfEfficiency
         public bool AutoEat { get; set; } = false;
         public float StaminaToEatRatio { get; set; } = 0.2f;
         public float HealthToEatRatio { get; set; } = 0.2f;
+        public bool AutoHarvest { get; set; } = true;
+        public bool AutoDestroyDeadCrops { get; set; } = true;
     }
 }
