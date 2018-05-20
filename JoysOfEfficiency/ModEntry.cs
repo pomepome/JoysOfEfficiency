@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using JoysOfEfficiency.Options;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -26,23 +27,24 @@ namespace JoysOfEfficiency
     public class ModEntry : Mod
     {
 
-        private Config config = null;
+        public static Config Conf { get; private set; } = null;
+
         private string hoverText;
         private bool catchingTreasure;
 
         public override void Entry(IModHelper helper)
         {
-            config = helper.ReadConfig<Config>();
+            Conf = helper.ReadConfig<Config>();
             GameEvents.UpdateTick += OnGameUpdate;
-            InputEvents.ButtonPressed += OnButtonPressed;
+            ControlEvents.KeyPressed += OnKeyPressed;
 
             SaveEvents.BeforeSave += OnBeforeSave;
             TimeEvents.AfterDayStarted += OnPostSave;
 
             GraphicsEvents.OnPostRenderHudEvent += OnPostRenderHUD;
 
-            config.CPUThresholdFishing = Cap(config.CPUThresholdFishing, 0, 0.5f);
-            helper.WriteConfig(config);
+            Conf.CPUThresholdFishing = Cap(Conf.CPUThresholdFishing, 0, 0.5f);
+            helper.WriteConfig(Conf);
         }
 
         private void OnGameUpdate(object sender, EventArgs args)
@@ -53,7 +55,7 @@ namespace JoysOfEfficiency
             }
             Player player = Game1.player;
             IReflectionHelper reflection = Helper.Reflection;
-            if (config.AutoWaterNearbyCrops)
+            if (Conf.AutoWaterNearbyCrops)
             {
                 RectangleE bb = ExpandE(player.GetBoundingBox(), 3 * Game1.tileSize);
                 WateringCan can = null;
@@ -94,7 +96,7 @@ namespace JoysOfEfficiency
                     }
                 }
             }
-            if (config.GiftInformation)
+            if (Conf.GiftInformation)
             {
                 hoverText = null;
                 if (player.CurrentTool != null || player.CurrentItem == null || (player.CurrentItem is SVObject && (player.CurrentItem as SVObject).bigCraftable) || player.CurrentItem is Furniture)
@@ -131,7 +133,7 @@ namespace JoysOfEfficiency
                     }
                 }
             }
-            if (config.AutoPetNearbyAnimals)
+            if (Conf.AutoPetNearbyAnimals)
             {
                 int radius = 3 * Game1.tileSize;
                 RectangleE bb = new RectangleE(player.position.X - radius, player.position.Y - radius, radius * 2, radius * 2);
@@ -140,6 +142,10 @@ namespace JoysOfEfficiency
                 {
                     if (bb.IsInternalPoint(animal.position.X, animal.position.Y) && !animal.wasPet)
                     {
+                        if (Game1.timeOfDay >= 1900 && !animal.isMoving())
+                        {
+                            continue;
+                        }
                         animal.pet(player);
                     }
                 }
@@ -147,36 +153,35 @@ namespace JoysOfEfficiency
             if (player.CurrentTool is FishingRod rod)
             {
                 IReflectedField<int> whichFish = reflection.GetField<int>(rod, "whichFish");
-                if (rod.isNibbling && !rod.isReeling && !rod.hit && !rod.pullingOutOfWater && !rod.fishCaught)
+                if (rod.isNibbling && whichFish.GetValue() == -1 && !rod.isReeling && !rod.hit && !rod.isTimingCast && !rod.pullingOutOfWater && !rod.fishCaught)
                 {
-                    if (config.AutoFishing)
+                    if (Conf.AutoReelRod)
                     {
                         rod.DoFunction(player.currentLocation, 1, 1, 1, player);
-                        rod.hit = true;
                     }
                 }
-                if (config.MuchFasterBiting && rod.inUse() && !rod.isNibbling)
+                if (Conf.MuchFasterBiting && rod.inUse() && !rod.isNibbling)
                 {
                     rod.timeUntilFishingBite -= 1000;
                 }
             }
-            if (config.AutoGate)
+            if (Conf.AutoGate)
             {
                 TryToggleGate(player);
             }
-            if(config.AutoEat)
+            if(Conf.AutoEat)
             {
                 TryToEatIfNeeded(player);
             }
-            if (config.AutoHarvest)
+            if (Conf.AutoHarvest)
             {
                 HarvestNearCrops(player);
             }
-            if (config.AutoDestroyDeadCrops)
+            if (Conf.AutoDestroyDeadCrops)
             {
                 DestroyNearDeadCrops(player);
             }
-            if(config.AutoRefillWateringCan)
+            if(Conf.AutoRefillWateringCan)
             {
                 WateringCan can = null;
                 foreach (Item item in player.Items)
@@ -195,15 +200,15 @@ namespace JoysOfEfficiency
             }
         }
 
-        private void OnButtonPressed(object sender, EventArgsInput args)
+        private void OnKeyPressed(object sender, EventArgsKeyPressed args)
         {
-            if (!Context.IsWorldReady || !Context.IsMainPlayer)
+            if (!Context.IsPlayerFree || Game1.activeClickableMenu != null)
             {
                 return;
             }
             IReflectionHelper reflection = Helper.Reflection;
             ITranslationHelper translation = Helper.Translation;
-            if (config.HowManyStonesLeft && args.Button == config.KeyShowStonesLeft)
+            if (Conf.HowManyStonesLeft && args.KeyPressed == Conf.KeyShowStonesLeft)
             {
                 Player player = Game1.player;
                 if(player.currentLocation is MineShaft mine)
@@ -227,6 +232,12 @@ namespace JoysOfEfficiency
                     }
                 }
             }
+            if (args.KeyPressed == Conf.KeyShowMenu)
+            {
+                //Open Up Menu
+                Game1.playSound("bigSelect");
+                Game1.activeClickableMenu = new JOEMenu(800, 500, this);
+            }
         }
 
         private void OnPostRenderHUD(object sender, EventArgs args)
@@ -237,12 +248,12 @@ namespace JoysOfEfficiency
             }
             if (Game1.activeClickableMenu != null && Game1.activeClickableMenu is BobberBar bar)
             {
-                if (config.FishingInfo)
+                if (Conf.FishingInfo)
                 {
                     DrawFishingInfoBox(Game1.spriteBatch, bar, Game1.dialogueFont);
                 }
 
-                if (config.AutoFishing)
+                if (Conf.AutoFishing)
                 {
                     AutoFishing(bar);
                 }
@@ -251,7 +262,7 @@ namespace JoysOfEfficiency
 
         private void OnBeforeSave(object sender, EventArgs args)
         {
-            if(!Context.IsWorldReady || !Context.IsPlayerFree || !config.AutoAnimalDoor)
+            if(!Context.IsWorldReady || !Conf.AutoAnimalDoor)
             {
                 return;
             }
@@ -286,7 +297,7 @@ namespace JoysOfEfficiency
 
         private void OnPostSave(object sender, EventArgs args)
         {
-            if (!Context.IsWorldReady || !Context.IsPlayerFree || !config.AutoAnimalDoor)
+            if (!Context.IsWorldReady || !Conf.AutoAnimalDoor)
             {
                 return;
             }
@@ -498,28 +509,9 @@ namespace JoysOfEfficiency
                 }
                 if ((int)crop.harvestMethod == 1)
                 {
-                    if (junimoHarvester != null)
-                    {
-                        DelayedAction.playSoundAfterDelay("daggerswipe", 150, junimoHarvester.currentLocation);
-                    }
-                    if (junimoHarvester != null && Utility.isOnScreen(junimoHarvester.getTileLocationPoint(), 64, junimoHarvester.currentLocation))
-                    {
-                        junimoHarvester.currentLocation.playSound("harvest");
-                    }
-                    if (junimoHarvester != null && Utility.isOnScreen(junimoHarvester.getTileLocationPoint(), 64, junimoHarvester.currentLocation))
-                    {
-                        DelayedAction.playSoundAfterDelay("coin", 260, junimoHarvester.currentLocation);
-                    }
                     for (int j = 0; j < numToHarvest; j++)
                     {
-                        if (junimoHarvester != null)
-                        {
-                            junimoHarvester.tryToAddItemToHut(new SVObject(crop.indexOfHarvest, 1, false, -1, cropQuality));
-                        }
-                        else
-                        {
-                            Game1.createObjectDebris(crop.indexOfHarvest, xTile, yTile, -1, cropQuality, 1f, null);
-                        }
+                        Game1.createObjectDebris(crop.indexOfHarvest, xTile, yTile, -1, cropQuality, 1f, null);
                     }
                     if ((int)crop.regrowAfterHarvest == -1)
                     {
@@ -528,7 +520,7 @@ namespace JoysOfEfficiency
                     crop.dayOfCurrentPhase.Value = crop.regrowAfterHarvest;
                     crop.fullyGrown.Value = true;
                 }
-                else if (junimoHarvester != null || Game1.player.addItemToInventoryBool(((bool)crop.programColored) ? new ColoredObject(crop.indexOfHarvest, 1, crop.tintColor)
+                else if (Game1.player.addItemToInventoryBool(((bool)crop.programColored) ? new ColoredObject(crop.indexOfHarvest, 1, crop.tintColor)
                 {
                     Quality = cropQuality
                 } : new SVObject(crop.indexOfHarvest, 1, false, -1, cropQuality), false))
@@ -564,10 +556,6 @@ namespace JoysOfEfficiency
                         {
                             Game1.player.currentLocation.playSound("harvest");
                         }
-                        else if (Utility.isOnScreen(junimoHarvester.getTileLocationPoint(), 64, junimoHarvester.currentLocation))
-                        {
-                            junimoHarvester.currentLocation.playSound("harvest");
-                        }
                         if (junimoHarvester == null)
                         {
                             DelayedAction.playSoundAfterDelay("coin", 260, Game1.player.currentLocation);
@@ -576,7 +564,7 @@ namespace JoysOfEfficiency
                         {
                             DelayedAction.playSoundAfterDelay("coin", 260, junimoHarvester.currentLocation);
                         }
-                        if ((int)crop.regrowAfterHarvest == -1 && (junimoHarvester == null || junimoHarvester.currentLocation.Equals(Game1.currentLocation)))
+                        if ((int)crop.regrowAfterHarvest == -1)
                         {
                             multiplayer.broadcastSprites(Game1.currentLocation, new TemporaryAnimatedSprite(17, new Vector2(initialTile.X * 64f, initialTile.Y * 64f), Color.White, 7, Game1.random.NextDouble() < 0.5, 125f, 0, -1, -1f, -1, 0));
                             multiplayer.broadcastSprites(Game1.currentLocation, new TemporaryAnimatedSprite(14, new Vector2(initialTile.X * 64f, initialTile.Y * 64f), Color.White, 7, Game1.random.NextDouble() < 0.5, 50f, 0, -1, -1f, -1, 0));
@@ -589,14 +577,7 @@ namespace JoysOfEfficiency
                     }
                     for (int i = 0; i < numToHarvest - 1; i++)
                     {
-                        if (junimoHarvester == null)
-                        {
-                            Game1.createObjectDebris(crop.indexOfHarvest, xTile, yTile, -1, 0, 1f, null);
-                        }
-                        else
-                        {
-                            junimoHarvester.tryToAddItemToHut(new SVObject(crop.indexOfHarvest, 1, false, -1, 0));
-                        }
+                        Game1.createObjectDebris(crop.indexOfHarvest, xTile, yTile, -1, 0, 1f, null);
                     }
                     int price = Convert.ToInt32(Game1.objectInformation[crop.indexOfHarvest].Split('/')[1]);
                     float experience = (float)(16.0 * Math.Log(0.018 * (double)price + 1.0, 2.7182818284590451));
@@ -613,7 +594,6 @@ namespace JoysOfEfficiency
                 }
                 else
                 {
-                    Game1.showRedMessage(Game1.content.LoadString("Strings\\StringsFromCSFiles:Crop.cs.588"));
                 }
             }
             return false;
@@ -735,22 +715,22 @@ namespace JoysOfEfficiency
             }
             {
                 bool flag = false;
-                if (config.HealthToEatRatio < 0 || config.HealthToEatRatio > 0.8f)
+                if (Conf.HealthToEatRatio < 0 || Conf.HealthToEatRatio > 0.8f)
                 {
-                    config.HealthToEatRatio = Cap(config.HealthToEatRatio, 0, 0.8f);
+                    Conf.HealthToEatRatio = Cap(Conf.HealthToEatRatio, 0, 0.8f);
                     flag = true;
                 }
-                if (config.StaminaToEatRatio < 0 || config.StaminaToEatRatio > 0.8f)
+                if (Conf.StaminaToEatRatio < 0 || Conf.StaminaToEatRatio > 0.8f)
                 {
-                    config.StaminaToEatRatio = Cap(config.StaminaToEatRatio, 0, 0.8f);
+                    Conf.StaminaToEatRatio = Cap(Conf.StaminaToEatRatio, 0, 0.8f);
                     flag = true;
                 }
                 if (flag)
                 {
-                    Helper.WriteConfig(config);
+                    Helper.WriteConfig(Conf);
                 }
             }
-            if (player.Stamina <= player.MaxStamina * config.StaminaToEatRatio || player.health <= player.maxHealth * config.HealthToEatRatio)
+            if (player.Stamina <= player.MaxStamina * Conf.StaminaToEatRatio || player.health <= player.maxHealth * Conf.HealthToEatRatio)
             {
                 SVObject itemToEat = null;
                 foreach (SVObject item in player.items.OfType<SVObject>())
@@ -816,7 +796,7 @@ namespace JoysOfEfficiency
             float strength = (fishPos - (barPos + barHeight / 2)) / 16f;
             float distance = fishPos - top;
 
-            float threshold = Cap(config.CPUThresholdFishing, 0, 0.5f);
+            float threshold = Cap(Conf.CPUThresholdFishing, 0, 0.5f);
             if(distance < threshold * barHeight || distance > (1 - threshold) * barHeight)
             {
                 bobberBarSpeed = strength;
@@ -1133,6 +1113,11 @@ namespace JoysOfEfficiency
             {
             }
             return "";
+        }
+
+        public void WriteConfig()
+        {
+            Helper.WriteConfig(Conf);
         }
     }
 }

@@ -21,5 +21,11 @@
   "quality.iridium": "Iridium",
   "stones.none": "No hay ninguna piedra a la izquierda en este piso",
   "stones.one": "Hay una piedra en este piso",
-  "stones.many": "Hay {0} piedras en este piso"
+  "stones.many": "Hay {0} piedras en este piso",
+  "tab.enabled": " Habilitado/Deshabilitado",
+  "tab.sliders": " Controles deslizantes",
+  "tab.controls": "Controles",
+  "button.awaiting": "Presione la tecla para asignar...",
+  "button.esc": "Presione la tecla Esc para cancelar",
+  "button.conflict": "La tecla presionada está en conflicto"
 }
