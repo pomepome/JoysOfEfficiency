@@ -7,7 +7,7 @@ namespace JoysOfEfficiency
     public class Config
     {
         public bool HowManyStonesLeft { get; set; } = true;
-        public SButton KeyShowStonesLeft { get; set; } = SButton.H;
+        public Keys KeyShowStonesLeft { get; set; } = Keys.H;
         public bool AutoWaterNearbyCrops { get; set; } = true;
         public bool GiftInformation { get; set; } = true;
         public bool AutoPetNearbyAnimals { get; set; } = true;
@@ -24,5 +24,6 @@ namespace JoysOfEfficiency
         public bool AutoHarvest { get; set; } = true;
         public bool AutoDestroyDeadCrops { get; set; } = true;
         public bool AutoRefillWateringCan { get; set; } = true;
+        public Keys KeyShowMenu { get; set; } = Keys.R;
     }
 }

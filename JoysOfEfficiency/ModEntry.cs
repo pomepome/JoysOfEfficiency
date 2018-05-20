@@ -18,6 +18,7 @@ using StardewValley.Menus;
 using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
 using StardewValley.Tools;
+using JoysOfEfficiency.Options;
 
 namespace JoysOfEfficiency
 {
@@ -26,17 +27,23 @@ namespace JoysOfEfficiency
     using SVObject = StardewValley.Object;
     public class ModEntry : Mod
     {
-
-        private Config config = null;
+        public static Mod Instance { get; private set; }
+        public static Config Conf { get; private set; }
+        
         private string hoverText;
         private bool catchingTreasure = false;
 
+        public ModEntry()
+        {
+            Instance = this;
+        }
+
         public override void Entry(IModHelper helper)
         {
-            config = helper.ReadConfig<Config>();
+            Conf = helper.ReadConfig<Config>();
             GameEvents.UpdateTick += OnGameUpdate;
 
-            InputEvents.ButtonPressed += OnButtonPressed;
+            ControlEvents.KeyPressed += OnKeyPressed;
 
             SaveEvents.BeforeSave += OnBeforeSave;
             TimeEvents.AfterDayStarted += OnPostSave;
@@ -54,7 +61,7 @@ namespace JoysOfEfficiency
             }
             Player player = Game1.player;
             IReflectionHelper reflection = Helper.Reflection;
-            if (config.AutoWaterNearbyCrops)
+            if (Conf.AutoWaterNearbyCrops)
             {
                 RectangleE bb = ExpandE(player.GetBoundingBox(), 3.0f * Game1.tileSize);
                 WateringCan can = null;
@@ -92,7 +99,7 @@ namespace JoysOfEfficiency
                     }
                 }
             }
-            if (config.GiftInformation)
+            if (Conf.GiftInformation)
             {
                 hoverText = null;
                 if (player.CurrentItem == null || !player.CurrentItem.canBeGivenAsGift())
@@ -128,7 +135,7 @@ namespace JoysOfEfficiency
                     }
                 }
             }
-            if (config.AutoPetNearbyAnimals)
+            if (Conf.AutoPetNearbyAnimals)
             {
                 int radius = 3 * Game1.tileSize;
                 RectangleE bb = new RectangleE(player.position.X - radius, player.position.Y - radius, radius * 2, radius * 2);
@@ -137,6 +144,11 @@ namespace JoysOfEfficiency
                 {
                     if (bb.IsInternalPoint(animal.position.X, animal.position.Y) && !animal.wasPet)
                     {
+                        if (Game1.timeOfDay >= 1900 && !animal.isMoving())
+                        {
+                            //Skipping Slept Animals
+                            continue;
+                        }
                         animal.pet(player);
                     }
                 }
@@ -146,34 +158,34 @@ namespace JoysOfEfficiency
                 IReflectedField<int> whichFish = reflection.GetField<int>(rod, "whichFish");
                 if (rod.isNibbling && !rod.isReeling && !rod.hit && !rod.pullingOutOfWater && !rod.fishCaught)
                 {
-                    if (config.AutoFishing)
+                    if (Conf.AutoFishing)
                     {
                         rod.DoFunction(player.currentLocation, 1, 1, 1, player);
                         rod.hit = true;
                     }
                 }
-                if (config.MuchFasterBiting)
+                if (Conf.MuchFasterBiting)
                 {
                     rod.timeUntilFishingBite -= 1000;
                 }
             }
-            if(config.AutoGate)
+            if(Conf.AutoGate)
             {
                 TryToggleGate(player);
             }
-            if(config.AutoEat)
+            if(Conf.AutoEat)
             {
                 TryToEatIfNeeded(player);
             }
-            if(config.AutoHarvest)
+            if(Conf.AutoHarvest)
             {
                 HarvestNearCrops(player);
             }
-            if(config.AutoDestroyDeadCrops)
+            if(Conf.AutoDestroyDeadCrops)
             {
                 DestroyNearDeadCrops(player);
             }
-            if(config.AutoRefillWateringCan)
+            if(Conf.AutoRefillWateringCan)
             {
                 WateringCan can = null;
                 foreach(Item item in player.Items)
@@ -192,15 +204,15 @@ namespace JoysOfEfficiency
             }
         }
 
-        private void OnButtonPressed(object sender, EventArgsInput args)
+        private void OnKeyPressed(object sender, EventArgsKeyPressed args)
         {
-            if (!Context.IsWorldReady)
+            if (!Context.IsPlayerFree || Game1.activeClickableMenu != null)
             {
                 return;
             }
             IReflectionHelper reflection = Helper.Reflection;
             ITranslationHelper translation = Helper.Translation;
-            if (config.HowManyStonesLeft && args.Button == config.KeyShowStonesLeft)
+            if (Conf.HowManyStonesLeft && args.KeyPressed == Conf.KeyShowStonesLeft)
             {
                 Player player = Game1.player;
                 if (player.currentLocation is MineShaft mine)
@@ -224,6 +236,12 @@ namespace JoysOfEfficiency
                     }
                 }
             }
+            if(args.KeyPressed == Conf.KeyShowMenu)
+            {
+                //Open Up Menu
+                Game1.playSound("bigSelect");
+                Game1.activeClickableMenu = new JOEMenu(800, 500, this);
+            }
         }
 
         private void OnPostRenderHUD(object sender, EventArgs args)
@@ -234,12 +252,11 @@ namespace JoysOfEfficiency
             }
             if (Game1.activeClickableMenu != null && Game1.activeClickableMenu is BobberBar bar)
             {
-                if (config.FishingInfo)
+                if (Conf.FishingInfo)
                 {
                     DrawFishingInfoBox(Game1.spriteBatch, bar, Game1.dialogueFont);
                 }
-
-                if (config.AutoFishing)
+                if (Conf.AutoFishing)
                 {
                     AutoFishing(bar);
                 }
@@ -248,11 +265,10 @@ namespace JoysOfEfficiency
 
         private void OnBeforeSave(object sender, EventArgs args)
         {
-            if(!Context.IsWorldReady || !Context.IsPlayerFree || !config.AutoAnimalDoor)
+            if(!Context.IsWorldReady || !Conf.AutoAnimalDoor)
             {
                 return;
             }
-            Log("BeforeSave");
             LetAnimalsInHome();
 
             Farm farm = Game1.getFarm();
@@ -285,11 +301,10 @@ namespace JoysOfEfficiency
 
         private void OnPostSave(object sender, EventArgs args)
         {
-            if (!Context.IsWorldReady || !Context.IsPlayerFree || !config.AutoAnimalDoor)
+            if (!Context.IsWorldReady || !Conf.AutoAnimalDoor)
             {
                 return;
             }
-            Log("PostSave");
             if(Game1.isRaining || Game1.isSnowing)
             {
                 Log("Don't open because of rainy/snowy weather.");
@@ -609,22 +624,22 @@ namespace JoysOfEfficiency
             }
             {
                 bool flag = false;
-                if (config.HealthToEatRatio < 0 || config.HealthToEatRatio > 0.8f)
+                if (Conf.HealthToEatRatio < 0 || Conf.HealthToEatRatio > 0.8f)
                 {
-                    config.HealthToEatRatio = Cap(config.HealthToEatRatio, 0, 0.8f);
+                    Conf.HealthToEatRatio = Cap(Conf.HealthToEatRatio, 0, 0.8f);
                     flag = true;
                 }
-                if (config.StaminaToEatRatio < 0 || config.StaminaToEatRatio > 0.8f)
+                if (Conf.StaminaToEatRatio < 0 || Conf.StaminaToEatRatio > 0.8f)
                 {
-                    config.StaminaToEatRatio = Cap(config.StaminaToEatRatio, 0, 0.8f);
+                    Conf.StaminaToEatRatio = Cap(Conf.StaminaToEatRatio, 0, 0.8f);
                     flag = true;
                 }
                 if(flag)
                 {
-                    Helper.WriteConfig(config);
+                    Helper.WriteConfig(Conf);
                 }
             }
-            if(player.Stamina <= player.MaxStamina * config.StaminaToEatRatio || player.health <= player.maxHealth * config.HealthToEatRatio)
+            if(player.Stamina <= player.MaxStamina * Conf.StaminaToEatRatio || player.health <= player.maxHealth * Conf.HealthToEatRatio)
             {
                 SVObject itemToEat = null;
                 foreach(SVObject item in player.items.OfType<SVObject>())
@@ -791,7 +806,7 @@ namespace JoysOfEfficiency
             float strength = (fishPos - (barPos + barHeight / 2)) / 16f;
             float distance = fishPos - up;
 
-            float threshold = Cap(config.CPUThresholdFishing, 0, 0.5f);
+            float threshold = Cap(Conf.CPUThresholdFishing, 0, 0.5f);
             if (distance < threshold * barHeight || distance > (1 - threshold) * barHeight)
             {
                 bobberBarSpeed = strength;
@@ -865,10 +880,10 @@ namespace JoysOfEfficiency
             return new Rectangle(rect.Left - radius, rect.Top - radius, 2 * radius, 2 * radius);
         }
 
-        private void DrawSimpleTextbox(SpriteBatch batch, string text, SpriteFont font, Item item)
+        public static void DrawSimpleTextbox(SpriteBatch batch, string text, SpriteFont font, Item item)
         {
             Vector2 stringSize = font.MeasureString(text);
-            int x = Game1.getMouseX() - (int)(stringSize.X)/2;
+            int x = Game1.getMouseX() + Game1.tileSize / 2;
             int y = Game1.getMouseY() + Game1.tileSize / 2;
 
             if(x < 0)
@@ -879,12 +894,21 @@ namespace JoysOfEfficiency
             {
                 y = 0;
             }
-            int rightX = (int)stringSize.X + Game1.tileSize / 2 + Game1.tileSize + 8;
+            int rightX = (int)stringSize.X + Game1.tileSize / 2 + 8;
+            if(item != null)
+            {
+                rightX += Game1.tileSize;
+            }
             if(x + rightX > Game1.viewport.Width)
             {
                 x = Game1.viewport.Width - rightX;
             }
-            int bottomY = Math.Max(60, (int)(stringSize.Y + Game1.tileSize * 1.2));
+            int bottomY = (int)stringSize.Y;
+            if(item != null)
+            {
+                bottomY += (int)(Game1.tileSize * 1.2);
+            }
+            bottomY = Math.Max(60, bottomY);
             if(bottomY + y > Game1.viewport.Height)
             {
                 y = Game1.viewport.Height - bottomY;
@@ -893,12 +917,12 @@ namespace JoysOfEfficiency
             if(!string.IsNullOrEmpty(text))
             {
                 Vector2 vector2 = new Vector2(x + Game1.tileSize / 4, y + bottomY / 2 - 10);
-                batch.DrawString(font, hoverText, vector2 + new Vector2(2f, 2f), Game1.textShadowColor, 0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0f);
-                batch.DrawString(font, hoverText, vector2 + new Vector2(0f, 2f), Game1.textShadowColor, 0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0f);
-                batch.DrawString(font, hoverText, vector2 + new Vector2(2f, 0f), Game1.textShadowColor, 0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0f);
-                batch.DrawString(font, hoverText, vector2, Game1.textColor * 0.9f, 0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0f);
+                batch.DrawString(font, text, vector2 + new Vector2(2f, 2f), Game1.textShadowColor, 0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0f);
+                batch.DrawString(font, text, vector2 + new Vector2(0f, 2f), Game1.textShadowColor, 0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0f);
+                batch.DrawString(font, text, vector2 + new Vector2(2f, 0f), Game1.textShadowColor, 0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0f);
+                batch.DrawString(font, text, vector2, Game1.textColor * 0.9f, 0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0f);
             }
-            item.drawInMenu(batch, new Vector2(x + (int)stringSize.X + 24, y + 16), 1.0f,1.0f,0.9f,false);
+            item?.drawInMenu(batch, new Vector2(x + (int)stringSize.X + 24, y + 16), 1.0f,1.0f,0.9f,false);
         }
 
         private void DrawFishingInfoBox(SpriteBatch batch, BobberBar bar, SpriteFont font)
@@ -910,8 +934,7 @@ namespace JoysOfEfficiency
 
 
             float scale = 1.0f;
-
-
+            
             int whitchFish = reflection.GetField<int>(bar, "whichFish").GetValue();
             int fishSize = reflection.GetField<int>(bar, "fishSize").GetValue();
             int fishQuality = reflection.GetField<int>(bar, "fishQuality").GetValue();
@@ -1099,6 +1122,11 @@ namespace JoysOfEfficiency
             {
             }
             return "";
+        }
+
+        public void WriteConfig()
+        {
+            Helper.WriteConfig(Conf);
         }
         #endregion
     }

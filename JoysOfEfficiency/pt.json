@@ -21,5 +21,11 @@
   "quality.iridium": "Irídio",
   "stones.none": "Na tym piętrze nie ma kamieni",
   "stones.one": "Na tym piętrze jest kamień",
-  "stones.many": "Na tym piętrze jest {0} kamieni"
+  "stones.many": "Na tym piętrze jest {0} kamieni",
+  "tab.enabled": "Ativado/Desativado",
+  "tab.sliders": "Sliders",
+  "tab.controls": "Controles",
+  "button.awaiting": "Pressione a tecla para atribuir...",
+  "button.esc": "Pressione a tecla Esc para cancelar",
+  "button.conflict": "A tecla que você pressionou está em conflito"
 }

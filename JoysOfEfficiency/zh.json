@@ -21,5 +21,11 @@
   "quality.iridium": "铱",
   "stones.none": "这个层没留有石头",
   "stones.one": "这个层石头有只一个",
-  "stones.many": "这个楼层有{0}块石头"
+  "stones.many": "这个楼层有{0}块石头",
+  "tab.enabled": "启用/禁用",
+  "tab.sliders": "滑块",
+  "tab.controls": "控制",
+  "button.awaiting": "按键分配...",
+  "button.esc": "按Esc键取消",
+  "button.conflict": "你按的键是冲突的"
 }

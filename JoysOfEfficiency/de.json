@@ -21,5 +21,11 @@
   "quality.iridium": "Iridium",
   "stones.none": "Es gibt keinen Stein auf dieser Etage",
   "stones.one": "Auf diese Etage gibt es einen Stein",
-  "stones.many": "Es gibt {0} Steine ​​in diesem Stockwerk"
+  "stones.many": "Es gibt {0} Steine ​​in diesem Stockwerk",
+  "tab.enabled": "Aktiviert/Deaktiviert",
+  "tab.sliders": "Schieberegler",
+  "tab.controls": "Kontrollen",
+  "button.awaiting": "Drücken Sie die Taste zuweisen...",
+  "button.esc": " Drücken Sie Esc, um abzubrechen",
+  "button.conflict": "Die Taste, die Sie gedrückt haben, ist widersprüchlich"
 }
