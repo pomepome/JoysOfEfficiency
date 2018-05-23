@@ -36,6 +36,7 @@ namespace JoysOfEfficiency.Options
         private string tabControlsString;
 
         private bool isListening;
+        private bool isFirstTime;
         private ModifiedInputListener listener = null;
 
         public JOEMenu(int width, int height, ModEntry mod) : base (Game1.viewport.Width / 2 - width / 2, Game1.viewport.Height / 2 - height / 2, width, height, true)
@@ -61,7 +62,7 @@ namespace JoysOfEfficiency.Options
             {
                 //Enabled Tab
                 MenuTab tab = new MenuTab();
-                tab.AddOptionsElement(new ModifiedCheckBox("HowManyStonesLeft", 0, ModEntry.Conf.HowManyStonesLeft, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("MineInfoGUI", 0, ModEntry.Conf.MineInfoGUI, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("GiftInformation", 1, ModEntry.Conf.GiftInformation, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoWaterNearbyCrops", 2, ModEntry.Conf.AutoWaterNearbyCrops, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoPetNearbyAnimals", 3, ModEntry.Conf.AutoPetNearbyAnimals, OnCheckboxValueChanged));
@@ -75,8 +76,8 @@ namespace JoysOfEfficiency.Options
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoHarvest", 11, ModEntry.Conf.AutoHarvest, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoDestroyDeadCrops", 12, ModEntry.Conf.AutoDestroyDeadCrops, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoRefillWateringCan", 13, ModEntry.Conf.AutoRefillWateringCan, OnCheckboxValueChanged));
-
-
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoCollectCollectibles", 14, ModEntry.Conf.AutoCollectCollectibles, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoShakeFruitedTree", 15, ModEntry.Conf.AutoShakeFruitedTree, OnCheckboxValueChanged));
                 tabs.Add(tab);
             }
             {
@@ -85,13 +86,18 @@ namespace JoysOfEfficiency.Options
                 tab.AddOptionsElement(new ModifiedSlider("CPUThresholdFishing", 0, (int)(ModEntry.Conf.CPUThresholdFishing * 10), 5, OnSliderValueChanged, (() => !ModEntry.Conf.AutoFishing), Format));
                 tab.AddOptionsElement(new ModifiedSlider("StaminaToEatRatio", 1, (int)(ModEntry.Conf.StaminaToEatRatio * 10), 8, OnSliderValueChanged, (() => !ModEntry.Conf.AutoEat), Format));
                 tab.AddOptionsElement(new ModifiedSlider("HealthToEatRatio", 2, (int)(ModEntry.Conf.HealthToEatRatio * 10), 8, OnSliderValueChanged, (() => !ModEntry.Conf.AutoEat), Format));
+                tab.AddOptionsElement(new ModifiedSlider("AutoWaterRadius", 3, ModEntry.Conf.AutoWaterRadius - 1, 2, OnSliderValueChanged, (() => !ModEntry.Conf.AutoWaterNearbyCrops), Format));
+                tab.AddOptionsElement(new ModifiedSlider("AutoPetRadius", 4, ModEntry.Conf.AutoPetRadius - 1, 2, OnSliderValueChanged, (() => !ModEntry.Conf.AutoPetNearbyAnimals), Format));
+                tab.AddOptionsElement(new ModifiedSlider("AutoHarvestRadius", 5, ModEntry.Conf.AutoHarvestRadius - 1, 2, OnSliderValueChanged, (() => !ModEntry.Conf.AutoHarvest), Format));
+                tab.AddOptionsElement(new ModifiedSlider("AutoCollectRadius", 6, ModEntry.Conf.AutoCollectRadius - 1, 2, OnSliderValueChanged, (() => !ModEntry.Conf.AutoCollectCollectibles), Format));
+                tab.AddOptionsElement(new ModifiedSlider("AutoShakeRadius", 7, ModEntry.Conf.AutoShakeRadius - 1, 2, OnSliderValueChanged, (() => !ModEntry.Conf.AutoShakeFruitedTree), Format));
                 tabs.Add(tab);
             }
             {
                 //Controls Tab
                 MenuTab tab = new MenuTab();
                 tab.AddOptionsElement(new ModifiedInputListener(this, "Show Menu", 0, ModEntry.Conf.KeyShowMenu, translation, OnInputListnerChanged, OnStartListening));
-                tab.AddOptionsElement(new ModifiedInputListener(this, "Show HowManyStones", 1, ModEntry.Conf.KeyShowStonesLeft, translation, OnInputListnerChanged, OnStartListening, (i => !ModEntry.Conf.HowManyStonesLeft)));
+                tab.AddOptionsElement(new ModifiedInputListener(this, "Toggle MineGUI Visible", 1, ModEntry.Conf.ToggleKeyMineGUI, translation, OnInputListnerChanged, OnStartListening, (i => !ModEntry.Conf.MineInfoGUI)));
                 tabs.Add(tab);
             }
             mon = mod.Monitor;
@@ -109,7 +115,7 @@ namespace JoysOfEfficiency.Options
             }
             else if(index == 1)
             {
-                ModEntry.Conf.KeyShowStonesLeft = value;
+                ModEntry.Conf.ToggleKeyMineGUI = value;
             }
             mod.WriteConfig();
             isListening = false;
@@ -119,7 +125,7 @@ namespace JoysOfEfficiency.Options
         {
             switch (index)
             {
-                case 0: ModEntry.Conf.HowManyStonesLeft = value; break;
+                case 0: ModEntry.Conf.MineInfoGUI = value; break;
                 case 1: ModEntry.Conf.GiftInformation = value; break;
                 case 2: ModEntry.Conf.AutoWaterNearbyCrops = value; break;
                 case 3: ModEntry.Conf.AutoPetNearbyAnimals = value; break;
@@ -133,6 +139,8 @@ namespace JoysOfEfficiency.Options
                 case 11: ModEntry.Conf.AutoHarvest = value; break;
                 case 12: ModEntry.Conf.AutoDestroyDeadCrops = value; break;
                 case 13: ModEntry.Conf.AutoRefillWateringCan = value; break;
+                case 14: ModEntry.Conf.AutoCollectCollectibles = value; break;
+                case 15: ModEntry.Conf.AutoShakeFruitedTree = value; break;
                 default:return;
             }
             mod.WriteConfig();
@@ -151,15 +159,38 @@ namespace JoysOfEfficiency.Options
             {
                 ModEntry.Conf.HealthToEatRatio = value / 10.0f;
             }
-
+            if (index == 3)
+            {
+                ModEntry.Conf.AutoWaterRadius = value + 1;
+            }
+            if(index == 4)
+            {
+                ModEntry.Conf.AutoPetRadius = value + 1;
+            }
+            if(index == 5)
+            {
+                ModEntry.Conf.AutoHarvestRadius = value + 1;
+            }
+            if(index == 6)
+            {
+                ModEntry.Conf.AutoCollectRadius = value + 1;
+            }
+            if(index == 7)
+            {
+                ModEntry.Conf.AutoShakeRadius = value + 1;
+            }
             mod.WriteConfig();
         }
 
         private string Format(int id, int value)
         {
-            if(id == 0 || id == 1 || id == 2)
+            if(id >= 0 && id < 3)
             {
                 return string.Format("{0:f1}", value / 10f);
+            }
+            if(id > 2 && id < 8)
+            {
+                return (value + 1).ToString();
             }
             return value + "";
         }
@@ -273,9 +304,23 @@ namespace JoysOfEfficiency.Options
             }
             else if(key == Keys.Escape)
             {
-                Game1.playSound("bigDeSelect");
-                Game1.activeClickableMenu = null;
+                CloseMenu();
             }
+            else if (key == ModEntry.Conf.KeyShowMenu)
+            {
+                if(!isFirstTime)
+                {
+                    isFirstTime = true;
+                    return;
+                }
+                CloseMenu();
+            }
+        }
+
+        private void CloseMenu()
+        {
+            Game1.playSound("bigDeSelect");
+            Game1.activeClickableMenu = null;
         }
 
         public override void receiveLeftClick(int x, int y, bool playSound = true)
