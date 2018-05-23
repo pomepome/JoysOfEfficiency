@@ -19,6 +19,7 @@ using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
 using StardewValley.Tools;
 using JoysOfEfficiency.Options;
+using StardewValley.Monsters;
 
 namespace JoysOfEfficiency
 {
@@ -32,6 +33,11 @@ namespace JoysOfEfficiency
         
         private string hoverText;
         private bool catchingTreasure = false;
+
+        private bool MineInfoVisible = true;
+
+        private List<Monster> lastMonsters = new List<Monster>();
+        private string lastKilledMonster;
 
         public ModEntry()
         {
@@ -63,7 +69,7 @@ namespace JoysOfEfficiency
             IReflectionHelper reflection = Helper.Reflection;
             if (Conf.AutoWaterNearbyCrops)
             {
-                RectangleE bb = ExpandE(player.GetBoundingBox(), 3.0f * Game1.tileSize);
+                RectangleE bb = ExpandE(player.GetBoundingBox(), Conf.AutoWaterRadius * Game1.tileSize);
                 WateringCan can = null;
                 foreach (Item item in player.Items)
                 {
@@ -137,7 +143,7 @@ namespace JoysOfEfficiency
             }
             if (Conf.AutoPetNearbyAnimals)
             {
-                int radius = 3 * Game1.tileSize;
+                int radius = Conf.AutoPetRadius * Game1.tileSize;
                 RectangleE bb = new RectangleE(player.position.X - radius, player.position.Y - radius, radius * 2, radius * 2);
                 List<FarmAnimal> animalList = GetAnimalsList(player);
                 foreach (FarmAnimal animal in animalList)
@@ -180,6 +186,7 @@ namespace JoysOfEfficiency
             if(Conf.AutoHarvest)
             {
                 HarvestNearCrops(player);
+                HarvestNearCrabPot(player);
             }
             if(Conf.AutoDestroyDeadCrops)
             {
@@ -202,6 +209,46 @@ namespace JoysOfEfficiency
                     DelayedAction.playSoundAfterDelay("glug", 250);
                 }
             }
+            if (Conf.AutoCollectCollectibles)
+            {
+                Rectangle bb = Expand(player.GetBoundingBox(), Conf.AutoCollectRadius * Game1.tileSize);
+                foreach (KeyValuePair<Vector2, SVObject> kv in player.currentLocation.Objects.ToList())
+                {
+                    Vector2 loc = kv.Key;
+                    SVObject obj = kv.Value;
+                    if (obj.IsSpawnedObject && bb.Intersects(obj.getBoundingBox(loc)))
+                    {
+                        CollectObj(player.currentLocation, loc, obj);
+                    }
+                }
+            }
+            if(Conf.AutoShakeFruitedTree)
+            {
+                Rectangle bb = Expand(player.GetBoundingBox(), Conf.AutoShakeRadius * Game1.tileSize);
+                foreach (KeyValuePair<Vector2, TerrainFeature> kv in player.currentLocation.terrainFeatures)
+                {
+                    Vector2 loc = kv.Key;
+                    TerrainFeature feature = kv.Value;
+                    if(!bb.Intersects(feature.getBoundingBox(loc)))
+                    {
+                        continue;
+                    }
+                    if(feature is Tree tree)
+                    {
+                        if(tree.hasSeed && !tree.stump)
+                        {
+                            reflection.GetMethod(tree, "shake").Invoke(loc, false);
+                        }
+                    }
+                    if(feature is FruitTree ftree)
+                    {
+                        if(ftree.growthStage >= 4 && ftree.fruitsOnTree > 0 && !ftree.stump)
+                        {
+                            ftree.shake(loc, false);
+                        }
+                    }
+                }
+            }
         }
 
         private void OnKeyPressed(object sender, EventArgsKeyPressed args)
@@ -212,31 +259,19 @@ namespace JoysOfEfficiency
             }
             IReflectionHelper reflection = Helper.Reflection;
             ITranslationHelper translation = Helper.Translation;
-            if (Conf.HowManyStonesLeft && args.KeyPressed == Conf.KeyShowStonesLeft)
+            if (Conf.MineInfoGUI && args.KeyPressed == Conf.ToggleKeyMineGUI)
             {
-                Player player = Game1.player;
-                if (player.currentLocation is MineShaft mine)
+                MineInfoVisible = !MineInfoVisible;
+                if (MineInfoVisible)
                 {
-                    int stonesLeft = reflection.GetField<int>(mine, "stonesLeftOnThisLevel").GetValue();
-                    if (stonesLeft == 0)
-                    {
-                        ShowHUDMessage(translation.Get("stones.none"));
-                    }
-                    else
-                    {
-                        bool single = stonesLeft == 1;
-                        if(single)
-                        {
-                            ShowHUDMessage(translation.Get("stones.one"));
-                        }
-                        else
-                        {
-                            ShowHUDMessage(Format(translation.Get("stones.many"), stonesLeft));
-                        }
-                    }
+                    ShowHUDMessage(translation.Get("mineinfo.enabled"));
+                }
+                else
+                {
+                    ShowHUDMessage(translation.Get("mineinfo.disabled"));
                 }
             }
-            if(args.KeyPressed == Conf.KeyShowMenu)
+            if (args.KeyPressed == Conf.KeyShowMenu)
             {
                 //Open Up Menu
                 Game1.playSound("bigSelect");
@@ -260,6 +295,10 @@ namespace JoysOfEfficiency
                 {
                     AutoFishing(bar);
                 }
+            }
+            if (Game1.currentLocation is MineShaft shaft && Conf.MineInfoGUI)
+            {
+                DrawMineGui(Game1.spriteBatch, Game1.smallFont, Game1.player, shaft);
             }
         }
 
@@ -310,6 +349,11 @@ namespace JoysOfEfficiency
                 Log("Don't open because of rainy/snowy weather.");
                 return;
             }
+            if(Game1.IsWinter)
+            {
+                Log("Don't open because it's winter.");
+                return;
+            }
             Farm farm = Game1.getFarm();
             foreach (Building building in farm.buildings)
             {
@@ -341,6 +385,214 @@ namespace JoysOfEfficiency
         #endregion
 
         #region Utilities
+
+        private bool HarvestCrubPot(Player who, CrabPot obj, bool justCheckingForActivity = false)
+        {
+            IReflectionHelper reflection = Helper.Reflection;
+            IReflectedField<bool> lidFlapping = reflection.GetField<bool>(obj, "lidFlapping");
+            IReflectedField<float> lidFlapTimer = reflection.GetField<float>(obj, "lidFlapTimer");
+            IReflectedField<Vector2> shake = reflection.GetField<Vector2>(obj, "shake");
+            IReflectedField<float> shakeTimer = reflection.GetField<float>(obj, "shakeTimer");
+            if (obj.tileIndexToShow == 714)
+            {
+                if (obj.heldObject == null)
+                {
+                    return false;
+                }
+                if (justCheckingForActivity)
+                {
+                    return true;
+                }
+                if (who.IsMainPlayer && !who.addItemToInventoryBool(obj.heldObject, false))
+                {
+                    Game1.addHUDMessage(new HUDMessage(Game1.content.LoadString("Strings\\StringsFromCSFiles:Crop.cs.588"), Color.Red, 3500f));
+                    return false;
+                }
+                Dictionary<int, string> dictionary = Game1.content.Load<Dictionary<int, string>>("Data\\Fish");
+                if (dictionary.ContainsKey(obj.heldObject.parentSheetIndex))
+                {
+                    string[] array = dictionary[obj.heldObject.parentSheetIndex].Split('/');
+                    int minValue = (array.Length <= 5) ? 1 : Convert.ToInt32(array[5]);
+                    int num = (array.Length > 5) ? Convert.ToInt32(array[6]) : 10;
+                    who.caughtFish(obj.heldObject.parentSheetIndex, Game1.random.Next(minValue, num + 1));
+                }
+                obj.readyForHarvest = false;
+                obj.heldObject = null;
+                obj.tileIndexToShow = 710;
+                lidFlapping.SetValue(true);
+                lidFlapTimer.SetValue(60f);
+                obj.bait = null;
+                who.animateOnce(279 + who.FacingDirection);
+                Game1.playSound("fishingRodBend");
+                DelayedAction.playSoundAfterDelay("coin", 500);
+                who.gainExperience(1, 5);
+                shake.SetValue(Vector2.Zero);
+                shakeTimer.SetValue(0f);
+                return true;
+            }
+            if (obj.bait == null)
+            {
+                if (justCheckingForActivity)
+                {
+                    return true;
+                }
+                if (Game1.player.addItemToInventoryBool(obj.getOne(), false))
+                {
+                    Game1.playSound("coin");
+                    Game1.currentLocation.objects.Remove(obj.tileLocation);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private void DrawMineGui(SpriteBatch batch, SpriteFont font, Player player, MineShaft shaft)
+        {
+            if (!MineInfoVisible)
+            {
+                return;
+            }
+            IReflectionHelper reflection = Helper.Reflection;
+            ITranslationHelper translation = Helper.Translation;
+            int stonesLeft = reflection.GetField<int>(shaft, "stonesLeftOnThisLevel").GetValue();
+            bool ladder = reflection.GetField<bool>(shaft, "ladderHasSpawned").GetValue();
+
+            List<Monster> currentMonsters = shaft.characters.OfType<Monster>().ToList();
+            foreach (Monster mon in lastMonsters)
+            {
+                if (!currentMonsters.Contains(mon) && mon.name != "ignoreMe")
+                {
+                    lastKilledMonster = mon.name;
+                    Log($"LastMonster set {mon.name}");
+                }
+            }
+            lastMonsters = currentMonsters.ToList();
+            string tallyStr = null;
+            if (lastKilledMonster != null && Game1.stats.specificMonstersKilled.ContainsKey(lastKilledMonster))
+            {
+                int kills = Game1.stats.specificMonstersKilled[lastKilledMonster];
+                tallyStr = string.Format(translation.Get("monsters.tally"), lastKilledMonster, kills);
+            }
+
+            string stonesStr = "";
+            if (stonesLeft == 0)
+            {
+                stonesStr = translation.Get("stones.none");
+            }
+            else
+            {
+                bool single = stonesLeft == 1;
+                if (single)
+                {
+                    stonesStr = translation.Get("stones.one");
+                }
+                else
+                {
+                    stonesStr = string.Format(translation.Get("stones.many"), stonesLeft);
+                }
+            }
+            Point winSize = GetSuggestedMineInfoGuiSize(Game1.smallFont, stonesStr, tallyStr, ladder, translation.Get("ladder"));
+            IClickableMenu.drawTextureBox(batch, 32, 320, winSize.X, winSize.Y, Color.White);
+            int x = 32 + 16, y = 320 + 24;
+            Vector2 size = Game1.smallFont.MeasureString(stonesStr);
+            Utility.drawTextWithShadow(batch, stonesStr, Game1.smallFont, new Vector2(x, y), Color.Black);
+            y += (int)size.Y + 16;
+            if (tallyStr != null)
+            {
+                Utility.drawTextWithShadow(batch, tallyStr, Game1.smallFont, new Vector2(x, y), Color.Black);
+                y += (int)size.Y + 16;
+            }
+            if (ladder)
+            {
+                Utility.drawTextWithShadow(batch, translation.Get("ladder"), Game1.smallFont, new Vector2(x, y), Color.Red);
+            }
+        }
+
+        private Point GetSuggestedMineInfoGuiSize(SpriteFont font, string stonesStr, string tallyStr, bool ladder, string ladderStr)
+        {
+            int x = 32, y = 32;
+            {
+                Vector2 size = font.MeasureString(stonesStr);
+                if (size.X + 32 > x)
+                {
+                    x = (int)size.X + 32;
+                }
+                y += (int)size.Y + 16;
+            }
+            if (tallyStr != null)
+            {
+                Vector2 size = font.MeasureString(tallyStr);
+                if (size.X + 32 > x)
+                {
+                    x = (int)size.X + 32;
+                }
+                y += (int)size.Y + 16;
+            }
+            if (ladder)
+            {
+                Vector2 size = font.MeasureString(ladderStr);
+                if (size.X + 32 > x)
+                {
+                    x = (int)size.X + 32;
+                }
+                y += (int)size.Y + 16;
+            }
+            return new Point(x, y);
+        }
+
+        private bool CollectObj(GameLocation loc, Vector2 vector, SVObject obj)
+        {
+            Player who = Game1.player;
+
+            int quality = obj.quality;
+            Random random = new Random((int)Game1.uniqueIDForThisGame / 2 + (int)Game1.stats.DaysPlayed + (int)vector.X + (int)vector.Y * 777);
+            if (who.professions.Contains(16) && obj.isForage(loc))
+            {
+                obj.quality = 4;
+            }
+            else if (obj.isForage(loc))
+            {
+                if (random.NextDouble() < (double)((float)who.ForagingLevel / 30f))
+                {
+                    obj.quality = 2;
+                }
+                else if (random.NextDouble() < (double)((float)who.ForagingLevel / 15f))
+                {
+                    obj.quality = 1;
+                }
+            }
+            if (who.couldInventoryAcceptThisItem(obj))
+            {
+                if (who.IsMainPlayer)
+                {
+                    Game1.playSound("pickUpItem");
+                    DelayedAction.playSoundAfterDelay("coin", 300);
+                }
+                who.animateOnce(279 + who.FacingDirection);
+                if (!loc.isFarmBuildingInterior())
+                {
+                    if (obj.isForage(loc))
+                    {
+                        who.gainExperience(2, 7);
+                    }
+                }
+                else
+                {
+                    who.gainExperience(0, 5);
+                }
+                who.addItemToInventoryBool(obj.getOne(), false);
+                Game1.stats.ItemsForaged++;
+                if (who.professions.Contains(13) && random.NextDouble() < 0.2 && !obj.questItem && who.couldInventoryAcceptThisItem(obj) && !loc.isFarmBuildingInterior())
+                {
+                    who.addItemToInventoryBool(obj.getOne(), false);
+                    who.gainExperience(2, 7);
+                }
+                loc.objects.Remove(vector);
+                return true;
+            }
+            obj.quality = quality;
+            return false;
+        }
 
         private bool IsThereAnyWaterNear(GameLocation location, Vector2 tileLocation)
         {
@@ -381,10 +633,30 @@ namespace JoysOfEfficiency
             }
         }
 
+        private void HarvestNearCrabPot(Player player)
+        {
+            GameLocation location = player.currentLocation;
+            int radius = Conf.AutoHarvestRadius * Game1.tileSize;
+            Rectangle bb = Expand(player.GetBoundingBox(), radius);
+
+            foreach(KeyValuePair<Vector2, SVObject> kv in location.Objects.ToList())
+            {
+                Vector2 loc = kv.Key;
+                SVObject obj = kv.Value;
+                if(obj is CrabPot pot)
+                {
+                    if(pot.readyForHarvest)
+                    {
+                        HarvestCrubPot(player, pot);
+                    }
+                }
+            }
+        }
+
         private void HarvestNearCrops(Player player)
         {
             GameLocation location = player.currentLocation;
-            int radius = Game1.tileSize;
+            int radius = Conf.AutoHarvestRadius * Game1.tileSize;
             Rectangle bb = new Rectangle((int)player.position.X - radius, (int)player.position.Y - radius, 2 * radius, 2 * radius);
             foreach (KeyValuePair<Vector2, TerrainFeature> kv in location.terrainFeatures)
             {
@@ -1118,7 +1390,7 @@ namespace JoysOfEfficiency
                 string ret = string.Format(str, args);
                 return ret;
             }
-            catch(Exception e)
+            catch
             {
             }
             return "";
