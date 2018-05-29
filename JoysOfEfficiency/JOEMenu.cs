@@ -36,10 +36,11 @@ namespace JoysOfEfficiency.Options
         private string tabControlsString;
 
         private bool isListening;
+
         private bool isFirstTime;
         private ModifiedInputListener listener = null;
 
-        public JOEMenu(int width, int height, ModEntry mod) : base (Game1.viewport.Width / 2 - width / 2, Game1.viewport.Height / 2 - height / 2, width, height, true)
+        public JOEMenu(int width, int height, ModEntry mod) : base(Game1.viewport.Width / 2 - width / 2, Game1.viewport.Height / 2 - height / 2, width, height, true)
         {
 
             this.mod = mod;
@@ -78,6 +79,9 @@ namespace JoysOfEfficiency.Options
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoRefillWateringCan", 13, ModEntry.Conf.AutoRefillWateringCan, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoCollectCollectibles", 14, ModEntry.Conf.AutoCollectCollectibles, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoShakeFruitedTree", 15, ModEntry.Conf.AutoShakeFruitedTree, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("FindCanFromInventory", 16, ModEntry.Conf.FindCanFromInventory, OnCheckboxValueChanged, (i => !(ModEntry.Conf.AutoWaterNearbyCrops || ModEntry.Conf.AutoRefillWateringCan))));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoDigArtifactSpot", 17, ModEntry.Conf.AutoDigArtifactSpot, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("FindHoeFromInventory", 18, ModEntry.Conf.FindHoeFromInventory, OnCheckboxValueChanged, i => !ModEntry.Conf.AutoDigArtifactSpot));
                 tabs.Add(tab);
             }
             {
@@ -91,13 +95,13 @@ namespace JoysOfEfficiency.Options
                 tab.AddOptionsElement(new ModifiedSlider("AutoHarvestRadius", 5, ModEntry.Conf.AutoHarvestRadius - 1, 2, OnSliderValueChanged, (() => !ModEntry.Conf.AutoHarvest), Format));
                 tab.AddOptionsElement(new ModifiedSlider("AutoCollectRadius", 6, ModEntry.Conf.AutoCollectRadius - 1, 2, OnSliderValueChanged, (() => !ModEntry.Conf.AutoCollectCollectibles), Format));
                 tab.AddOptionsElement(new ModifiedSlider("AutoShakeRadius", 7, ModEntry.Conf.AutoShakeRadius - 1, 2, OnSliderValueChanged, (() => !ModEntry.Conf.AutoShakeFruitedTree), Format));
+                tab.AddOptionsElement(new ModifiedSlider("AutoDigRadius", 8, ModEntry.Conf.AutoDigRadius - 1, 2, OnSliderValueChanged, (() => !ModEntry.Conf.AutoDigArtifactSpot), Format));
                 tabs.Add(tab);
             }
             {
                 //Controls Tab
                 MenuTab tab = new MenuTab();
                 tab.AddOptionsElement(new ModifiedInputListener(this, "Show Menu", 0, ModEntry.Conf.KeyShowMenu, translation, OnInputListnerChanged, OnStartListening));
-                tab.AddOptionsElement(new ModifiedInputListener(this, "Toggle MineGUI Visible", 1, ModEntry.Conf.ToggleKeyMineGUI, translation, OnInputListnerChanged, OnStartListening, (i => !ModEntry.Conf.MineInfoGUI)));
                 tabs.Add(tab);
             }
             mon = mod.Monitor;
@@ -109,13 +113,9 @@ namespace JoysOfEfficiency.Options
         }
         private void OnInputListnerChanged(int index, Keys value)
         {
-            if(index == 0)
+            if (index == 0)
             {
                 ModEntry.Conf.KeyShowMenu = value;
-            }
-            else if(index == 1)
-            {
-                ModEntry.Conf.ToggleKeyMineGUI = value;
             }
             mod.WriteConfig();
             isListening = false;
@@ -141,21 +141,24 @@ namespace JoysOfEfficiency.Options
                 case 13: ModEntry.Conf.AutoRefillWateringCan = value; break;
                 case 14: ModEntry.Conf.AutoCollectCollectibles = value; break;
                 case 15: ModEntry.Conf.AutoShakeFruitedTree = value; break;
-                default:return;
+                case 16: ModEntry.Conf.FindCanFromInventory = value; break;
+                case 17: ModEntry.Conf.AutoDigArtifactSpot = value; break;
+                case 18: ModEntry.Conf.FindHoeFromInventory = value; break;
+                default: return;
             }
             mod.WriteConfig();
         }
         private void OnSliderValueChanged(int index, int value)
         {
-            if(index == 0)
+            if (index == 0)
             {
                 ModEntry.Conf.CPUThresholdFishing = value / 10.0f;
             }
-            if(index == 1)
+            if (index == 1)
             {
                 ModEntry.Conf.StaminaToEatRatio = value / 10.0f;
             }
-            if(index == 2)
+            if (index == 2)
             {
                 ModEntry.Conf.HealthToEatRatio = value / 10.0f;
             }
@@ -163,32 +166,36 @@ namespace JoysOfEfficiency.Options
             {
                 ModEntry.Conf.AutoWaterRadius = value + 1;
             }
-            if(index == 4)
+            if (index == 4)
             {
                 ModEntry.Conf.AutoPetRadius = value + 1;
             }
-            if(index == 5)
+            if (index == 5)
             {
                 ModEntry.Conf.AutoHarvestRadius = value + 1;
             }
-            if(index == 6)
+            if (index == 6)
             {
                 ModEntry.Conf.AutoCollectRadius = value + 1;
             }
-            if(index == 7)
+            if (index == 7)
             {
                 ModEntry.Conf.AutoShakeRadius = value + 1;
+            }
+            if (index == 8)
+            {
+                ModEntry.Conf.AutoDigRadius = value + 1;
             }
             mod.WriteConfig();
         }
 
         private string Format(int id, int value)
         {
-            if(id >= 0 && id < 3)
+            if (id >= 0 && id < 3)
             {
                 return string.Format("{0:f1}", value / 10f);
             }
-            if(id > 2 && id < 8)
+            if (id > 2)
             {
                 return (value + 1).ToString();
             }
@@ -214,7 +221,7 @@ namespace JoysOfEfficiency.Options
                 Game1.playSound("shwip");
                 firstIndex--;
             }
-            else if(direction < 0 && downCursor.visible)
+            else if (direction < 0 && downCursor.visible)
             {
                 Game1.playSound("shwip");
                 firstIndex++;
@@ -256,7 +263,7 @@ namespace JoysOfEfficiency.Options
             upCursor.draw(b);
             downCursor.draw(b);
 
-            if(isListening)
+            if (isListening)
             {
                 Point size = listener.GetListeningMessageWindowSize();
                 drawTextureBox(b, (Game1.viewport.Width - size.X) / 2, (Game1.viewport.Height - size.Y) / 2, size.X, size.Y, Color.White);
@@ -302,13 +309,13 @@ namespace JoysOfEfficiency.Options
                     element.receiveKeyPress(key);
                 }
             }
-            else if(key == Keys.Escape)
+            else if (key == Keys.Escape)
             {
                 CloseMenu();
             }
             else if (key == ModEntry.Conf.KeyShowMenu)
             {
-                if(!isFirstTime)
+                if (!isFirstTime)
                 {
                     isFirstTime = true;
                     return;
@@ -330,7 +337,7 @@ namespace JoysOfEfficiency.Options
             {
                 return;
             }
-            if(tabEnabled.Contains(x, y))
+            if (tabEnabled.Contains(x, y))
             {
                 TryToChangeTab(0);
                 return;
@@ -340,7 +347,7 @@ namespace JoysOfEfficiency.Options
                 TryToChangeTab(1);
                 return;
             }
-            if(tabControls.Contains(x, y))
+            if (tabControls.Contains(x, y))
             {
                 TryToChangeTab(2);
                 return;
@@ -359,7 +366,7 @@ namespace JoysOfEfficiency.Options
             }
             foreach (OptionsElement element in GetElementsToShow())
             {
-                if(element.bounds.Contains(x - xPositionOnScreen - element.bounds.X / 2, y - yPositionOnScreen - element.bounds.Y / 2))
+                if (element.bounds.Contains(x - xPositionOnScreen - element.bounds.X / 2, y - yPositionOnScreen - element.bounds.Y / 2))
                 {
                     element.receiveLeftClick(x - element.bounds.X - xPositionOnScreen, y - element.bounds.Y - yPositionOnScreen);
                 }
@@ -389,10 +396,10 @@ namespace JoysOfEfficiency.Options
             List<OptionsElement> menuElements = tabs[tabIndex].GetElements();
             List<OptionsElement> elements = new List<OptionsElement>();
             int y = 16;
-            for(int i = firstIndex; i < menuElements.Count;i++)
+            for (int i = firstIndex; i < menuElements.Count; i++)
             {
                 OptionsElement element = menuElements[i];
-                if(y + element.bounds.Height < this.height)
+                if (y + element.bounds.Height < this.height)
                 {
                     y += element.bounds.Height + 16;
                     elements.Add(element);
@@ -422,7 +429,7 @@ namespace JoysOfEfficiency.Options
 
         private void TryToChangeTab(int which)
         {
-            if(tabIndex != which)
+            if (tabIndex != which)
             {
                 tabIndex = which;
                 firstIndex = 0;
@@ -430,6 +437,6 @@ namespace JoysOfEfficiency.Options
             }
         }
 
-        public override void receiveRightClick(int x, int y, bool playSound = true){}
+        public override void receiveRightClick(int x, int y, bool playSound = true) { }
     }
 }

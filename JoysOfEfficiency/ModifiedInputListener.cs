@@ -18,9 +18,9 @@ namespace JoysOfEfficiency.Options
         private bool conflicting = false;
         private Keys button;
 
-        private Action<int, ModifiedInputListener> OnStartListening;
-        private Action<int, Keys> OnButtonPressed;
-        private Func<int, bool> IsDisabled;
+        private readonly Action<int, ModifiedInputListener> OnStartListening;
+        private readonly Action<int, Keys> OnButtonPressed;
+        private readonly Func<int, bool> IsDisabled;
         private Rectangle ButtonRect;
 
         private static readonly SpriteFont font = Game1.dialogueFont;
@@ -54,7 +54,7 @@ namespace JoysOfEfficiency.Options
             }
             base.receiveKeyPress(key);
             Config config = ModEntry.Conf;
-            if(Game1.options.isKeyInUse(key) || (key == ModEntry.Conf.KeyShowMenu) || (key == config.ToggleKeyMineGUI))
+            if(Game1.options.isKeyInUse(key) || (key == ModEntry.Conf.KeyShowMenu))
             {
                 conflicting = true;
                 return;

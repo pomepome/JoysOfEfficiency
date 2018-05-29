@@ -12,10 +12,18 @@ namespace JoysOfEfficiency.Options
 {
     public class ModifiedCheckBox : OptionsElement
     {
-
         private bool IsChecked { get; set; }
-        Action<int, bool> ValueChanged;
-        Func<int, bool> IsDisabled;
+ 
+        /// <summary>
+        /// Callback function which will be called when its value is changed
+        /// </summary>
+        private readonly Action<int, bool> ValueChanged;
+        
+        /// <summary>
+        /// Function which determines whether it's disbled
+        /// </summary>
+        private readonly Func<int, bool> IsDisabled;
+
         public ModifiedCheckBox(string label, int which, bool initial, Action<int, bool> callback = null, Func<int,bool> isDisabled = null) : base(label, -1, -1, 9 * Game1.pixelZoom, 9 * Game1.pixelZoom, 0)
         {
             IsChecked = initial;

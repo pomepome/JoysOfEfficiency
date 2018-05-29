@@ -27,13 +27,12 @@ namespace JoysOfEfficiency
     using SVObject = StardewValley.Object;
     public class ModEntry : Mod
     {
-
         public static Config Conf { get; private set; } = null;
 
         private string hoverText;
         private bool catchingTreasure;
 
-        private bool MineInfoVisible = true;
+        private MineIcons icons = new MineIcons();
 
         private List<Monster> lastMonsters = new List<Monster>();
         private string lastKilledMonster;
@@ -41,7 +40,7 @@ namespace JoysOfEfficiency
         public override void Entry(IModHelper helper)
         {
             Conf = helper.ReadConfig<Config>();
-            GameEvents.UpdateTick += OnGameUpdate;
+            GameEvents.EighthUpdateTick += OnGameUpdate;
             ControlEvents.KeyPressed += OnKeyPressed;
 
             SaveEvents.BeforeSave += OnBeforeSave;
@@ -55,6 +54,8 @@ namespace JoysOfEfficiency
             Conf.AutoPetRadius = (int)Cap(Conf.AutoPetRadius, 1, 3);
             Conf.AutoWaterRadius = (int)Cap(Conf.AutoWaterRadius, 1, 3);
             helper.WriteConfig(Conf);
+
+            MineIcons.Init(helper);
         }
 
         private void OnGameUpdate(object sender, EventArgs args)
@@ -90,10 +91,11 @@ namespace JoysOfEfficiency
                             Point centre = tf.getBoundingBox(location).Center;
                             if (bb.IsInternalPoint(centre.X, centre.Y) && tf is HoeDirt dirt)
                             {
-                                if (dirt.crop != null && !dirt.crop.dead && dirt.state == 0 && player.Stamina >= 2 && can.WaterLeft > 0)
+                                float consume = 2 *  (1.0f / (can.UpgradeLevel / 2.0f + 1));
+                                if (dirt.crop != null && !dirt.crop.dead.Value && dirt.state.Value == 0 && player.Stamina >= consume && can.WaterLeft > 0)
                                 {
                                     dirt.state.Value = 1;
-                                    player.Stamina -= 2;
+                                    player.Stamina -= consume;
                                     can.WaterLeft--;
                                     watered = true;
                                 }
@@ -109,7 +111,7 @@ namespace JoysOfEfficiency
             if (Conf.GiftInformation)
             {
                 hoverText = null;
-                if (player.CurrentTool != null || player.CurrentItem == null || (player.CurrentItem is SVObject && (player.CurrentItem as SVObject).bigCraftable) || player.CurrentItem is Furniture)
+                if (player.CurrentTool != null || player.CurrentItem == null || !player.CurrentItem.canBeGivenAsGift())
                 {
                     //Rejects tools, nothing, and bigCraftable objects(chests, machines, statues etc. and Furnitures)
                 }
@@ -132,7 +134,7 @@ namespace JoysOfEfficiency
                                 case 6: key.Append("hate."); break;
                                 default: key.Append("neutral."); break;
                             }
-                            switch (npc.gender)
+                            switch (npc.Gender)
                             {
                                 case 0: key.Append("male"); break;
                                 default: key.Append("female"); break;
@@ -150,7 +152,7 @@ namespace JoysOfEfficiency
                 List<FarmAnimal> animalList = GetAnimalsList(player);
                 foreach (FarmAnimal animal in animalList)
                 {
-                    if (bb.IsInternalPoint(animal.position.X, animal.position.Y) && !animal.wasPet)
+                    if (bb.IsInternalPoint(animal.position.X, animal.position.Y) && !animal.wasPet.Value)
                     {
                         if (Game1.timeOfDay >= 1900 && !animal.isMoving())
                         {
@@ -163,16 +165,16 @@ namespace JoysOfEfficiency
             if (player.CurrentTool is FishingRod rod)
             {
                 IReflectedField<int> whichFish = reflection.GetField<int>(rod, "whichFish");
-                if (rod.isNibbling && whichFish.GetValue() == -1 && !rod.isReeling && !rod.hit && !rod.isTimingCast && !rod.pullingOutOfWater && !rod.fishCaught)
+                if (rod.isNibbling && rod.isFishing && whichFish.GetValue() == -1 && !rod.isReeling && !rod.hit && !rod.isTimingCast && !rod.pullingOutOfWater && !rod.fishCaught)
                 {
                     if (Conf.AutoReelRod)
                     {
                         rod.DoFunction(player.currentLocation, 1, 1, 1, player);
                     }
                 }
-                if (Conf.MuchFasterBiting && rod.inUse() && !rod.isNibbling)
+                if (Conf.MuchFasterBiting && rod.isFishing && !rod.isNibbling && !rod.isReeling && !rod.hit && !rod.isTimingCast && !rod.pullingOutOfWater && !rod.fishCaught)
                 {
-                    rod.timeUntilFishingBite -= 1000;
+                    rod.timeUntilFishingBite -= 10000;
                 }
             }
             if (Conf.AutoGate)
@@ -212,46 +214,71 @@ namespace JoysOfEfficiency
             if(Conf.AutoCollectCollectibles)
             {
                 Rectangle bb = Expand(player.GetBoundingBox(), Conf.AutoCollectRadius * Game1.tileSize);
-                foreach(Dictionary<Vector2,SVObject> objs in player.currentLocation.Objects)
+                foreach(KeyValuePair<Vector2, SVObject> kv in player.currentLocation.Objects.Pairs.ToList())
                 {
-                    foreach(KeyValuePair<Vector2, SVObject> kv in objs)
+                    Vector2 loc = kv.Key;
+                    SVObject obj = kv.Value;
+                    if(obj.IsSpawnedObject && bb.Intersects(obj.getBoundingBox(loc)))
                     {
-                        Vector2 loc = kv.Key;
-                        SVObject obj = kv.Value;
-                        if(obj.IsSpawnedObject && bb.Intersects(obj.getBoundingBox(loc)))
+                        CollectObj(player.currentLocation, loc, obj);
+                    }
+                }
+            }
+            if (Conf.AutoDigArtifactSpot)
+            {
+                int radius = Conf.AutoDigRadius;
+                Hoe hoe = FindToolFromInventory<Hoe>(Conf.FindHoeFromInventory);
+                GameLocation location = player.currentLocation;
+                if (hoe != null)
+                {
+                    bool flag = false;
+                    for (int i = -radius; i <= radius; i++)
+                    {
+                        for (int j = -radius; j <= radius; j++)
                         {
-                            CollectObj(player.currentLocation, loc, obj);
+                            int x = player.getTileX() + i;
+                            int y = player.getTileY() + j;
+                            Vector2 loc = new Vector2(x, y);
+                            if (location.Objects.ContainsKey(loc) && location.Objects[loc].ParentSheetIndex == 590 && !location.isTileHoeDirt(loc))
+                            {
+                                Log($"BURIED @[{x},{y}]");
+                                location.digUpArtifactSpot(x, y, player);
+                                location.Objects.Remove(loc);
+                                location.terrainFeatures.Add(loc, new HoeDirt());
+                                flag = true;
+                            }
                         }
+                    }
+                    if (flag)
+                    {
+                        Game1.playSound("hoeHit");
                     }
                 }
             }
             if (Conf.AutoShakeFruitedTree)
             {
                 Rectangle bb = Expand(player.GetBoundingBox(), Conf.AutoShakeRadius * Game1.tileSize);
-                foreach (Dictionary<Vector2, TerrainFeature> dic in player.currentLocation.terrainFeatures)
+                foreach (KeyValuePair<Vector2, TerrainFeature> kv in player.currentLocation.terrainFeatures.Pairs)
                 {
-                    foreach (KeyValuePair<Vector2, TerrainFeature> kv in dic)
+                    Vector2 loc = kv.Key;
+                    TerrainFeature feature = kv.Value;
+                    if (!bb.Intersects(feature.getBoundingBox(loc)))
                     {
-                        Vector2 loc = kv.Key;
-                        TerrainFeature feature = kv.Value;
-                        if (!bb.Intersects(feature.getBoundingBox(loc)))
+                        continue;
+                    }
+                    if (feature is Tree tree)
+                    {
+                        if (tree.hasSeed.Value && !tree.stump.Value)
                         {
-                            continue;
+                            reflection.GetMethod(tree, "shake").Invoke(loc, false);
                         }
-                        if (feature is Tree tree)
+                    }
+                    if (feature is FruitTree ftree)
+                    {
+                        if (ftree.growthStage.Value >= 4 && ftree.fruitsOnTree.Value > 0 && !ftree.stump.Value)
                         {
-                            if (tree.hasSeed && !tree.stump)
-                            {
-                                reflection.GetMethod(tree, "shake").Invoke(loc, false);
-                            }
-                        }
-                        if (feature is FruitTree ftree)
-                        {
-                            if (ftree.growthStage >= 4 && ftree.fruitsOnTree > 0 && !ftree.stump)
-                            {
-                                ftree.shake(loc, false);
-                            }
-                        }
+                            ftree.shake(loc, false);
+                        }        
                     }
                 }
             }
@@ -259,24 +286,21 @@ namespace JoysOfEfficiency
 
         private void OnKeyPressed(object sender, EventArgsKeyPressed args)
         {
+            if (!Context.IsWorldReady)
+            {
+                return;
+            }
+            if (args.KeyPressed == Keys.H)
+            {
+                Player player = Game1.player;
+                Log($"Hay:{Game1.getFarm().piecesOfHay}");
+            }
             if (!Context.IsPlayerFree || Game1.activeClickableMenu != null)
             {
                 return;
             }
             IReflectionHelper reflection = Helper.Reflection;
             ITranslationHelper translation = Helper.Translation;
-            if (Conf.MineInfoGUI && args.KeyPressed == Conf.ToggleKeyMineGUI)
-            {
-                MineInfoVisible = !MineInfoVisible;
-                if (MineInfoVisible)
-                {
-                    ShowHUDMessage(translation.Get("mineinfo.enabled"));
-                }
-                else
-                {
-                    ShowHUDMessage(translation.Get("mineinfo.disabled"));
-                }
-            }
             if (args.KeyPressed == Conf.KeyShowMenu)
             {
                 //Open Up Menu
@@ -321,9 +345,9 @@ namespace JoysOfEfficiency
             {
                 if (building is Coop coop)
                 {
-                    if (coop.indoors.Get() is AnimalHouse house)
+                    if (coop.indoors.Value is AnimalHouse house)
                     {
-                        if (house.animals.Any() && coop.animalDoorOpen.Get())
+                        if (house.animals.Any() && coop.animalDoorOpen.Value)
                         {
                             coop.animalDoorOpen.Value = false;
                             Helper.Reflection.GetField<NetInt>(coop, "animalDoorMotion").SetValue(new NetInt(2));
@@ -334,7 +358,7 @@ namespace JoysOfEfficiency
                 {
                     if (barn.indoors.Get() is AnimalHouse house)
                     {
-                        if (house.animals.Any() && barn.animalDoorOpen.Get())
+                        if (house.animals.Any() && barn.animalDoorOpen.Value)
                         {
                             barn.animalDoorOpen.Value = false;
                             Helper.Reflection.GetField<NetInt>(barn, "animalDoorMotion").SetValue(new NetInt(2));
@@ -376,9 +400,9 @@ namespace JoysOfEfficiency
                 }
                 else if(building is Barn barn)
                 {
-                    if (barn.indoors.Get() is AnimalHouse house)
+                    if (barn.indoors.Value is AnimalHouse house)
                     {
-                        if (house.animals.Any() && !barn.animalDoorOpen.Get())
+                        if (house.animals.Any() && !barn.animalDoorOpen.Value)
                         {
                             barn.animalDoorOpen.Value = true;
                             Helper.Reflection.GetField<NetInt>(barn, "animalDoorMotion").SetValue(new NetInt(-3));
@@ -402,7 +426,7 @@ namespace JoysOfEfficiency
                     SVObject obj = kv.Value;
                     if (obj is CrabPot pot)
                     {
-                        if (pot.readyForHarvest)
+                        if (pot.readyForHarvest.Value)
                         {
                             HarvestCrubPot(player, pot);
                         }
@@ -433,12 +457,12 @@ namespace JoysOfEfficiency
                     return false;
                 }
                 Dictionary<int, string> data = Game1.content.Load<Dictionary<int, string>>("Data\\Fish");
-                if (data.ContainsKey(item.parentSheetIndex))
+                if (data.ContainsKey(item.ParentSheetIndex))
                 {
-                    string[] rawData = data[item.parentSheetIndex].Split('/');
+                    string[] rawData = data[item.ParentSheetIndex].Split('/');
                     int minFishSize = (rawData.Length <= 5) ? 1 : Convert.ToInt32(rawData[5]);
                     int maxFishSize = (rawData.Length > 5) ? Convert.ToInt32(rawData[6]) : 10;
-                    who.caughtFish(item.parentSheetIndex, Game1.random.Next(minFishSize, maxFishSize + 1));
+                    who.caughtFish(item.ParentSheetIndex, Game1.random.Next(minFishSize, maxFishSize + 1));
                 }
                 obj.readyForHarvest.Value = false;
                 obj.tileIndexToShow = 710;
@@ -462,23 +486,38 @@ namespace JoysOfEfficiency
                 if (Game1.player.addItemToInventoryBool(obj.getOne(), false))
                 {
                     Game1.playSound("coin");
-                    Game1.currentLocation.objects.Remove(obj.tileLocation);
+                    Game1.currentLocation.objects.Remove(obj.TileLocation);
                     return true;
                 }
             }
             return false;
         }
 
+        public static Vector2 FindLadder(MineShaft shaft)
+        {
+            for (int i = 0; i < shaft.Map.GetLayer("Buildings").LayerWidth; i++)
+            {
+                for (int j = 0; j < shaft.Map.GetLayer("Buildings").LayerHeight; j++)
+                {
+                    int index = shaft.getTileIndexAt(new Point(i, j), "Buildings");
+                    Vector2 loc = new Vector2(i, j);
+                    if (!shaft.Objects.ContainsKey(loc) && !shaft.terrainFeatures.ContainsKey(loc))
+                    {
+                        if (index == 171 || index == 173 || index == 174)
+                            return loc;
+                    }
+                }
+            }
+            return Vector2.Zero;
+        }
+
         private void DrawMineGui(SpriteBatch batch, SpriteFont font, Player player, MineShaft shaft)
         {
-            if(!MineInfoVisible)
-            {
-                return;
-            }
             IReflectionHelper reflection = Helper.Reflection;
             ITranslationHelper translation = Helper.Translation;
             int stonesLeft = reflection.GetField<NetIntDelta>(shaft, "netStonesLeftOnThisLevel").GetValue();
-            bool ladder = reflection.GetField<bool>(shaft, "ladderHasSpawned").GetValue();
+            Vector2 ladderPos = FindLadder(shaft);
+            bool ladder = ladderPos != null && ladderPos != Vector2.Zero;
 
             List<Monster> currentMonsters = shaft.characters.OfType<Monster>().ToList();
             foreach(Monster mon in lastMonsters)
@@ -491,13 +530,14 @@ namespace JoysOfEfficiency
             }
             lastMonsters = currentMonsters.ToList();
             string tallyStr = null;
-            if(lastKilledMonster != null && Game1.stats.specificMonstersKilled.ContainsKey(lastKilledMonster))
+            string ladderStr = null;
+            if(lastKilledMonster != null)
             {
-                int kills = Game1.stats.specificMonstersKilled[lastKilledMonster];
+                int kills = Game1.stats.getMonstersKilled(lastKilledMonster);
                 tallyStr = string.Format(translation.Get("monsters.tally"), lastKilledMonster, kills);
             }
 
-            string stonesStr = "";
+            string stonesStr = null;
             if (stonesLeft == 0)
             {
                 stonesStr = translation.Get("stones.none");
@@ -514,21 +554,11 @@ namespace JoysOfEfficiency
                     stonesStr = string.Format(translation.Get("stones.many"), stonesLeft);
                 }
             }
-            Point winSize = GetSuggestedMineInfoGuiSize(Game1.smallFont, stonesStr, tallyStr, ladder, translation.Get("ladder"));
-            IClickableMenu.drawTextureBox(batch, 32, 320, winSize.X, winSize.Y, Color.White);
-            int x = 32 + 16, y = 320 + 24;
-            Vector2 size = Game1.smallFont.MeasureString(stonesStr);
-            Utility.drawTextWithShadow(batch, stonesStr, Game1.smallFont, new Vector2(x, y), Color.Black);
-            y += (int)size.Y + 16;
-            if (tallyStr != null)
-            {
-                Utility.drawTextWithShadow(batch, tallyStr, Game1.smallFont, new Vector2(x, y), Color.Black);
-                y += (int)size.Y + 16;
-            }
             if(ladder)
             {
-                Utility.drawTextWithShadow(batch, translation.Get("ladder"), Game1.smallFont, new Vector2(x, y), Color.Red);
+                ladderStr = translation.Get("ladder");
             }
+            icons.Draw(stonesStr, tallyStr, ladderStr);
         }
 
         private Point GetSuggestedMineInfoGuiSize(SpriteFont font, string stonesStr, string tallyStr, bool ladder, string ladderStr)
@@ -566,7 +596,7 @@ namespace JoysOfEfficiency
         {
             Player who = Game1.player;
 
-            int quality = obj.quality;
+            int quality = obj.Quality;
             Random random = new Random((int)Game1.uniqueIDForThisGame / 2 + (int)Game1.stats.DaysPlayed + (int)vector.X + (int)vector.Y * 777);
             if (who.professions.Contains(16) && obj.isForage(loc))
             {
@@ -574,16 +604,16 @@ namespace JoysOfEfficiency
             }
             else if (obj.isForage(loc))
             {
-                if (random.NextDouble() < (double)((float)who.ForagingLevel / 30f))
+                if (random.NextDouble() < who.ForagingLevel / 30f)
                 {
                     obj.Quality = 2;
                 }
-                else if (random.NextDouble() < (double)((float)who.ForagingLevel / 15f))
+                else if (random.NextDouble() < who.ForagingLevel / 15f)
                 {
                     obj.Quality = 1;
                 }
             }
-            if ((bool)obj.questItem && obj.questId.Value != 0 && !who.hasQuest(obj.questId))
+            if (obj.questItem.Value && obj.questId.Value != 0 && !who.hasQuest(obj.questId.Value))
             {
                 return false;
             }
@@ -608,7 +638,7 @@ namespace JoysOfEfficiency
                 }
                 who.addItemToInventoryBool(obj.getOne(), false);
                 Game1.stats.ItemsForaged++;
-                if (who.professions.Contains(13) && random.NextDouble() < 0.2 && !(bool)obj.questItem && who.couldInventoryAcceptThisItem(obj) && !loc.isFarmBuildingInterior())
+                if (who.professions.Contains(13) && random.NextDouble() < 0.2 && !obj.questItem.Value && who.couldInventoryAcceptThisItem(obj) && !loc.isFarmBuildingInterior())
                 {
                     who.addItemToInventoryBool(obj.getOne(), false);
                     who.gainExperience(2, 7);
@@ -653,9 +683,9 @@ namespace JoysOfEfficiency
                         {
                             continue;
                         }
-                        if (dirt.crop != null && dirt.crop.dead)
+                        if (dirt.crop != null && dirt.crop.dead.Value)
                         {
-                            string name = new SVObject(dirt.crop.indexOfHarvest, 1).DisplayName;
+                            string name = new SVObject(dirt.crop.indexOfHarvest.Value, 1).DisplayName;
                             dirt.destroyCrop(loc, true, location);
                             Log("Destroyed crop of {0} @[{1},{2}]", name, (int)loc.X, (int)loc.Y);
                         }
@@ -684,7 +714,7 @@ namespace JoysOfEfficiency
                         {
                             if (Harvest((int)loc.X, (int)loc.Y, dirt))
                             {
-                                if(dirt.crop.regrowAfterHarvest == -1 || dirt.crop.forageCrop)
+                                if(dirt.crop.regrowAfterHarvest.Value == -1 || dirt.crop.forageCrop.Value)
                                 {
                                     //destroy crop if it does not reqrow.
                                     dirt.destroyCrop(loc, true, location);
@@ -702,7 +732,7 @@ namespace JoysOfEfficiency
 
             Multiplayer multiplayer = reflection.GetField<Multiplayer>(typeof(Game1), "multiplayer").GetValue();
             Crop crop = soil.crop;
-            if ((bool)crop.dead)
+            if (crop.dead.Value)
             {
                 if (junimoHarvester != null)
                 {
@@ -710,11 +740,11 @@ namespace JoysOfEfficiency
                 }
                 return false;
             }
-            if ((bool)crop.forageCrop)
+            if (crop.forageCrop.Value)
             {
                 SVObject o = null;
                 int experience2 = 3;
-                int num = crop.whichForageCrop;
+                int num = crop.whichForageCrop.Value;
                 if (num == 1)
                 {
                     o = new SVObject(399, 1, false, -1, 0);
@@ -744,7 +774,7 @@ namespace JoysOfEfficiency
                     Game1.player.canMove = false;
                     Game1.player.currentLocation.playSound("harvest");
                     DelayedAction.playSoundAfterDelay("coin", 260, null);
-                    if ((int)crop.regrowAfterHarvest == -1)
+                    if (crop.regrowAfterHarvest.Value == -1)
                     {
                         multiplayer.broadcastSprites(Game1.currentLocation, new TemporaryAnimatedSprite(17, new Vector2(initialTile2.X * 64f, initialTile2.Y * 64f), Color.White, 7, Game1.random.NextDouble() < 0.5, 125f, 0, -1, -1f, -1, 0));
                         multiplayer.broadcastSprites(Game1.currentLocation, new TemporaryAnimatedSprite(14, new Vector2(initialTile2.X * 64f, initialTile2.Y * 64f), Color.White, 7, Game1.random.NextDouble() < 0.5, 50f, 0, -1, -1f, -1, 0));
@@ -753,17 +783,17 @@ namespace JoysOfEfficiency
                     return true;
                 }
             }
-            else if ((int)crop.currentPhase >= crop.phaseDays.Count - 1 && (!(bool)crop.fullyGrown || (int)crop.dayOfCurrentPhase <= 0))
+            else if (crop.currentPhase.Value >= crop.phaseDays.Count - 1 && (!crop.fullyGrown.Value || crop.dayOfCurrentPhase.Value <= 0))
             {
                 int numToHarvest = 1;
                 int cropQuality = 0;
                 int fertilizerQualityLevel = 0;
-                if ((int)crop.indexOfHarvest == 0)
+                if (crop.indexOfHarvest.Value == 0)
                 {
                     return true;
                 }
                 Random r = new Random(xTile * 7 + yTile * 11 + (int)Game1.stats.DaysPlayed + (int)Game1.uniqueIDForThisGame);
-                switch ((int)soil.fertilizer)
+                switch (soil.fertilizer.Value)
                 {
                     case 368:
                         fertilizerQualityLevel = 1;
@@ -772,7 +802,7 @@ namespace JoysOfEfficiency
                         fertilizerQualityLevel = 2;
                         break;
                 }
-                double chanceForGoldQuality = 0.2 * ((double)Game1.player.FarmingLevel / 10.0) + 0.2 * (double)fertilizerQualityLevel * (((double)Game1.player.FarmingLevel + 2.0) / 12.0) + 0.01;
+                double chanceForGoldQuality = 0.2 * (Game1.player.FarmingLevel / 10.0) + 0.2 * (double)fertilizerQualityLevel * (((double)Game1.player.FarmingLevel + 2.0) / 12.0) + 0.01;
                 double chanceForSilverQuality = Math.Min(0.75, chanceForGoldQuality * 2.0);
                 if (r.NextDouble() < chanceForGoldQuality)
                 {
@@ -782,34 +812,34 @@ namespace JoysOfEfficiency
                 {
                     cropQuality = 1;
                 }
-                if ((int)crop.minHarvest > 1 || (int)crop.maxHarvest > 1)
+                if (crop.minHarvest.Value > 1 || crop.maxHarvest.Value > 1)
                 {
-                    numToHarvest = r.Next(crop.minHarvest, Math.Min((int)crop.minHarvest + 1, (int)crop.maxHarvest + 1 + Game1.player.FarmingLevel / (int)crop.maxHarvestIncreasePerFarmingLevel));
+                    numToHarvest = r.Next(crop.minHarvest.Value, Math.Min(crop.minHarvest.Value + 1, crop.maxHarvest.Value + 1 + Game1.player.FarmingLevel / crop.maxHarvestIncreasePerFarmingLevel.Value));
                 }
-                if ((double)crop.chanceForExtraCrops > 0.0)
+                if (crop.chanceForExtraCrops.Value > 0.0)
                 {
-                    while (r.NextDouble() < Math.Min(0.9, crop.chanceForExtraCrops))
+                    while (r.NextDouble() < Math.Min(0.9, crop.chanceForExtraCrops.Value))
                     {
                         numToHarvest++;
                     }
                 }
-                if ((int)crop.harvestMethod == 1)
+                if ((int)crop.harvestMethod.Value == 1)
                 {
                     for (int j = 0; j < numToHarvest; j++)
                     {
-                        Game1.createObjectDebris(crop.indexOfHarvest, xTile, yTile, -1, cropQuality, 1f, null);
+                        Game1.createObjectDebris(crop.indexOfHarvest.Value, xTile, yTile, -1, cropQuality, 1f, null);
                     }
-                    if ((int)crop.regrowAfterHarvest == -1)
+                    if (crop.regrowAfterHarvest.Value == -1)
                     {
                         return true;
                     }
-                    crop.dayOfCurrentPhase.Value = crop.regrowAfterHarvest;
+                    crop.dayOfCurrentPhase.Value = crop.regrowAfterHarvest.Value;
                     crop.fullyGrown.Value = true;
                 }
-                else if (Game1.player.addItemToInventoryBool(((bool)crop.programColored) ? new ColoredObject(crop.indexOfHarvest, 1, crop.tintColor)
+                else if (Game1.player.addItemToInventoryBool((crop.programColored.Value) ? new ColoredObject(crop.indexOfHarvest.Value, 1, crop.tintColor.Value)
                 {
                     Quality = cropQuality
-                } : new SVObject(crop.indexOfHarvest, 1, false, -1, cropQuality), false))
+                } : new SVObject(crop.indexOfHarvest.Value, 1, false, -1, cropQuality), false))
                 {
                     Vector2 initialTile = new Vector2(xTile, yTile);
                     if (junimoHarvester == null)
@@ -819,10 +849,10 @@ namespace JoysOfEfficiency
                     }
                     else
                     {
-                        junimoHarvester.tryToAddItemToHut(((bool)crop.programColored) ? new ColoredObject(crop.indexOfHarvest, 1, crop.tintColor)
+                        junimoHarvester.tryToAddItemToHut((crop.programColored.Value) ? new ColoredObject(crop.indexOfHarvest.Value, 1, crop.tintColor.Value)
                         {
                             Quality = cropQuality
-                        } : new SVObject(crop.indexOfHarvest, 1, false, -1, cropQuality));
+                        } : new SVObject(crop.indexOfHarvest.Value, 1, false, -1, cropQuality));
                     }
                     if (r.NextDouble() < (double)((float)Game1.player.LuckLevel / 1500f) + Game1.dailyLuck / 1200.0 + 9.9999997473787516E-05)
                     {
@@ -836,7 +866,7 @@ namespace JoysOfEfficiency
                             junimoHarvester.currentLocation.playSound("dwoop");
                         }
                     }
-                    else if ((int)crop.harvestMethod == 0)
+                    else if (crop.harvestMethod.Value == 0)
                     {
                         if (junimoHarvester == null)
                         {
@@ -850,32 +880,32 @@ namespace JoysOfEfficiency
                         {
                             DelayedAction.playSoundAfterDelay("coin", 260, junimoHarvester.currentLocation);
                         }
-                        if ((int)crop.regrowAfterHarvest == -1)
+                        if (crop.regrowAfterHarvest.Value == -1)
                         {
                             multiplayer.broadcastSprites(Game1.currentLocation, new TemporaryAnimatedSprite(17, new Vector2(initialTile.X * 64f, initialTile.Y * 64f), Color.White, 7, Game1.random.NextDouble() < 0.5, 125f, 0, -1, -1f, -1, 0));
                             multiplayer.broadcastSprites(Game1.currentLocation, new TemporaryAnimatedSprite(14, new Vector2(initialTile.X * 64f, initialTile.Y * 64f), Color.White, 7, Game1.random.NextDouble() < 0.5, 50f, 0, -1, -1f, -1, 0));
                         }
                     }
-                    if ((int)crop.indexOfHarvest == 421)
+                    if (crop.indexOfHarvest.Value == 421)
                     {
                         crop.indexOfHarvest.Value = 431;
                         numToHarvest = r.Next(1, 4);
                     }
                     for (int i = 0; i < numToHarvest - 1; i++)
                     {
-                        Game1.createObjectDebris(crop.indexOfHarvest, xTile, yTile, -1, 0, 1f, null);
+                        Game1.createObjectDebris(crop.indexOfHarvest.Value, xTile, yTile, -1, 0, 1f, null);
                     }
-                    int price = Convert.ToInt32(Game1.objectInformation[crop.indexOfHarvest].Split('/')[1]);
+                    int price = Convert.ToInt32(Game1.objectInformation[crop.indexOfHarvest.Value].Split('/')[1]);
                     float experience = (float)(16.0 * Math.Log(0.018 * (double)price + 1.0, 2.7182818284590451));
                     if (junimoHarvester == null)
                     {
                         Game1.player.gainExperience(0, (int)Math.Round((double)experience));
                     }
-                    if ((int)crop.regrowAfterHarvest == -1)
+                    if (crop.regrowAfterHarvest.Value == -1)
                     {
                         return true;
                     }
-                    crop.dayOfCurrentPhase.Value = crop.regrowAfterHarvest;
+                    crop.dayOfCurrentPhase.Value = crop.regrowAfterHarvest.Value;
                     crop.fullyGrown.Value = true;
                 }
                 else
@@ -895,7 +925,7 @@ namespace JoysOfEfficiency
                 foreach (KeyValuePair<Vector2, SVObject> kv in dic)
                 {
                     Vector2 loc = kv.Key;
-                    if (!(kv.Value is Fence fence) || !fence.isGate)
+                    if (!(kv.Value is Fence fence) || !fence.isGate.Value)
                     {
                         continue;
                     }
@@ -919,7 +949,7 @@ namespace JoysOfEfficiency
                         continue;
                     }
 
-                    int gatePosition = fence.gatePosition;
+                    int gatePosition = fence.gatePosition.Value;
                     bool flag = IsPlayerInClose(player, fence.TileLocation, isUpDown);
 
 
@@ -941,7 +971,7 @@ namespace JoysOfEfficiency
         {
             int num2 = 0;
             Vector2 tileLocation = fence.TileLocation;
-            int whichType = fence.whichType;
+            int whichType = fence.whichType.Value;
             tileLocation.X += 1f;
             if (Game1.currentLocation.objects.ContainsKey(tileLocation) && Game1.currentLocation.objects[tileLocation].GetType() == typeof(Fence) && ((Fence)Game1.currentLocation.objects[tileLocation]).countsForDrawing(whichType))
             {
@@ -964,7 +994,7 @@ namespace JoysOfEfficiency
                 num2 += 1000;
             }
 
-            if (fence.isGate)
+            if (fence.isGate.Value)
             {
                 if (num2 == 110)
                 {
@@ -1019,7 +1049,7 @@ namespace JoysOfEfficiency
             if (player.Stamina <= player.MaxStamina * Conf.StaminaToEatRatio || player.health <= player.maxHealth * Conf.HealthToEatRatio)
             {
                 SVObject itemToEat = null;
-                foreach (SVObject item in player.items.OfType<SVObject>())
+                foreach (SVObject item in player.Items.OfType<SVObject>())
                 {
                     if (item.Edibility > 0)
                     {
@@ -1044,7 +1074,27 @@ namespace JoysOfEfficiency
             }
         }
 
-
+        private T FindToolFromInventory<T>(bool fromEntireInventory) where T : Tool
+        {
+            Player player = Game1.player;
+            T find = null;
+            if (player.CurrentTool is T)
+            {
+                return player.CurrentTool as T;
+            }
+            if (fromEntireInventory)
+            {
+                foreach (Item item in player.Items)
+                {
+                    if (item is T t)
+                    {
+                        find = t;
+                        break;
+                    }
+                }
+            }
+            return find;
+        }
         public void AutoFishing(BobberBar bar)
         {
             IReflectionHelper reflection = Helper.Reflection;
@@ -1165,40 +1215,48 @@ namespace JoysOfEfficiency
             return new RectangleE(rect.Left - radius, rect.Top - radius, 2 * radius, 2 * radius);
         }
 
-        private void DrawSimpleTextbox(SpriteBatch batch, string text, SpriteFont font, Item item)
+        public static void DrawSimpleTextbox(SpriteBatch batch, string text, SpriteFont font, Item item = null)
         {
             Vector2 stringSize = font.MeasureString(text);
-            int x = Game1.getMouseX() - (int)(stringSize.X)/2;
-            int y = Game1.getMouseY() + Game1.tileSize / 2;
+            int x = Game1.getMouseX() + Game1.tileSize / 2;
+            int y = Game1.getMouseY() + (int)(Game1.tileSize * 1.5f);
 
-            if(x < 0)
+            if (x < 0)
             {
                 x = 0;
             }
-            if(y < 0)
+            if (y < 0)
             {
                 y = 0;
             }
-            int rightX = (int)stringSize.X + Game1.tileSize / 2 + Game1.tileSize + 8;
-            if(x + rightX > Game1.viewport.Width)
+            int rightX = (int)stringSize.X + Game1.tileSize / 2 + 8;
+            if (item != null)
+            {
+                rightX += Game1.tileSize;
+            }
+            if (x + rightX > Game1.viewport.Width)
             {
                 x = Game1.viewport.Width - rightX;
             }
-            int bottomY = Math.Max(60, (int)(stringSize.Y + Game1.tileSize * 1.2));
-            if(bottomY + y > Game1.viewport.Height)
+            int bottomY = (int)stringSize.Y + 32;
+            if (item != null)
+            {
+                bottomY += (int)(Game1.tileSize * 1.2);
+            }
+            if (bottomY + y > Game1.viewport.Height)
             {
                 y = Game1.viewport.Height - bottomY;
             }
             IClickableMenu.drawTextureBox(batch, Game1.menuTexture, new Rectangle(0, 256, 60, 60), x, y, rightX, bottomY, Color.White, 1f, true);
-            if(!string.IsNullOrEmpty(text))
+            if (!string.IsNullOrEmpty(text))
             {
                 Vector2 vector2 = new Vector2(x + Game1.tileSize / 4, y + bottomY / 2 - 10);
-                batch.DrawString(font, hoverText, vector2 + new Vector2(2f, 2f), Game1.textShadowColor, 0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0f);
-                batch.DrawString(font, hoverText, vector2 + new Vector2(0f, 2f), Game1.textShadowColor, 0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0f);
-                batch.DrawString(font, hoverText, vector2 + new Vector2(2f, 0f), Game1.textShadowColor, 0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0f);
-                batch.DrawString(font, hoverText, vector2, Game1.textColor * 0.9f, 0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0f);
+                batch.DrawString(font, text, vector2 + new Vector2(2f, 2f), Game1.textShadowColor, 0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0f);
+                batch.DrawString(font, text, vector2 + new Vector2(0f, 2f), Game1.textShadowColor, 0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0f);
+                batch.DrawString(font, text, vector2 + new Vector2(2f, 0f), Game1.textShadowColor, 0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0f);
+                batch.DrawString(font, text, vector2, Game1.textColor * 0.9f, 0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0f);
             }
-            item.drawInMenu(batch, new Vector2(x + (int)stringSize.X + 24, y + 16), 1.0f,1.0f,0.9f,false);
+            item?.drawInMenu(batch, new Vector2(x + (int)stringSize.X + 24, y + 16), 1.0f, 1.0f, 0.9f, false);
         }
 
         private void DrawFishingInfoBox(SpriteBatch batch, BobberBar bar, SpriteFont font)
@@ -1395,7 +1453,7 @@ namespace JoysOfEfficiency
                 string ret = string.Format(str, args);
                 return ret;
             }
-            catch (Exception e)
+            catch
             {
             }
             return "";
