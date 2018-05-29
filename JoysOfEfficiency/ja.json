@@ -27,7 +27,5 @@
   "tab.controls": "コントロール",
   "button.awaiting": "割り当てるキーを押してください...",
   "button.esc": "Escキーを押すとキャンセルできます",
-  "button.conflict": "そのキーはすでに割り当てられています",
-  "monsters.tally": "{0}: {1}キル",
-  "ladder": "はしごが出現した!"
+  "button.conflict": "そのキーはすでに割り当てられています"
 }

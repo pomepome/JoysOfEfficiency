@@ -7,9 +7,10 @@ namespace JoysOfEfficiency
     public class Config
     {
         public bool MineInfoGUI { get; set; } = true;
-        public Keys ToggleKeyMineGUI { get; set; } = Keys.H;
         public bool AutoWaterNearbyCrops { get; set; } = true;
         public int AutoWaterRadius { get; set; } = 2;
+        public bool FindCanFromInventory { get; set; } = true;
+        public bool FindHoeFromInventory { get; set; } = true;
         public bool GiftInformation { get; set; } = true;
         public bool AutoPetNearbyAnimals { get; set; } = true;
         public int AutoPetRadius { get; set; } = 2;
@@ -32,5 +33,8 @@ namespace JoysOfEfficiency
         public int AutoCollectRadius { get; set; } = 1;
         public bool AutoShakeFruitedTree { get; set; } = true;
         public int AutoShakeRadius { get; set; } = 2;
+        public bool AutoDigArtifactSpot { get; set; } = true;
+        public int AutoDigRadius { get; set; } = 2;
+        public bool FastToolUpgrade { get; set; } = false;
     }
 }

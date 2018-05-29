@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace JoysOfEfficiency
+namespace JoysOfEfficiency.Options
 {
     public class ModifiedSlider : OptionsElement
     {

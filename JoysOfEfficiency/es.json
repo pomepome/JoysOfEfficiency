@@ -27,7 +27,5 @@
   "tab.controls": "Controles",
   "button.awaiting": "Presione la tecla para asignar...",
   "button.esc": "Presione la tecla Esc para cancelar",
-  "button.conflict": "La tecla presionada está en conflicto",
-  "monsters.tally": "{0}: {1}matanza",
-  "ladder": "Ladder ha generado!"
+  "button.conflict": "La tecla presionada está en conflicto"
 }

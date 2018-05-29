@@ -34,7 +34,9 @@ namespace JoysOfEfficiency
         private string hoverText;
         private bool catchingTreasure = false;
 
-        private bool MineInfoVisible = true;
+        private bool isNight;
+
+        private MineIcons icons = new MineIcons();
 
         private List<Monster> lastMonsters = new List<Monster>();
         private string lastKilledMonster;
@@ -47,14 +49,15 @@ namespace JoysOfEfficiency
         public override void Entry(IModHelper helper)
         {
             Conf = helper.ReadConfig<Config>();
-            GameEvents.UpdateTick += OnGameUpdate;
+            GameEvents.EighthUpdateTick += OnGameUpdate;
 
             ControlEvents.KeyPressed += OnKeyPressed;
 
-            SaveEvents.BeforeSave += OnBeforeSave;
+            //SaveEvents.BeforeSave += OnBeforeSave;
             TimeEvents.AfterDayStarted += OnPostSave;
 
             GraphicsEvents.OnPostRenderHudEvent += OnPostRenderHUD;
+            MineIcons.Init(helper);
         }
 
         #region EventHandlers
@@ -70,16 +73,7 @@ namespace JoysOfEfficiency
             if (Conf.AutoWaterNearbyCrops)
             {
                 RectangleE bb = ExpandE(player.GetBoundingBox(), Conf.AutoWaterRadius * Game1.tileSize);
-                WateringCan can = null;
-                foreach (Item item in player.Items)
-                {
-                    //Search Watering Can To Use
-                    can = item as WateringCan;
-                    if (can != null)
-                    {
-                        break;
-                    }
-                }
+                WateringCan can = FindToolFromInventory<WateringCan>(Conf.FindCanFromInventory);
                 if (can != null)
                 {
                     bool watered = false;
@@ -88,12 +82,13 @@ namespace JoysOfEfficiency
                         Vector2 location = kv.Key;
                         TerrainFeature tf = kv.Value;
                         Point centre = tf.getBoundingBox(location).Center;
-                        if (bb.IsInternalPoint(centre.X, centre.Y) && tf is HoeDirt dirt)
+                        if (bb.IsInternalPoint(centre) && tf is HoeDirt dirt)
                         {
-                            if (dirt.crop != null && !dirt.crop.dead && dirt.state == 0 && player.Stamina >= 2 && can.WaterLeft > 0)
+                            float consume = 2 * (1.0f / (can.UpgradeLevel / 2.0f + 1));
+                            if (dirt.crop != null && !dirt.crop.dead && dirt.state == 0 && player.Stamina >= consume && can.WaterLeft > 0)
                             {
                                 dirt.state = 1;
-                                player.Stamina -= 2;
+                                player.Stamina -= consume;
                                 can.WaterLeft--;
                                 watered = true;
                             }
@@ -170,9 +165,9 @@ namespace JoysOfEfficiency
                         rod.hit = true;
                     }
                 }
-                if (Conf.MuchFasterBiting)
+                if (Conf.MuchFasterBiting && !rod.isNibbling && !rod.isReeling && !rod.hit && !rod.pullingOutOfWater && !rod.fishCaught)
                 {
-                    rod.timeUntilFishingBite -= 1000;
+                    rod.timeUntilFishingBite -= 10000;
                 }
             }
             if(Conf.AutoGate)
@@ -194,15 +189,8 @@ namespace JoysOfEfficiency
             }
             if(Conf.AutoRefillWateringCan)
             {
-                WateringCan can = null;
-                foreach(Item item in player.Items)
-                {
-                    if(item is WateringCan wc && wc.WaterLeft < wc.waterCanMax)
-                    {
-                        can = wc;
-                    }
-                }
-                if(can != null && IsThereAnyWaterNear(player.currentLocation, player.getTileLocation()))
+                WateringCan can = FindToolFromInventory<WateringCan>(Conf.FindCanFromInventory);
+                if(can != null && can.WaterLeft < can.waterCanMax && IsThereAnyWaterNear(player.currentLocation, player.getTileLocation()))
                 {
                     can.WaterLeft = can.waterCanMax;
                     Game1.playSound("slosh");
@@ -219,6 +207,42 @@ namespace JoysOfEfficiency
                     if (obj.IsSpawnedObject && bb.Intersects(obj.getBoundingBox(loc)))
                     {
                         CollectObj(player.currentLocation, loc, obj);
+                    }
+                }
+            }
+            if(Conf.AutoAnimalDoor && !isNight && Game1.timeOfDay >= 1900)
+            {
+                isNight = true;
+                OnPostSave(null, null);
+            }
+            if (Conf.AutoDigArtifactSpot)
+            {
+                int radius = Conf.AutoDigRadius;
+                Hoe hoe = FindToolFromInventory<Hoe>(Conf.FindHoeFromInventory);
+                GameLocation location = player.currentLocation;
+                if (hoe != null)
+                {
+                    bool flag = false;
+                    for (int i = -radius; i <= radius; i++)
+                    {
+                        for (int j = -radius; j <= radius; j++)
+                        {
+                            int x = player.getTileX() + i;
+                            int y = player.getTileY() + j;
+                            Vector2 loc = new Vector2(x, y);
+                            if(location.Objects.ContainsKey(loc) && location.Objects[loc].ParentSheetIndex == 590 && !location.isTileHoeDirt(loc))
+                            {
+                                Log($"BURIED @[{x},{y}]");
+                                location.digUpArtifactSpot(x, y, player);
+                                location.Objects.Remove(loc);
+                                location.terrainFeatures.Add(loc, new HoeDirt());
+                                flag = true;
+                            }
+                        }
+                    }
+                    if(flag)
+                    {
+                        Game1.playSound("hoeHit");
                     }
                 }
             }
@@ -248,6 +272,10 @@ namespace JoysOfEfficiency
                         }
                     }
                 }
+                if (Conf.FastToolUpgrade && player.daysLeftForToolUpgrade > 1)
+                {
+                    player.daysLeftForToolUpgrade = 1;
+                }
             }
         }
 
@@ -259,20 +287,9 @@ namespace JoysOfEfficiency
             }
             IReflectionHelper reflection = Helper.Reflection;
             ITranslationHelper translation = Helper.Translation;
-            if (Conf.MineInfoGUI && args.KeyPressed == Conf.ToggleKeyMineGUI)
-            {
-                MineInfoVisible = !MineInfoVisible;
-                if (MineInfoVisible)
-                {
-                    ShowHUDMessage(translation.Get("mineinfo.enabled"));
-                }
-                else
-                {
-                    ShowHUDMessage(translation.Get("mineinfo.disabled"));
-                }
-            }
             if (args.KeyPressed == Conf.KeyShowMenu)
             {
+                Player player = Game1.player;
                 //Open Up Menu
                 Game1.playSound("bigSelect");
                 Game1.activeClickableMenu = new JOEMenu(800, 500, this);
@@ -344,6 +361,7 @@ namespace JoysOfEfficiency
             {
                 return;
             }
+            isNight = false;
             if(Game1.isRaining || Game1.isSnowing)
             {
                 Log("Don't open because of rainy/snowy weather.");
@@ -446,16 +464,31 @@ namespace JoysOfEfficiency
             return false;
         }
 
+        public static Vector2 FindLadder(MineShaft shaft)
+        {
+            for(int i = 0;i < shaft.Map.GetLayer("Buildings").LayerWidth;i++)
+            {
+                for(int j = 0; j < shaft.Map.GetLayer("Buildings").LayerHeight;j++)
+                {
+                    int index = shaft.getTileIndexAt(new Point(i, j), "Buildings");
+                    Vector2 loc = new Vector2(i, j);
+                    if (!shaft.Objects.ContainsKey(loc) && !shaft.terrainFeatures.ContainsKey(loc))
+                    {
+                        if(index == 171 || index == 173 || index == 174)
+                            return loc;
+                    }
+                }
+            }
+            return Vector2.Zero;
+        }
+
         private void DrawMineGui(SpriteBatch batch, SpriteFont font, Player player, MineShaft shaft)
         {
-            if (!MineInfoVisible)
-            {
-                return;
-            }
             IReflectionHelper reflection = Helper.Reflection;
             ITranslationHelper translation = Helper.Translation;
             int stonesLeft = reflection.GetField<int>(shaft, "stonesLeftOnThisLevel").GetValue();
-            bool ladder = reflection.GetField<bool>(shaft, "ladderHasSpawned").GetValue();
+            Vector2 ladderPos = FindLadder(shaft);
+            bool ladder = ladderPos != null && ladderPos != Vector2.Zero;
 
             List<Monster> currentMonsters = shaft.characters.OfType<Monster>().ToList();
             foreach (Monster mon in lastMonsters)
@@ -468,13 +501,14 @@ namespace JoysOfEfficiency
             }
             lastMonsters = currentMonsters.ToList();
             string tallyStr = null;
-            if (lastKilledMonster != null && Game1.stats.specificMonstersKilled.ContainsKey(lastKilledMonster))
+            string ladderStr = null;
+            if (lastKilledMonster != null)
             {
-                int kills = Game1.stats.specificMonstersKilled[lastKilledMonster];
+                int kills = Game1.stats.getMonstersKilled(lastKilledMonster);
                 tallyStr = string.Format(translation.Get("monsters.tally"), lastKilledMonster, kills);
             }
 
-            string stonesStr = "";
+            string stonesStr = null;
             if (stonesLeft == 0)
             {
                 stonesStr = translation.Get("stones.none");
@@ -491,54 +525,13 @@ namespace JoysOfEfficiency
                     stonesStr = string.Format(translation.Get("stones.many"), stonesLeft);
                 }
             }
-            Point winSize = GetSuggestedMineInfoGuiSize(Game1.smallFont, stonesStr, tallyStr, ladder, translation.Get("ladder"));
-            IClickableMenu.drawTextureBox(batch, 32, 320, winSize.X, winSize.Y, Color.White);
-            int x = 32 + 16, y = 320 + 24;
-            Vector2 size = Game1.smallFont.MeasureString(stonesStr);
-            Utility.drawTextWithShadow(batch, stonesStr, Game1.smallFont, new Vector2(x, y), Color.Black);
-            y += (int)size.Y + 16;
-            if (tallyStr != null)
-            {
-                Utility.drawTextWithShadow(batch, tallyStr, Game1.smallFont, new Vector2(x, y), Color.Black);
-                y += (int)size.Y + 16;
-            }
             if (ladder)
             {
-                Utility.drawTextWithShadow(batch, translation.Get("ladder"), Game1.smallFont, new Vector2(x, y), Color.Red);
+                ladderStr = translation.Get("ladder");
             }
+            icons.Draw(stonesStr, tallyStr, ladderStr);
         }
-
-        private Point GetSuggestedMineInfoGuiSize(SpriteFont font, string stonesStr, string tallyStr, bool ladder, string ladderStr)
-        {
-            int x = 32, y = 32;
-            {
-                Vector2 size = font.MeasureString(stonesStr);
-                if (size.X + 32 > x)
-                {
-                    x = (int)size.X + 32;
-                }
-                y += (int)size.Y + 16;
-            }
-            if (tallyStr != null)
-            {
-                Vector2 size = font.MeasureString(tallyStr);
-                if (size.X + 32 > x)
-                {
-                    x = (int)size.X + 32;
-                }
-                y += (int)size.Y + 16;
-            }
-            if (ladder)
-            {
-                Vector2 size = font.MeasureString(ladderStr);
-                if (size.X + 32 > x)
-                {
-                    x = (int)size.X + 32;
-                }
-                y += (int)size.Y + 16;
-            }
-            return new Point(x, y);
-        }
+        
 
         private bool CollectObj(GameLocation loc, Vector2 vector, SVObject obj)
         {
@@ -939,6 +932,28 @@ namespace JoysOfEfficiency
             }
         }
 
+        private T FindToolFromInventory<T>(bool fromEntireInventory) where T : Tool
+        {
+            Player player = Game1.player;
+            T find = null;
+            if (player.CurrentTool is T)
+            {
+                return player.CurrentTool as T;
+            }
+            if(fromEntireInventory)
+            {
+                foreach(Item item in player.Items)
+                {
+                    if(item is T t)
+                    {
+                        find = t;
+                        break;
+                    }
+                }
+            }
+            return find;
+        }
+
         public void TryToggleGate(Player player)
         {
             GameLocation location = player.currentLocation;
@@ -1152,13 +1167,13 @@ namespace JoysOfEfficiency
             return new Rectangle(rect.Left - radius, rect.Top - radius, 2 * radius, 2 * radius);
         }
 
-        public static void DrawSimpleTextbox(SpriteBatch batch, string text, SpriteFont font, Item item)
+        public static void DrawSimpleTextbox(SpriteBatch batch, string text, SpriteFont font, Item item = null)
         {
             Vector2 stringSize = font.MeasureString(text);
             int x = Game1.getMouseX() + Game1.tileSize / 2;
-            int y = Game1.getMouseY() + Game1.tileSize / 2;
+            int y = Game1.getMouseY() + (int)(Game1.tileSize * 0.8f);
 
-            if(x < 0)
+            if (x < 0)
             {
                 x = 0;
             }
@@ -1175,12 +1190,11 @@ namespace JoysOfEfficiency
             {
                 x = Game1.viewport.Width - rightX;
             }
-            int bottomY = (int)stringSize.Y;
+            int bottomY = (int)stringSize.Y + 32;
             if(item != null)
             {
                 bottomY += (int)(Game1.tileSize * 1.2);
             }
-            bottomY = Math.Max(60, bottomY);
             if(bottomY + y > Game1.viewport.Height)
             {
                 y = Game1.viewport.Height - bottomY;
