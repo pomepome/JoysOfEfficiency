@@ -5,12 +5,8 @@ using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Menus;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace JoysOfEfficiency.Options
+namespace JoysOfEfficiency.OptionsElements
 {
     public class ModifiedInputListener : OptionsElement
     {
@@ -18,9 +14,9 @@ namespace JoysOfEfficiency.Options
         private bool conflicting = false;
         private Keys button;
 
-        private readonly Action<int, ModifiedInputListener> OnStartListening;
-        private readonly Action<int, Keys> OnButtonPressed;
-        private readonly Func<int, bool> IsDisabled;
+        private Action<int, ModifiedInputListener> OnStartListening;
+        private Action<int, Keys> OnButtonPressed;
+        private Func<int, bool> IsDisabled;
         private Rectangle ButtonRect;
 
         private static readonly SpriteFont font = Game1.dialogueFont;
@@ -73,11 +69,11 @@ namespace JoysOfEfficiency.Options
         {
             string text = $"{label}: {button.ToString()}";
             Vector2 size = Game1.dialogueFont.MeasureString(text);
-            b.DrawString(Game1.dialogueFont, text, new Vector2(slotX , slotY + 8), Color.Black, 0, new Vector2(), 1f, SpriteEffects.None, 1.0f);
+            b.DrawString(Game1.dialogueFont, text, new Vector2(slotX, slotY + 8), Color.Black, 0, new Vector2(), 1f, SpriteEffects.None, 1.0f);
 
             int x = slotX + (int)size.X + 8;
 
-            ButtonRect = new Rectangle(x, slotY, 90 , 45);
+            ButtonRect = new Rectangle(x, slotY, 90, 45);
             bounds = new Rectangle(0, 0, (int)size.X + ButtonRect.Width, ButtonRect.Height);
 
             b.Draw(Game1.mouseCursors, ButtonRect, new Rectangle(294, 428, 21, 11), Color.White, 0, Vector2.Zero, SpriteEffects.None, 1.0f);

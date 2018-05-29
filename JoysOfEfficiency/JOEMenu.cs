@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using JoysOfEfficiency.OptionsElements;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using StardewModdingAPI;
@@ -10,7 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace JoysOfEfficiency.Options
+namespace JoysOfEfficiency
 {
     public class JOEMenu : IClickableMenu
     {

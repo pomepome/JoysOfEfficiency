@@ -2,15 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using JoysOfEfficiency.Options;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Netcode;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
-using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Characters;
@@ -53,6 +50,8 @@ namespace JoysOfEfficiency
             Conf.AutoHarvestRadius = (int)Cap(Conf.AutoHarvestRadius, 1, 3);
             Conf.AutoPetRadius = (int)Cap(Conf.AutoPetRadius, 1, 3);
             Conf.AutoWaterRadius = (int)Cap(Conf.AutoWaterRadius, 1, 3);
+            Conf.AutoDigRadius = (int)Cap(Conf.AutoDigRadius, 1, 3);
+            Conf.AutoShakeRadius = (int)Cap(Conf.AutoShakeRadius, 1, 3);
             helper.WriteConfig(Conf);
 
             MineIcons.Init(helper);
@@ -932,7 +931,7 @@ namespace JoysOfEfficiency
 
                     IReflectedField<NetInt> fieldPosition = Helper.Reflection.GetField<NetInt>(fence, "gatePosition");
 
-                    RectangleE bb = ExpandE(fence.getBoundingBox(loc), 2 * Game1.tileSize);
+                    RectangleE bb = ExpandE(fence.getBoundingBox(loc), 3 * Game1.tileSize);
                     if (!bb.IsInternalPoint(player.Position.X, player.Position.Y))
                     {
                         //It won't work if the player is far away.
