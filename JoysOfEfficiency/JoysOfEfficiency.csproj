@@ -65,12 +65,12 @@
   <ItemGroup>
     <Compile Include="Config.cs" />
     <Compile Include="JOEMenu.cs" />
-    <Compile Include="MenuTab.cs" />
+    <Compile Include="OptionsElements\MenuTab.cs" />
     <Compile Include="MineIcons.cs" />
     <Compile Include="ModEntry.cs" />
-    <Compile Include="ModifiedCheckBox.cs" />
-    <Compile Include="ModifiedInputListener.cs" />
-    <Compile Include="ModifiedSlider.cs" />
+    <Compile Include="OptionsElements\ModifiedCheckBox.cs" />
+    <Compile Include="OptionsElements\ModifiedInputListener.cs" />
+    <Compile Include="OptionsElements\ModifiedSlider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RectangleE.cs" />
   </ItemGroup>

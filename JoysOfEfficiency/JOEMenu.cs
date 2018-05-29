@@ -10,13 +10,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace JoysOfEfficiency.Options
+using JoysOfEfficiency.OptionsElements;
+
+namespace JoysOfEfficiency
 {
     public class JOEMenu : IClickableMenu
     {
         private ModEntry mod;
         private ITranslationHelper translation;
-        private IMonitor mon;
+        private readonly IMonitor mon;
 
         private readonly List<MenuTab> tabs = new List<MenuTab>();
 
@@ -31,9 +33,9 @@ namespace JoysOfEfficiency.Options
         private int firstIndex = 0;
 
         private readonly SpriteFont font = Game1.smallFont;
-        private string tabEnabledString;
-        private string tabSlidersString;
-        private string tabControlsString;
+        private readonly string tabEnabledString;
+        private readonly string tabSlidersString;
+        private readonly string tabControlsString;
 
         private bool isListening;
 

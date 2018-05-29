@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
-using StardewModdingAPI.Utilities;
 using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Characters;
@@ -18,7 +14,6 @@ using StardewValley.Menus;
 using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
 using StardewValley.Tools;
-using JoysOfEfficiency.Options;
 using StardewValley.Monsters;
 
 namespace JoysOfEfficiency
@@ -57,6 +52,16 @@ namespace JoysOfEfficiency
             TimeEvents.AfterDayStarted += OnPostSave;
 
             GraphicsEvents.OnPostRenderHudEvent += OnPostRenderHUD;
+
+            Conf.CPUThresholdFishing = Cap(Conf.CPUThresholdFishing, 0, 0.5f);
+            Conf.AutoCollectRadius = (int)Cap(Conf.AutoCollectRadius, 1, 3);
+            Conf.AutoHarvestRadius = (int)Cap(Conf.AutoHarvestRadius, 1, 3);
+            Conf.AutoPetRadius = (int)Cap(Conf.AutoPetRadius, 1, 3);
+            Conf.AutoWaterRadius = (int)Cap(Conf.AutoWaterRadius, 1, 3);
+            Conf.AutoDigRadius = (int)Cap(Conf.AutoDigRadius, 1, 3);
+            Conf.AutoShakeRadius = (int)Cap(Conf.AutoShakeRadius, 1, 3);
+            helper.WriteConfig(Conf);
+
             MineIcons.Init(helper);
         }
 
@@ -966,7 +971,7 @@ namespace JoysOfEfficiency
                     continue;
                 }
 
-                RectangleE bb = ExpandE(fence.getBoundingBox(loc), 2.0f * Game1.tileSize);
+                RectangleE bb = ExpandE(fence.getBoundingBox(loc), 3.0f * Game1.tileSize);
                 if (!bb.IsInternalPoint(player.Position))
                 {
                     //It won't work if player is far away.
