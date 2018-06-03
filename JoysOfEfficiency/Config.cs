@@ -38,5 +38,7 @@ namespace JoysOfEfficiency
         public int AutoDigRadius { get; set; } = 2;
         public bool FastToolUpgrade { get; set; } = false;
         public bool BalancedMode { get; set; } = false;
+        public bool FasterRunningSpeed { get; set; } = false;
+        public int AddedSpeedMultiplier { get; set; } = 1;
     }
 }

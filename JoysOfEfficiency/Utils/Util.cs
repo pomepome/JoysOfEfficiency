@@ -468,7 +468,6 @@ namespace JoysOfEfficiency.Utils
             }
             if (who.couldInventoryAcceptThisItem(obj))
             {
-
                 Monitor.Log($"picked up {obj.DisplayName} at [{vector.X},{vector.Y}]");
                 if (who.IsLocalPlayer)
                 {
@@ -1001,6 +1000,20 @@ namespace JoysOfEfficiency.Utils
             return string.Format(format, args);
         }
 
+        public static string GetRealLocation(string key)
+        {
+            string ret = "";
+            for(int i = 0; i < key.Length;i++)
+            {
+                if(key[i] >= '0' && key[i] <= '9')
+                {
+                    break;
+                }
+                ret += key[i];
+            }
+            return ret;
+        }
+
         public static List<FarmAnimal> GetAnimalsList(Player player)
         {
             List<FarmAnimal> list = new List<FarmAnimal>();
@@ -1086,7 +1099,7 @@ namespace JoysOfEfficiency.Utils
             int bottomY = (int)stringSize.Y + 32;
             if (item != null)
             {
-                bottomY += (int)(Game1.tileSize * 1.2);
+                bottomY = (int)(Game1.tileSize * 1.2) + 32;
             }
             if (bottomY + y > Game1.viewport.Height)
             {
@@ -1096,10 +1109,7 @@ namespace JoysOfEfficiency.Utils
             if (!string.IsNullOrEmpty(text))
             {
                 Vector2 vector2 = new Vector2(x + Game1.tileSize / 4, y + bottomY / 2 - 10);
-                batch.DrawString(font, text, vector2 + new Vector2(2f, 2f), Game1.textShadowColor, 0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0f);
-                batch.DrawString(font, text, vector2 + new Vector2(0f, 2f), Game1.textShadowColor, 0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0f);
-                batch.DrawString(font, text, vector2 + new Vector2(2f, 0f), Game1.textShadowColor, 0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0f);
-                batch.DrawString(font, text, vector2, Game1.textColor * 0.9f, 0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0f);
+                Utility.drawTextWithShadow(batch, text, font, vector2, Color.Black);
             }
             item?.drawInMenu(batch, new Vector2(x + (int)stringSize.X + 24, y + 16), 1.0f, 1.0f, 0.9f, false);
         }

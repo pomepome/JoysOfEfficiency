@@ -36,6 +36,7 @@ namespace JoysOfEfficiency
             Util.Helper = helper;
             Util.Monitor = Monitor;
             Conf = helper.ReadConfig<Config>();
+            GameEvents.UpdateTick += OnGameTick;
             GameEvents.EighthUpdateTick += OnGameUpdate;
             ControlEvents.KeyPressed += OnKeyPressed;
             
@@ -45,8 +46,8 @@ namespace JoysOfEfficiency
             GraphicsEvents.OnPostRenderHudEvent += OnPostRenderHUD;
 
             Conf.CPUThresholdFishing = Util.Cap(Conf.CPUThresholdFishing, 0, 0.5f);
-            Conf.HealthToEatRatio = Util.Cap(Conf.HealthToEatRatio, 0, 0.8f);
-            Conf.StaminaToEatRatio = Util.Cap(Conf.StaminaToEatRatio, 0, 0.8f);
+            Conf.HealthToEatRatio = Util.Cap(Conf.HealthToEatRatio, 0.3f, 0.8f);
+            Conf.StaminaToEatRatio = Util.Cap(Conf.StaminaToEatRatio, 0.3f, 0.8f);
             Conf.AutoCollectRadius = (int)Util.Cap(Conf.AutoCollectRadius, 1, 3);
             Conf.AutoHarvestRadius = (int)Util.Cap(Conf.AutoHarvestRadius, 1, 3);
             Conf.AutoPetRadius = (int)Util.Cap(Conf.AutoPetRadius, 1, 3);
@@ -56,6 +57,31 @@ namespace JoysOfEfficiency
             helper.WriteConfig(Conf);
 
             MineIcons.Init(helper);
+        }
+
+        private void OnGameTick(object senderm, EventArgs args)
+        {
+            if(!Context.IsWorldReady)
+            {
+                return;
+            }
+            Player player = Game1.player;
+            if(Conf.FasterRunningSpeed && player.running)
+            {
+                player.addedSpeed = Conf.AddedSpeedMultiplier;
+            }
+            else
+            {
+                player.addedSpeed = 0;
+            }
+            if(player.controller != null)
+            {
+                player.addedSpeed = 0;
+            }
+            if(Conf.AutoGate)
+            {
+                Util.TryToggleGate(player);
+            }
         }
 
         private void OnGameUpdate(object sender, EventArgs args)
@@ -72,11 +98,7 @@ namespace JoysOfEfficiency
                 if (Conf.GiftInformation)
                 {
                     hoverText = null;
-                    if (player.CurrentTool != null || player.CurrentItem == null || !player.CurrentItem.canBeGivenAsGift())
-                    {
-                        //Rejects tools, nothing, and bigCraftable objects(chests, machines, statues etc. and Furnitures)
-                    }
-                    else
+                    if (player.CurrentItem != null && player.CurrentItem.canBeGivenAsGift())
                     {
                         List<NPC> npcList = player.currentLocation.characters.Where(a => a.isVillager()).ToList();
                         foreach (NPC npc in npcList)
@@ -120,10 +142,6 @@ namespace JoysOfEfficiency
                     {
                         rod.timeUntilFishingBite -= 10000;
                     }
-                }
-                if (Conf.AutoGate)
-                {
-                    Util.TryToggleGate(player);
                 }
                 if (Conf.AutoEat)
                 {
