@@ -65,6 +65,7 @@ namespace JoysOfEfficiency
             {
                 //Enabled Tab
                 MenuTab tab = new MenuTab();
+                tab.AddOptionsElement(new ModifiedCheckBox("BalancedMode", 20, ModEntry.Conf.BalancedMode, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("MineInfoGUI", 0, ModEntry.Conf.MineInfoGUI, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("GiftInformation", 1, ModEntry.Conf.GiftInformation, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoWaterNearbyCrops", 2, ModEntry.Conf.AutoWaterNearbyCrops, OnCheckboxValueChanged));
@@ -80,7 +81,7 @@ namespace JoysOfEfficiency
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoDestroyDeadCrops", 12, ModEntry.Conf.AutoDestroyDeadCrops, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoRefillWateringCan", 13, ModEntry.Conf.AutoRefillWateringCan, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoCollectCollectibles", 14, ModEntry.Conf.AutoCollectCollectibles, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoShakeFruitedTree", 15, ModEntry.Conf.AutoShakeFruitedTree, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoShakeFruitedPlants", 15, ModEntry.Conf.AutoShakeFruitedPlants, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("FindCanFromInventory", 16, ModEntry.Conf.FindCanFromInventory , OnCheckboxValueChanged, (i => !(ModEntry.Conf.AutoWaterNearbyCrops || ModEntry.Conf.AutoRefillWateringCan))));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoDigArtifactSpot", 17, ModEntry.Conf.AutoDigArtifactSpot, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("FindHoeFromInventory", 18, ModEntry.Conf.FindHoeFromInventory, OnCheckboxValueChanged, i => !ModEntry.Conf.AutoDigArtifactSpot));
@@ -97,7 +98,7 @@ namespace JoysOfEfficiency
                 tab.AddOptionsElement(new ModifiedSlider("AutoPetRadius", 4, ModEntry.Conf.AutoPetRadius - 1, 2, OnSliderValueChanged, (() => !ModEntry.Conf.AutoPetNearbyAnimals), Format));
                 tab.AddOptionsElement(new ModifiedSlider("AutoHarvestRadius", 5, ModEntry.Conf.AutoHarvestRadius - 1, 2, OnSliderValueChanged, (() => !ModEntry.Conf.AutoHarvest), Format));
                 tab.AddOptionsElement(new ModifiedSlider("AutoCollectRadius", 6, ModEntry.Conf.AutoCollectRadius - 1, 2, OnSliderValueChanged, (() => !ModEntry.Conf.AutoCollectCollectibles), Format));
-                tab.AddOptionsElement(new ModifiedSlider("AutoShakeRadius", 7, ModEntry.Conf.AutoShakeRadius - 1, 2, OnSliderValueChanged, (() => !ModEntry.Conf.AutoShakeFruitedTree), Format));
+                tab.AddOptionsElement(new ModifiedSlider("AutoShakeRadius", 7, ModEntry.Conf.AutoShakeRadius - 1, 2, OnSliderValueChanged, (() => !ModEntry.Conf.AutoShakeFruitedPlants), Format));
                 tab.AddOptionsElement(new ModifiedSlider("AutoDigRadius", 8, ModEntry.Conf.AutoDigRadius - 1, 2, OnSliderValueChanged, (() => !ModEntry.Conf.AutoDigArtifactSpot), Format));
                 tabs.Add(tab);
             }
@@ -143,11 +144,12 @@ namespace JoysOfEfficiency
                 case 12: ModEntry.Conf.AutoDestroyDeadCrops = value; break;
                 case 13: ModEntry.Conf.AutoRefillWateringCan = value; break;
                 case 14: ModEntry.Conf.AutoCollectCollectibles = value; break;
-                case 15: ModEntry.Conf.AutoShakeFruitedTree = value; break;
+                case 15: ModEntry.Conf.AutoShakeFruitedPlants = value; break;
                 case 16: ModEntry.Conf.FindCanFromInventory = value; break;
                 case 17: ModEntry.Conf.AutoDigArtifactSpot = value; break;
                 case 18: ModEntry.Conf.FindHoeFromInventory = value; break;
                 case 19: ModEntry.Conf.FastToolUpgrade = value; break;
+                case 20: ModEntry.Conf.BalancedMode = value; break;
                 default: return;
             }
             mod.WriteConfig();

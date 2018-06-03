@@ -32,7 +32,7 @@ namespace JoysOfEfficiency.OptionsElements
         {
             button = initial;
             OnButtonPressed = onButtonPressed;
-            IsDisabled = isDisabled ?? ((i) => false);
+            IsDisabled = isDisabled ?? (i => false);
             translation = translationHelper;
             OnStartListening = onStartListening ?? ((i,obj) => { });
             whichOption = which;

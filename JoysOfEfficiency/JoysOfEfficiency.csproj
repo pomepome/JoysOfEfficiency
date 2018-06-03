@@ -73,6 +73,7 @@
     <Compile Include="OptionsElements\ModifiedSlider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RectangleE.cs" />
+    <Compile Include="Utils\Util.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="de.json" />
@@ -83,6 +84,7 @@
     <None Include="packages.config" />
     <None Include="pt.json" />
     <None Include="ru.json" />
+    <None Include="WhatsNew.md" />
     <None Include="zh.json" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
