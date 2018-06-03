@@ -588,50 +588,35 @@ namespace JoysOfEfficiency.Utils
         public static void TryToggleGate(Player player)
         {
             GameLocation location = player.currentLocation;
-
-            foreach (SerializableDictionary<Vector2, SVObject> dic in location.Objects)
+            
+            foreach(Fence fence in GetObjectsWithin<Fence>(2).Where(f=>f.isGate.Value))
             {
-                foreach (KeyValuePair<Vector2, SVObject> kv in dic)
+                Vector2 loc = fence.TileLocation;
+                IReflectedField<NetInt> fieldPosition = Helper.Reflection.GetField<NetInt>(fence, "gatePosition");
+
+                bool? isUpDown = IsUpsideDown(location, fence);
+                if (isUpDown == null)
                 {
-                    Vector2 loc = kv.Key;
-                    if (!(kv.Value is Fence fence) || !fence.isGate.Value)
-                    {
-                        continue;
-                    }
-
-                    IReflectedField<NetInt> fieldPosition = Helper.Reflection.GetField<NetInt>(fence, "gatePosition");
-
-                    RectangleE bb = ExpandE(fence.getBoundingBox(loc), 3 * Game1.tileSize);
-                    if (!bb.IsInternalPoint(player.Position.X, player.Position.Y))
-                    {
-                        //It won't work if the player is far away.
-                        continue;
-                    }
-
-                    bool? isUpDown = IsUpsideDown(location, fence);
-                    if (isUpDown == null)
-                    {
-                        if (!fence.getBoundingBox(loc).Intersects(player.GetBoundingBox()))
-                        {
-                            fieldPosition.SetValue(new NetInt(0));
-                        }
-                        continue;
-                    }
-
-                    int gatePosition = fence.gatePosition.Value;
-                    bool flag = IsPlayerInClose(player, fence.TileLocation, isUpDown);
-
-
-                    if (flag && gatePosition == 0)
-                    {
-                        fieldPosition.SetValue(new NetInt(88));
-                        Game1.playSound("doorClose");
-                    }
-                    if (!flag && gatePosition >= 88)
+                    if (!fence.getBoundingBox(loc).Intersects(player.GetBoundingBox()))
                     {
                         fieldPosition.SetValue(new NetInt(0));
-                        Game1.playSound("doorClose");
                     }
+                    continue;
+                }
+
+                int gatePosition = fence.gatePosition.Value;
+                bool flag = IsPlayerInClose(player, fence.TileLocation, isUpDown);
+
+
+                if (flag && gatePosition == 0)
+                {
+                   fieldPosition.SetValue(new NetInt(88));
+                    Game1.playSound("doorClose");
+                }
+                if (!flag && gatePosition >= 88)
+                {
+                    fieldPosition.SetValue(new NetInt(0));
+                    Game1.playSound("doorClose");
                 }
             }
         }

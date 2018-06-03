@@ -12,3 +12,6 @@ This is a changelog from 1.1.14-beta
 ## 1.1.15-beta
 - Adjusted GiftInfo Window size
 - Added FasterRunningSpeed Function
+
+## 1.1.16-beta
+- Tweaked Auto Gate Function
