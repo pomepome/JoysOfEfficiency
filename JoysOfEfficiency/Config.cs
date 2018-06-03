@@ -32,9 +32,11 @@ namespace JoysOfEfficiency
         public Keys KeyShowMenu { get; set; } = Keys.R;
         public bool AutoCollectCollectibles { get; set; } = false;
         public int AutoCollectRadius { get; set; } = 1;
-        public bool AutoShakeFruitedTree { get; set; } = true;
+        public bool AutoShakeFruitedPlants { get; set; } = true;
         public int AutoShakeRadius { get; set; } = 2;
         public bool AutoDigArtifactSpot { get; set; } = true;
         public int AutoDigRadius { get; set; } = 2;
+        public bool FastToolUpgrade { get; set; } = false;
+        public bool BalancedMode { get; set; } = false;
     }
 }

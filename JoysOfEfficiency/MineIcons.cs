@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using JoysOfEfficiency.Utils;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewValley;
@@ -34,7 +35,7 @@ namespace JoysOfEfficiency
                 Rectangle rect = new Rectangle(x, y, 40, 40);
                 if (rect.Contains(Game1.getMouseX(), Game1.getMouseY()))
                 {
-                    ModEntry.DrawSimpleTextbox(batch, stoneStr, Game1.dialogueFont);
+                    Util.DrawSimpleTextbox(batch, stoneStr, Game1.dialogueFont);
                 }
                 x -= 48;
             }
@@ -44,7 +45,7 @@ namespace JoysOfEfficiency
                 Rectangle rect = new Rectangle(x, y, 40, 40);
                 if (rect.Contains(Game1.getMouseX(), Game1.getMouseY()))
                 {
-                    ModEntry.DrawSimpleTextbox(batch, monsterStr, Game1.dialogueFont);
+                    Util.DrawSimpleTextbox(batch, monsterStr, Game1.dialogueFont);
                 }
                 x -= 48;
             }
@@ -54,7 +55,7 @@ namespace JoysOfEfficiency
                 Rectangle rect = new Rectangle(x, y, 40, 40);
                 if (rect.Contains(Game1.getMouseX(), Game1.getMouseY()))
                 {
-                    ModEntry.DrawSimpleTextbox(batch, ladderStr, Game1.dialogueFont);
+                    Util.DrawSimpleTextbox(batch, ladderStr, Game1.dialogueFont);
                 }
             }
             DrawCursor(batch);

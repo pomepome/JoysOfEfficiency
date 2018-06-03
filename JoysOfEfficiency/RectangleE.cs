@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace JoysOfEfficiency
 {
-    internal class RectangleE
+    public  class RectangleE
     {
         public float X { get; private set; }
         public float Y { get; private set; }
