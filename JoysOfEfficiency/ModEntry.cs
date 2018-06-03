@@ -44,9 +44,11 @@ namespace JoysOfEfficiency
 
             Conf = helper.ReadConfig<Config>();
             GameEvents.EighthUpdateTick += OnGameUpdate;
+            GameEvents.UpdateTick += OnGameTick;
 
             ControlEvents.KeyPressed += OnKeyPressed;
-            
+
+            SaveEvents.BeforeSave += OnBeforeSave;
             TimeEvents.AfterDayStarted += OnPostSave;
 
             GraphicsEvents.OnPostRenderHudEvent += OnPostRenderHUD;
@@ -67,6 +69,31 @@ namespace JoysOfEfficiency
 
         #region EventHandlers
 
+        private void OnGameTick(object senderm, EventArgs args)
+        {
+            if (!Context.IsWorldReady)
+            {
+                return;
+            }
+            Player player = Game1.player;
+            if (Conf.FasterRunningSpeed && player.running)
+            {
+                player.addedSpeed = Conf.AddedSpeedMultiplier;
+            }
+            else
+            {
+                player.addedSpeed = 0;
+            }
+            if (player.controller != null)
+            {
+                player.addedSpeed = 0;
+            }
+            if (Conf.AutoGate)
+            {
+                Util.TryToggleGate(player);
+            }
+        }
+
         private void OnGameUpdate(object sender, EventArgs args)
         {
             if (!Context.IsWorldReady)
@@ -80,10 +107,7 @@ namespace JoysOfEfficiency
                 if (Conf.GiftInformation)
                 {
                     hoverText = null;
-                    if (player.CurrentItem == null || !player.CurrentItem.canBeGivenAsGift())
-                    {
-                    }
-                    else
+                    if (player.CurrentItem != null && player.CurrentItem.canBeGivenAsGift())
                     {
                         List<NPC> npcList = player.currentLocation.characters.Where(a => a.isVillager()).ToList();
                         foreach (NPC npc in npcList)

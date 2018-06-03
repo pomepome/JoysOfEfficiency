@@ -17,6 +17,7 @@ namespace JoysOfEfficiency
     public class JOEMenu : IClickableMenu
     {
         private ModEntry mod;
+
         private ITranslationHelper translation;
         private readonly IMonitor mon;
 
@@ -82,24 +83,26 @@ namespace JoysOfEfficiency
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoRefillWateringCan", 13, ModEntry.Conf.AutoRefillWateringCan, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoCollectCollectibles", 14, ModEntry.Conf.AutoCollectCollectibles, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoShakeFruitedPlants", 15, ModEntry.Conf.AutoShakeFruitedPlants, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedCheckBox("FindCanFromInventory", 16, ModEntry.Conf.FindCanFromInventory , OnCheckboxValueChanged, (i => !(ModEntry.Conf.AutoWaterNearbyCrops || ModEntry.Conf.AutoRefillWateringCan))));
+                tab.AddOptionsElement(new ModifiedCheckBox("FindCanFromInventory", 16, ModEntry.Conf.FindCanFromInventory, OnCheckboxValueChanged, (i => !(ModEntry.Conf.AutoWaterNearbyCrops || ModEntry.Conf.AutoRefillWateringCan))));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoDigArtifactSpot", 17, ModEntry.Conf.AutoDigArtifactSpot, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("FindHoeFromInventory", 18, ModEntry.Conf.FindHoeFromInventory, OnCheckboxValueChanged, i => !ModEntry.Conf.AutoDigArtifactSpot));
                 tab.AddOptionsElement(new ModifiedCheckBox("FastToolUpgrade", 19, ModEntry.Conf.FastToolUpgrade, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("FasterRunningSpeed", 21, ModEntry.Conf.FasterRunningSpeed, OnCheckboxValueChanged));
                 tabs.Add(tab);
             }
             {
                 //Sliders Tab
                 MenuTab tab = new MenuTab();
-                tab.AddOptionsElement(new ModifiedSlider("CPUThresholdFishing", 0, (int)(ModEntry.Conf.CPUThresholdFishing * 10), 5, OnSliderValueChanged, (() => !ModEntry.Conf.AutoFishing), Format));
-                tab.AddOptionsElement(new ModifiedSlider("StaminaToEatRatio", 1, (int)(ModEntry.Conf.StaminaToEatRatio * 10), 8, OnSliderValueChanged, (() => !ModEntry.Conf.AutoEat), Format));
-                tab.AddOptionsElement(new ModifiedSlider("HealthToEatRatio", 2, (int)(ModEntry.Conf.HealthToEatRatio * 10), 8, OnSliderValueChanged, (() => !ModEntry.Conf.AutoEat), Format));
-                tab.AddOptionsElement(new ModifiedSlider("AutoWaterRadius", 3, ModEntry.Conf.AutoWaterRadius - 1, 2, OnSliderValueChanged, (() => !ModEntry.Conf.AutoWaterNearbyCrops), Format));
-                tab.AddOptionsElement(new ModifiedSlider("AutoPetRadius", 4, ModEntry.Conf.AutoPetRadius - 1, 2, OnSliderValueChanged, (() => !ModEntry.Conf.AutoPetNearbyAnimals), Format));
-                tab.AddOptionsElement(new ModifiedSlider("AutoHarvestRadius", 5, ModEntry.Conf.AutoHarvestRadius - 1, 2, OnSliderValueChanged, (() => !ModEntry.Conf.AutoHarvest), Format));
-                tab.AddOptionsElement(new ModifiedSlider("AutoCollectRadius", 6, ModEntry.Conf.AutoCollectRadius - 1, 2, OnSliderValueChanged, (() => !ModEntry.Conf.AutoCollectCollectibles), Format));
-                tab.AddOptionsElement(new ModifiedSlider("AutoShakeRadius", 7, ModEntry.Conf.AutoShakeRadius - 1, 2, OnSliderValueChanged, (() => !ModEntry.Conf.AutoShakeFruitedPlants), Format));
-                tab.AddOptionsElement(new ModifiedSlider("AutoDigRadius", 8, ModEntry.Conf.AutoDigRadius - 1, 2, OnSliderValueChanged, (() => !ModEntry.Conf.AutoDigArtifactSpot), Format));
+                tab.AddOptionsElement(new ModifiedSlider("CPUThresholdFishing", 0, (int)(ModEntry.Conf.CPUThresholdFishing * 10), 0, 5, OnSliderValueChanged, (() => !ModEntry.Conf.AutoFishing), Format));
+                tab.AddOptionsElement(new ModifiedSlider("StaminaToEatRatio", 1, (int)(ModEntry.Conf.StaminaToEatRatio * 10), 3, 8, OnSliderValueChanged, (() => !ModEntry.Conf.AutoEat), Format));
+                tab.AddOptionsElement(new ModifiedSlider("HealthToEatRatio", 2, (int)(ModEntry.Conf.HealthToEatRatio * 10), 3, 8, OnSliderValueChanged, (() => !ModEntry.Conf.AutoEat), Format));
+                tab.AddOptionsElement(new ModifiedSlider("AutoWaterRadius", 3, ModEntry.Conf.AutoWaterRadius, 1, 3, OnSliderValueChanged, (() => !ModEntry.Conf.AutoWaterNearbyCrops)));
+                tab.AddOptionsElement(new ModifiedSlider("AutoPetRadius", 4, ModEntry.Conf.AutoPetRadius, 1, 3, OnSliderValueChanged, (() => !ModEntry.Conf.AutoPetNearbyAnimals)));
+                tab.AddOptionsElement(new ModifiedSlider("AutoHarvestRadius", 5, ModEntry.Conf.AutoHarvestRadius, 1, 3, OnSliderValueChanged, (() => !ModEntry.Conf.AutoHarvest)));
+                tab.AddOptionsElement(new ModifiedSlider("AutoCollectRadius", 6, ModEntry.Conf.AutoCollectRadius, 1, 3, OnSliderValueChanged, (() => !ModEntry.Conf.AutoCollectCollectibles)));
+                tab.AddOptionsElement(new ModifiedSlider("AutoShakeRadius", 7, ModEntry.Conf.AutoShakeRadius, 1, 3, OnSliderValueChanged, (() => !ModEntry.Conf.AutoShakeFruitedPlants)));
+                tab.AddOptionsElement(new ModifiedSlider("AutoDigRadius", 8, ModEntry.Conf.AutoDigRadius, 1, 3, OnSliderValueChanged, (() => !ModEntry.Conf.AutoDigArtifactSpot)));
+                tab.AddOptionsElement(new ModifiedSlider("AddedSpeedMultiplier", 9, ModEntry.Conf.AddedSpeedMultiplier, 1, 19, OnSliderValueChanged, (() => !ModEntry.Conf.FasterRunningSpeed)));
                 tabs.Add(tab);
             }
             {
@@ -150,6 +153,7 @@ namespace JoysOfEfficiency
                 case 18: ModEntry.Conf.FindHoeFromInventory = value; break;
                 case 19: ModEntry.Conf.FastToolUpgrade = value; break;
                 case 20: ModEntry.Conf.BalancedMode = value; break;
+                case 21: ModEntry.Conf.FasterRunningSpeed = value; break;
                 default: return;
             }
             mod.WriteConfig();
@@ -170,27 +174,31 @@ namespace JoysOfEfficiency
             }
             if (index == 3)
             {
-                ModEntry.Conf.AutoWaterRadius = value + 1;
+                ModEntry.Conf.AutoWaterRadius = value;
             }
             if (index == 4)
             {
-                ModEntry.Conf.AutoPetRadius = value + 1;
+                ModEntry.Conf.AutoPetRadius = value;
             }
             if (index == 5)
             {
-                ModEntry.Conf.AutoHarvestRadius = value + 1;
+                ModEntry.Conf.AutoHarvestRadius = value;
             }
             if (index == 6)
             {
-                ModEntry.Conf.AutoCollectRadius = value + 1;
+                ModEntry.Conf.AutoCollectRadius = value;
             }
             if (index == 7)
             {
-                ModEntry.Conf.AutoShakeRadius = value + 1;
+                ModEntry.Conf.AutoShakeRadius = value;
             }
-            if(index == 8)
+            if (index == 8)
             {
-                ModEntry.Conf.AutoDigRadius = value + 1;
+                ModEntry.Conf.AutoDigRadius = value;
+            }
+            if (index == 9)
+            {
+                ModEntry.Conf.AddedSpeedMultiplier = value;
             }
             mod.WriteConfig();
         }
@@ -200,10 +208,6 @@ namespace JoysOfEfficiency
             if (id >= 0 && id < 3)
             {
                 return string.Format("{0:f1}", value / 10f);
-            }
-            if (id > 2)
-            {
-                return (value + 1).ToString();
             }
             return value + "";
         }
