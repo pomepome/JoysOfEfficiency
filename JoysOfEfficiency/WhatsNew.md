@@ -13,3 +13,6 @@ This is a changelog from 1.0.22
 ## 1.0.23
 - Adjusted GiftInfo Window size
 - Added FasterRunningSpeed Function
+
+## 1.0.24
+- Tweaked Auto Gate Function

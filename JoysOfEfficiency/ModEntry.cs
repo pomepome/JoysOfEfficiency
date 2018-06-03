@@ -137,10 +137,6 @@ namespace JoysOfEfficiency
                         }
                     }
                 }
-                if (Conf.AutoGate)
-                {
-                    Util.TryToggleGate(player);
-                }
                 if (Conf.AutoWaterNearbyCrops)
                 {
                     Util.WaterNearbyCrops();

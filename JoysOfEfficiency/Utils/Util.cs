@@ -621,7 +621,7 @@ namespace JoysOfEfficiency.Utils
         {
             GameLocation location = player.currentLocation;
 
-            foreach (Fence fence in GetObjectsWithin<Fence>(3).Where(f=>f.isGate))
+            foreach (Fence fence in GetObjectsWithin<Fence>(2).Where(f=>f.isGate))
             {
                 Vector2 loc = fence.TileLocation;
 
