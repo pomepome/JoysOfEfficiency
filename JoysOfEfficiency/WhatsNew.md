@@ -1,7 +1,7 @@
 ﻿# Overview
 This is a changelog from 1.1.14-beta
 
-#Changelog
+# Changelog
 ## 1.1.14-beta
 - Moved Utilities to Util.cs
 - Added Balanced mode
