@@ -29,6 +29,35 @@ namespace JoysOfEfficiency.Utils
         private static List<Monster> lastMonsters = new List<Monster>();
         private static string lastKilledMonster;
 
+        public static void DepositIngredientsToMachines()
+        {
+            Player player = Game1.player;
+            if (player.CurrentItem == null && !(player.CurrentItem is SVObject))
+            {
+                return;
+            }
+            foreach (SVObject obj in GetObjectsWithin<SVObject>(ModEntry.Conf.MachineRadius))
+            {
+                obj.performObjectDropInAction((SVObject)player.CurrentItem, false, player);
+            }
+        }
+
+        public static void PullMachineResult()
+        {
+            Player player = Game1.player;
+            foreach (SVObject obj in GetObjectsWithin<SVObject>(ModEntry.Conf.MachineRadius))
+            {
+                if (obj.readyForHarvest && obj.heldObject != null)
+                {
+                    Item item = obj.heldObject;
+                    if (player.couldInventoryAcceptThisItem(item))
+                    {
+                        obj.checkForAction(player);
+                    }
+                }
+            }
+        }
+
         public static void ShakeNearbyFruitedBush()
         {
             foreach (KeyValuePair<Vector2, Bush> bushes in GetFeaturesWithin<Bush>(ModEntry.Conf.AutoHarvestRadius))
@@ -1098,7 +1127,7 @@ namespace JoysOfEfficiency.Utils
                     {
                         list.Add(loc, t);
                     }
-                    else if (typeof(LargeTerrainFeature).IsAssignableFrom(typeof(T)))
+                    else if (lFeatures != null && typeof(LargeTerrainFeature).IsAssignableFrom(typeof(T)))
                     {
                         foreach (LargeTerrainFeature feature in lFeatures)
                         {

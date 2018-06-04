@@ -39,5 +39,8 @@ namespace JoysOfEfficiency
         public bool FastToolUpgrade { get; set; } = false;
         public bool FasterRunningSpeed { get; set; } = false;
         public int AddedSpeedMultiplier { get; set; } = 1;
+        public bool AutoDepositIngredient { get; set; } = false;
+        public bool AutoPullMachineResult { get; set; } = true;
+        public int MachineRadius { get; set; } = 1;
     }
 }
