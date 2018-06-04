@@ -15,3 +15,9 @@ This is a changelog from 1.1.14-beta
 
 ## 1.1.16-beta
 - Tweaked Auto Gate Function
+
+## 1.1.17-beta
+- AddedSpeedMultiplier will be capped from 1 to 19
+- Fixed Bug that continuously throws NullPointerException in barn, coop, etc.
+- Added AutoDepositIngredient and AutoPullMachineResult function.
+- Removed collecting crub pot from AutoHarvest. Use AutoPullMachineResult instead.

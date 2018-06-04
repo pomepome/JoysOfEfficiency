@@ -54,6 +54,8 @@ namespace JoysOfEfficiency
             Conf.AutoWaterRadius = (int)Util.Cap(Conf.AutoWaterRadius, 1, 3);
             Conf.AutoDigRadius = (int)Util.Cap(Conf.AutoDigRadius, 1, 3);
             Conf.AutoShakeRadius = (int)Util.Cap(Conf.AutoShakeRadius, 1, 3);
+            Conf.AddedSpeedMultiplier = (int)Util.Cap(Conf.AddedSpeedMultiplier, 1, 19);
+            Conf.MachineRadius = (int)Util.Cap(Conf.MachineRadius, 1, 3);
             helper.WriteConfig(Conf);
 
             MineIcons.Init(helper);
@@ -174,10 +176,17 @@ namespace JoysOfEfficiency
                         }
                     }
                 }
+                if(Conf.AutoPullMachineResult)
+                {
+                    Util.PullMachineResult();
+                }
+                if(Conf.AutoDepositIngredient)
+                {
+                    Util.DepositIngredientsToMachines();
+                }
                 if (Conf.AutoHarvest)
                 {
                     Util.HarvestNearCrops(player);
-                    Util.HarvestNearCrabPot(player);
                 }
                 if (Conf.AutoDestroyDeadCrops)
                 {

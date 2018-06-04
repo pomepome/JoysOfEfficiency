@@ -18,7 +18,6 @@ namespace JoysOfEfficiency
         public bool AutoFishing { get; set; } = false;
         public bool AutoReelRod { get; set; } = true;
         public bool MuchFasterBiting { get; set; } = false;
-        public bool ForceMaxCasting { get; set; } = false;
         public bool FishingInfo { get; set; } = true;
         public float CPUThresholdFishing { get; set; } = 0.2f;
         public bool AutoGate { get; set; } = true;
@@ -40,5 +39,8 @@ namespace JoysOfEfficiency
         public bool BalancedMode { get; set; } = false;
         public bool FasterRunningSpeed { get; set; } = false;
         public int AddedSpeedMultiplier { get; set; } = 1;
+        public bool AutoDepositIngredient { get; set; } = false;
+        public bool AutoPullMachineResult { get; set; } = true;
+        public int MachineRadius { get; set; } = 1;
     }
 }

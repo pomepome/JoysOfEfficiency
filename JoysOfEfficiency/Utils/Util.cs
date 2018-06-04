@@ -13,9 +13,6 @@ using StardewValley.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace JoysOfEfficiency.Utils
 {
@@ -68,7 +65,7 @@ namespace JoysOfEfficiency.Utils
                         list.Add(loc, t);
                         continue;
                     }
-                    else if(typeof(LargeTerrainFeature).IsAssignableFrom(typeof(T)))
+                    else if(lFeatures != null && typeof(LargeTerrainFeature).IsAssignableFrom(typeof(T)))
                     {
                         foreach(LargeTerrainFeature feature in lFeatures)
                         {
@@ -81,6 +78,35 @@ namespace JoysOfEfficiency.Utils
                 }
             }
             return list;
+        }
+
+        public static void DepositIngredientsToMachines()
+        {
+            Player player = Game1.player;
+            if (player.CurrentItem == null)
+            {
+                return;
+            }
+            foreach (SVObject obj in GetObjectsWithin<SVObject>(ModEntry.Conf.MachineRadius))
+            {
+                obj.performObjectDropInAction(player.CurrentItem, false, player);
+            }
+        }
+
+        public static void PullMachineResult()
+        {
+            Player player = Game1.player;
+            foreach(SVObject obj in GetObjectsWithin<SVObject>(ModEntry.Conf.MachineRadius))
+            {
+                if(obj.readyForHarvest.Value && obj.heldObject.Value != null)
+                {
+                    Item item = obj.heldObject.Value;
+                    if(player.couldInventoryAcceptThisItem(item))
+                    {
+                        obj.checkForAction(player);
+                    }
+                }
+            }
         }
 
         public static void ShakeNearbyFruitedBush()
