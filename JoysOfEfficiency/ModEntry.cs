@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using JoysOfEfficiency.ModCheckers;
 using JoysOfEfficiency.Utils;
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Netcode;
 using StardewModdingAPI;
@@ -12,15 +12,14 @@ using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Locations;
 using StardewValley.Menus;
-using StardewValley.TerrainFeatures;
 using StardewValley.Tools;
 
 namespace JoysOfEfficiency
 {
     using Player = Farmer;
-    using SVObject = StardewValley.Object;
     public class ModEntry : Mod
     {
+        public static bool IsCJBCheatsOn { get;  private set; }
         public static Config Conf { get; private set; } = null;
 
         public static IModHelper ModHelper { get; private set; } = null;
@@ -56,6 +55,16 @@ namespace JoysOfEfficiency
             Conf.AutoShakeRadius = (int)Util.Cap(Conf.AutoShakeRadius, 1, 3);
             Conf.AddedSpeedMultiplier = (int)Util.Cap(Conf.AddedSpeedMultiplier, 1, 19);
             Conf.MachineRadius = (int)Util.Cap(Conf.MachineRadius, 1, 3);
+
+            if(ModChecker.IsCJBCheatsLoaded(helper))
+            {
+                IsCJBCheatsOn = true;
+
+                Monitor.Log("FasterRunningSpeed will be disabled since detected CJB Cheats Menu", LogLevel.Info);
+
+                Conf.FasterRunningSpeed = false;
+            }
+
             helper.WriteConfig(Conf);
 
             MineIcons.Init(helper);
@@ -68,17 +77,20 @@ namespace JoysOfEfficiency
                 return;
             }
             Player player = Game1.player;
-            if(Conf.FasterRunningSpeed && player.running)
+            if (!IsCJBCheatsOn)
             {
-                player.addedSpeed = Conf.AddedSpeedMultiplier;
-            }
-            else
-            {
-                player.addedSpeed = 0;
-            }
-            if(player.controller != null)
-            {
-                player.addedSpeed = 0;
+                if (Conf.FasterRunningSpeed && player.running)
+                {
+                    player.addedSpeed = Conf.AddedSpeedMultiplier;
+                }
+                else
+                {
+                    player.addedSpeed = 0;
+                }
+                if (player.controller != null)
+                {
+                    player.addedSpeed = 0;
+                }
             }
             if(Conf.AutoGate)
             {
@@ -224,6 +236,10 @@ namespace JoysOfEfficiency
                     DayEnded = true;
                     OnBeforeSave(null, null);
                 }
+                if(Conf.AutoPetNearbyPets)
+                {
+                    Util.PetNearbyPets();
+                }
             }
             catch (Exception ex)
             {
@@ -242,6 +258,10 @@ namespace JoysOfEfficiency
             {
                 Player player = Game1.player;
                 Util.ShowHUDMessage($"Hay:{Game1.getFarm().piecesOfHay}");
+                if(player.CurrentItem != null)
+                {
+                    Util.ShowHUDMessage(player.CurrentItem.ParentSheetIndex+"");
+                }
             }
             if (!Context.IsPlayerFree || Game1.activeClickableMenu != null)
             {

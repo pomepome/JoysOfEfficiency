@@ -66,6 +66,7 @@
     <Compile Include="Config.cs" />
     <Compile Include="JOEMenu.cs" />
     <Compile Include="MineIcons.cs" />
+    <Compile Include="ModCheckers\ModChecker.cs" />
     <Compile Include="ModEntry.cs" />
     <Compile Include="OptionsElements\MenuTab.cs" />
     <Compile Include="OptionsElements\ModifiedCheckBox.cs" />

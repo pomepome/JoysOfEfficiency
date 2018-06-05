@@ -80,10 +80,27 @@ namespace JoysOfEfficiency.Utils
             return list;
         }
 
+        public static void PetNearbyPets()
+        {
+            GameLocation location = Game1.currentLocation;
+            Player player = Game1.player;
+
+            Rectangle bb = Expand(player.GetBoundingBox(), ModEntry.Conf.AutoPetRadius * Game1.tileSize);
+
+            foreach (Pet pet in location.characters.OfType<Pet>().Where(pet => pet.GetBoundingBox().Intersects(bb)))
+            {
+                bool wasPet = Helper.Reflection.GetField<bool>(pet, "wasPetToday").GetValue();
+                if (!wasPet)
+                {
+                    pet.checkAction(player, location); // Pet pet... lol
+                }
+            }
+        }
+
         public static void DepositIngredientsToMachines()
         {
             Player player = Game1.player;
-            if (player.CurrentItem == null)
+            if (player.CurrentItem == null || !(Game1.player.CurrentItem is SVObject))
             {
                 return;
             }

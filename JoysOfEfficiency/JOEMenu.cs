@@ -4,11 +4,7 @@ using Microsoft.Xna.Framework.Input;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Menus;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using JoysOfEfficiency.OptionsElements;
 
@@ -87,9 +83,10 @@ namespace JoysOfEfficiency
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoDigArtifactSpot", 17, ModEntry.Conf.AutoDigArtifactSpot, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("FindHoeFromInventory", 18, ModEntry.Conf.FindHoeFromInventory, OnCheckboxValueChanged, i => !ModEntry.Conf.AutoDigArtifactSpot));
                 tab.AddOptionsElement(new ModifiedCheckBox("FastToolUpgrade", 19, ModEntry.Conf.FastToolUpgrade, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedCheckBox("FasterRunningSpeed", 21, ModEntry.Conf.FasterRunningSpeed, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("FasterRunningSpeed", 21, ModEntry.Conf.FasterRunningSpeed, OnCheckboxValueChanged, i => ModEntry.IsCJBCheatsOn));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoDepositIngredient", 22, ModEntry.Conf.AutoDepositIngredient, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoPullMachineResult,", 23, ModEntry.Conf.AutoPullMachineResult, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoPetNearbyPets", 24, ModEntry.Conf.AutoPetNearbyPets, OnCheckboxValueChanged));
                 tabs.Add(tab);
             }
             {
@@ -97,7 +94,7 @@ namespace JoysOfEfficiency
                 MenuTab tab = new MenuTab();
                 tab.AddOptionsElement(new ModifiedSlider("CPUThresholdFishing", 0, (int)(ModEntry.Conf.CPUThresholdFishing * 10), 0, 5, OnSliderValueChanged, (() => !ModEntry.Conf.AutoFishing), Format));
                 tab.AddOptionsElement(new ModifiedSlider("StaminaToEatRatio", 1, (int)(ModEntry.Conf.StaminaToEatRatio * 10), 3, 8, OnSliderValueChanged, (() => !ModEntry.Conf.AutoEat), Format));
-                tab.AddOptionsElement(new ModifiedSlider("HealthToEatRatio", 2, (int)(ModEntry.Conf.HealthToEatRatio * 10),3, 8, OnSliderValueChanged, (() => !ModEntry.Conf.AutoEat), Format));
+                tab.AddOptionsElement(new ModifiedSlider("HealthToEatRatio", 2, (int)(ModEntry.Conf.HealthToEatRatio * 10), 3, 8, OnSliderValueChanged, (() => !ModEntry.Conf.AutoEat), Format));
                 tab.AddOptionsElement(new ModifiedSlider("AutoWaterRadius", 3, ModEntry.Conf.AutoWaterRadius, 1, 3, OnSliderValueChanged, (() => !ModEntry.Conf.AutoWaterNearbyCrops)));
                 tab.AddOptionsElement(new ModifiedSlider("AutoPetRadius", 4, ModEntry.Conf.AutoPetRadius, 1, 3, OnSliderValueChanged, (() => !ModEntry.Conf.AutoPetNearbyAnimals)));
                 tab.AddOptionsElement(new ModifiedSlider("AutoHarvestRadius", 5, ModEntry.Conf.AutoHarvestRadius, 1, 3, OnSliderValueChanged, (() => !ModEntry.Conf.AutoHarvest)));
@@ -159,6 +156,7 @@ namespace JoysOfEfficiency
                 case 21: ModEntry.Conf.FasterRunningSpeed = value; break;
                 case 22: ModEntry.Conf.AutoDepositIngredient = value; break;
                 case 23: ModEntry.Conf.AutoPullMachineResult = value; break;
+                case 24: ModEntry.Conf.AutoPetNearbyPets = value; break;
                 default: return;
             }
             mod.WriteConfig();
@@ -201,11 +199,11 @@ namespace JoysOfEfficiency
             {
                 ModEntry.Conf.AutoDigRadius = value;
             }
-            if(index == 9)
+            if (index == 9)
             {
                 ModEntry.Conf.AddedSpeedMultiplier = value;
             }
-            if(index == 10)
+            if (index == 10)
             {
                 ModEntry.Conf.MachineRadius = value;
             }
@@ -418,7 +416,7 @@ namespace JoysOfEfficiency
             for (int i = firstIndex; i < menuElements.Count; i++)
             {
                 OptionsElement element = menuElements[i];
-                if (y + element.bounds.Height < this.height)
+                if (y + element.bounds.Height < height)
                 {
                     y += element.bounds.Height + 16;
                     elements.Add(element);
@@ -434,7 +432,7 @@ namespace JoysOfEfficiency
             for (int i = firstIndex; i < menuElements.Count; i++)
             {
                 OptionsElement element = menuElements[i];
-                if (y + element.bounds.Height < this.height)
+                if (y + element.bounds.Height < height)
                 {
                     y += element.bounds.Height + 16;
                 }
