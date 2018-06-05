@@ -83,9 +83,10 @@ namespace JoysOfEfficiency
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoDigArtifactSpot", 17, ModEntry.Conf.AutoDigArtifactSpot, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("FindHoeFromInventory", 18, ModEntry.Conf.FindHoeFromInventory, OnCheckboxValueChanged, i => !ModEntry.Conf.AutoDigArtifactSpot));
                 tab.AddOptionsElement(new ModifiedCheckBox("FastToolUpgrade", 19, ModEntry.Conf.FastToolUpgrade, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedCheckBox("FasterRunningSpeed", 21, ModEntry.Conf.FasterRunningSpeed, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("FasterRunningSpeed", 21, ModEntry.Conf.FasterRunningSpeed, OnCheckboxValueChanged, i=>ModEntry.IsCJBCheatsOn));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoDepositIngredient", 22, ModEntry.Conf.AutoDepositIngredient, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoPullMachineResult,", 23, ModEntry.Conf.AutoPullMachineResult, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoPetNearbyPets", 24, ModEntry.Conf.AutoPetNearbyPets, OnCheckboxValueChanged));
                 tabs.Add(tab);
             }
             {
@@ -155,6 +156,7 @@ namespace JoysOfEfficiency
                 case 21: ModEntry.Conf.FasterRunningSpeed = value; break;
                 case 22: ModEntry.Conf.AutoDepositIngredient = value; break;
                 case 23: ModEntry.Conf.AutoPullMachineResult = value; break;
+                case 24: ModEntry.Conf.AutoPetNearbyPets = value; break;
                 default: return;
             }
             mod.WriteConfig();

@@ -29,10 +29,27 @@ namespace JoysOfEfficiency.Utils
         private static List<Monster> lastMonsters = new List<Monster>();
         private static string lastKilledMonster;
 
+        public static void PetNearbyPets()
+        {
+            GameLocation location = Game1.currentLocation;
+            Player player = Game1.player;
+
+            Rectangle bb = Expand(player.GetBoundingBox(), ModEntry.Conf.AutoPetRadius * Game1.tileSize);
+
+            foreach (Pet pet in location.characters.OfType<Pet>().Where(pet=>pet.GetBoundingBox().Intersects(bb)))
+            {
+                bool wasPet = Helper.Reflection.GetField<bool>(pet, "wasPetToday").GetValue();
+                if (!wasPet)
+                {
+                    pet.checkAction(player, location); // Pet pet... lol
+                }
+            }
+        }
+
         public static void DepositIngredientsToMachines()
         {
             Player player = Game1.player;
-            if (player.CurrentItem == null && !(player.CurrentItem is SVObject))
+            if (player.CurrentItem == null || !(player.CurrentItem is SVObject))
             {
                 return;
             }
@@ -739,9 +756,12 @@ namespace JoysOfEfficiency.Utils
 
         public static void AutoFishing(BobberBar bar)
         {
+
             IReflectionHelper reflection = Helper.Reflection;
 
             IReflectedField<float> bobberSpeed = reflection.GetField<float>(bar, "bobberBarSpeed");
+
+            
 
             float barPos = reflection.GetField<float>(bar, "bobberBarPos").GetValue();
             int barHeight = reflection.GetField<int>(bar, "bobberBarHeight").GetValue();

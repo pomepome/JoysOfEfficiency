@@ -17,6 +17,7 @@ using StardewValley.Tools;
 using StardewValley.Monsters;
 using JoysOfEfficiency.Utils;
 using Microsoft.Xna.Framework.Input;
+using JoysOfEfficiency.ModCheckers;
 
 namespace JoysOfEfficiency
 {
@@ -25,6 +26,8 @@ namespace JoysOfEfficiency
     using SVObject = StardewValley.Object;
     public class ModEntry : Mod
     {
+        public static bool IsCJBCheatsOn { get; private set; } = false;
+
         public static Mod Instance { get; private set; }
         public static Config Conf { get; private set; }
         
@@ -65,6 +68,15 @@ namespace JoysOfEfficiency
             Conf.AutoShakeRadius = (int)Util.Cap(Conf.AutoShakeRadius, 1, 3);
             Conf.AddedSpeedMultiplier = (int)Util.Cap(Conf.AddedSpeedMultiplier, 1, 19);
             Conf.MachineRadius = (int)Util.Cap(Conf.MachineRadius, 1, 3);
+
+            if(ModChecker.IsCJBCheatsLoaded(helper))
+            {
+                IsCJBCheatsOn = true;
+                Monitor.Log("FasterRunningSpeed will be disabled since detected CJBCheatsMenu");
+
+                Conf.FasterRunningSpeed = false;
+            }
+
             helper.WriteConfig(Conf);
 
             MineIcons.Init(helper);
@@ -79,17 +91,20 @@ namespace JoysOfEfficiency
                 return;
             }
             Player player = Game1.player;
-            if (Conf.FasterRunningSpeed && player.running)
+            if (!IsCJBCheatsOn)
             {
-                player.addedSpeed = Conf.AddedSpeedMultiplier;
-            }
-            else
-            {
-                player.addedSpeed = 0;
-            }
-            if (player.controller != null)
-            {
-                player.addedSpeed = 0;
+                if (Conf.FasterRunningSpeed && player.running)
+                {
+                    player.addedSpeed = Conf.AddedSpeedMultiplier;
+                }
+                else
+                {
+                    player.addedSpeed = 0;
+                }
+                if (player.controller != null)
+                {
+                    player.addedSpeed = 0;
+                }
             }
             if (Conf.AutoGate)
             {
@@ -158,10 +173,9 @@ namespace JoysOfEfficiency
                     IReflectedField<int> whichFish = reflection.GetField<int>(rod, "whichFish");
                     if (rod.isNibbling && !rod.isReeling && !rod.hit && !rod.pullingOutOfWater && !rod.fishCaught)
                     {
-                        if (Conf.AutoFishing)
+                        if (Conf.AutoReelRod)
                         {
                             rod.DoFunction(player.currentLocation, 1, 1, 1, player);
-                            rod.hit = true;
                         }
                     }
                     if (Conf.MuchFasterBiting && !rod.isNibbling && !rod.isReeling && !rod.hit && !rod.pullingOutOfWater && !rod.fishCaught)
@@ -182,7 +196,7 @@ namespace JoysOfEfficiency
                 if (Conf.AutoPetNearbyAnimals)
                 {
                     int radius = Conf.AutoPetRadius * Game1.tileSize;
-                    RectangleE bb = new RectangleE(player.position.X - radius, player.position.Y - radius, radius * 2, radius * 2);
+                    RectangleE bb = Util.ExpandE(player.GetBoundingBox(), radius);
                     List<FarmAnimal> animalList = Util.GetAnimalsList(player);
                     foreach (FarmAnimal animal in animalList)
                     {
@@ -267,6 +281,10 @@ namespace JoysOfEfficiency
                 {
                     Util.PullMachineResult();
                 }
+                if(Conf.AutoPetNearbyPets)
+                {
+                    Util.PetNearbyPets();
+                }
             }
             catch (Exception e)
             {
@@ -285,6 +303,7 @@ namespace JoysOfEfficiency
             if(args.KeyPressed == Keys.H)
             {
                 Util.ShowHUDMessage($"Hay:{Game1.getFarm().piecesOfHay}");
+                Game1.player.Money += 100000;
             }
             if (args.KeyPressed == Conf.KeyShowMenu)
             {
