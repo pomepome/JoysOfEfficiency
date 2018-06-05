@@ -106,6 +106,10 @@ namespace JoysOfEfficiency.Utils
             }
             foreach (SVObject obj in GetObjectsWithin<SVObject>(ModEntry.Conf.MachineRadius))
             {
+                if(obj is IndoorPot)
+                {
+                    continue;
+                }
                 obj.performObjectDropInAction(player.CurrentItem, false, player);
             }
         }
@@ -205,77 +209,6 @@ namespace JoysOfEfficiency.Utils
                     CollectObj(location, obj);
                 }
             }
-        }
-
-        public static void HarvestNearCrabPot(Player player)
-        {
-            int radius = ModEntry.Conf.AutoHarvestRadius;
-
-            foreach (CrabPot pot in GetObjectsWithin<CrabPot>(radius))
-            {
-                if (pot.readyForHarvest.Value)
-                {
-                    HarvestCrubPot(player, pot);
-                }
-            }
-        }
-
-        public static bool HarvestCrubPot(Player who, CrabPot obj, bool justCheckingForActivity = false)
-        {
-            IReflectionHelper reflection = ModEntry.ModHelper.Reflection;
-            IReflectedField<bool> lidFlapping = reflection.GetField<bool>(obj, "lidFlapping");
-            IReflectedField<float> lidFlapTimer = reflection.GetField<float>(obj, "lidFlapTimer");
-            IReflectedField<Vector2> shake = reflection.GetField<Vector2>(obj, "shake");
-            IReflectedField<float> shakeTimer = reflection.GetField<float>(obj, "shakeTimer");
-            if (obj.tileIndexToShow == 714)
-            {
-                if (justCheckingForActivity)
-                {
-                    return true;
-                }
-                SVObject item = obj.heldObject.Value;
-                obj.heldObject.Value = null;
-                if (who.IsLocalPlayer && !who.addItemToInventoryBool(item, false))
-                {
-                    obj.heldObject.Value = item;
-                    Game1.addHUDMessage(new HUDMessage(Game1.content.LoadString("Strings\\StringsFromCSFiles:Crop.cs.588"), Color.Red, 3500f));
-                    return false;
-                }
-                Dictionary<int, string> data = Game1.content.Load<Dictionary<int, string>>("Data\\Fish");
-                if (data.ContainsKey(item.ParentSheetIndex))
-                {
-                    string[] rawData = data[item.ParentSheetIndex].Split('/');
-                    int minFishSize = (rawData.Length <= 5) ? 1 : Convert.ToInt32(rawData[5]);
-                    int maxFishSize = (rawData.Length > 5) ? Convert.ToInt32(rawData[6]) : 10;
-                    who.caughtFish(item.ParentSheetIndex, Game1.random.Next(minFishSize, maxFishSize + 1));
-                }
-                obj.readyForHarvest.Value = false;
-                obj.tileIndexToShow = 710;
-                lidFlapping.SetValue(true);
-                lidFlapTimer.SetValue(60f);
-                obj.bait.Value = null;
-                who.animateOnce(279 + who.FacingDirection);
-                who.currentLocation.playSound("fishingRodBend");
-                DelayedAction.playSoundAfterDelay("coin", 500, null);
-                who.gainExperience(1, 5);
-                shake.SetValue(Vector2.Zero);
-                shakeTimer.SetValue(0f);
-                return true;
-            }
-            if (obj.bait.Value == null)
-            {
-                if (justCheckingForActivity)
-                {
-                    return true;
-                }
-                if (Game1.player.addItemToInventoryBool(obj.getOne(), false))
-                {
-                    Game1.playSound("coin");
-                    Game1.currentLocation.objects.Remove(obj.TileLocation);
-                    return true;
-                }
-            }
-            return false;
         }
 
         public static Vector2 FindLadder(MineShaft shaft)
@@ -478,15 +411,175 @@ namespace JoysOfEfficiency.Utils
             }
         }
 
+        public static void DestroyNearDeadCrops(Player player)
+        {
+            GameLocation location = player.currentLocation;
+            foreach (KeyValuePair<Vector2, HoeDirt> kv in GetFeaturesWithin<HoeDirt>(1))
+            {
+                Vector2 loc = kv.Key;
+                HoeDirt dirt = kv.Value;
+                if (dirt.crop != null && dirt.crop.dead.Value)
+                {
+                    dirt.destroyCrop(loc, true, location);
+                }
+            }
+            foreach (IndoorPot pot in GetObjectsWithin<IndoorPot>(1))
+            {
+                Vector2 loc = GetLocationOf(location, pot);
+                if(pot.hoeDirt.Value != null)
+                {
+                    HoeDirt dirt = pot.hoeDirt.Value;
+                    if (dirt.crop != null && dirt.crop.dead.Value)
+                    {
+                        dirt.destroyCrop(loc, true, location);
+                    }
+                }
+            }
+        }
+
+        public static void HarvestNearCrops(Player player)
+        {
+            GameLocation location = player.currentLocation;
+            int radius = ModEntry.Conf.AutoHarvestRadius;
+            foreach (KeyValuePair<Vector2, HoeDirt> kv in GetFeaturesWithin<HoeDirt>(radius))
+            {
+                Vector2 loc = kv.Key;
+                HoeDirt dirt = kv.Value;
+                if (dirt.crop == null)
+                {
+                    continue;
+                }
+                if (dirt.readyForHarvest())
+                {
+                    if (Harvest((int)loc.X, (int)loc.Y, dirt))
+                    {
+                        if (dirt.crop.regrowAfterHarvest.Value == -1 || dirt.crop.forageCrop.Value)
+                        {
+                            //destroy crop if it does not reqrow.
+                            dirt.destroyCrop(loc, true, location);
+                        }
+                    }
+                }
+            }
+            foreach(IndoorPot pot in GetObjectsWithin<IndoorPot>(radius))
+            {
+                if (pot.hoeDirt.Value != null)
+                {
+                    HoeDirt dirt = pot.hoeDirt.Value;
+                    if(dirt.crop != null && dirt.readyForHarvest())
+                    {
+                        Vector2 tileLoc = GetLocationOf(location, pot);
+                        if(dirt.crop.harvest((int)tileLoc.X, (int)tileLoc.Y, dirt))
+                        {
+                            if (dirt.crop.regrowAfterHarvest.Value == -1 || dirt.crop.forageCrop.Value)
+                            {
+                                //destroy crop if it does not reqrow.
+                                dirt.destroyCrop(tileLoc, true, location);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public static void WaterNearbyCrops()
+        {
+            Player player = Game1.player;
+            WateringCan can = FindToolFromInventory<WateringCan>(player);
+            if (can != null)
+            {
+                bool watered = false;
+                foreach (KeyValuePair<Vector2, HoeDirt> kv in GetFeaturesWithin<HoeDirt>(ModEntry.Conf.AutoWaterRadius))
+                {
+                    Vector2 location = kv.Key;
+                    HoeDirt dirt = kv.Value;
+                    float consume = 2 * (1.0f / (can.UpgradeLevel / 2.0f + 1));
+                    if (dirt.crop != null && !dirt.crop.dead.Value && dirt.state.Value == 0 && player.Stamina >= consume && can.WaterLeft > 0)
+                    {
+                        dirt.state.Value = 1;
+                        player.Stamina -= consume;
+                        can.WaterLeft--;
+                        watered = true;
+                    }
+                }
+                foreach (IndoorPot pot in GetObjectsWithin<IndoorPot>(ModEntry.Conf.AutoWaterRadius))
+                {
+                    if(pot.hoeDirt.Value != null)
+                    {
+                        HoeDirt dirt = pot.hoeDirt.Value;
+                        float consume = 2 * (1.0f / (can.UpgradeLevel / 2.0f + 1));
+                        if (dirt.crop != null && !dirt.crop.dead.Value && dirt.state.Value != 1 && player.Stamina >= consume && can.WaterLeft > 0)
+                        {
+                            dirt.state.Value = 1;
+                            pot.showNextIndex.Value = true;
+                            player.Stamina -= consume;
+                            can.WaterLeft--;
+                            watered = true;
+                        }
+                    }
+                }
+                if (watered)
+                {
+                    Game1.playSound("slosh");
+                }
+            }
+        }
+
+        public static void TryToggleGate(Player player)
+        {
+            GameLocation location = player.currentLocation;
+
+            foreach (Fence fence in GetObjectsWithin<Fence>(2).Where(f => f.isGate.Value))
+            {
+                Vector2 loc = fence.TileLocation;
+                IReflectedField<NetInt> fieldPosition = Helper.Reflection.GetField<NetInt>(fence, "gatePosition");
+
+                bool? isUpDown = IsUpsideDown(location, fence);
+                if (isUpDown == null)
+                {
+                    if (!fence.getBoundingBox(loc).Intersects(player.GetBoundingBox()))
+                    {
+                        fieldPosition.SetValue(new NetInt(0));
+                    }
+                    continue;
+                }
+
+                int gatePosition = fence.gatePosition.Value;
+                bool flag = IsPlayerInClose(player, fence.TileLocation, isUpDown);
+
+
+                if (flag && gatePosition == 0)
+                {
+                    fieldPosition.SetValue(new NetInt(88));
+                    Game1.playSound("doorClose");
+                }
+                if (!flag && gatePosition >= 88)
+                {
+                    fieldPosition.SetValue(new NetInt(0));
+                    Game1.playSound("doorClose");
+                }
+            }
+        }
+
+        public static Vector2 GetLocationOf(GameLocation location, SVObject obj)
+        {
+            IEnumerable<KeyValuePair<Vector2, SVObject>> pairs = location.Objects.Pairs.Where(kv => kv.Value == obj);
+            if (pairs.Count() == 0)
+            {
+                return new Vector2(-1, -1);
+            }
+            return pairs.First().Key;
+        }
+
         public static bool CollectObj(GameLocation loc, SVObject obj)
         {
             Player who = Game1.player;
-            IEnumerable<KeyValuePair<Vector2, SVObject>> pairs = loc.Objects.Pairs.Where(kv => kv.Value == obj);
-            if(pairs.Count() == 0)
+
+            Vector2 vector = GetLocationOf(loc, obj);
+            if(vector.X == -1 && vector.Y == -1)
             {
                 return false;
             }
-            Vector2 vector = pairs.First().Key;
 
             int quality = obj.Quality;
             Random random = new Random((int)Game1.uniqueIDForThisGame / 2 + (int)Game1.stats.DaysPlayed + (int)vector.X + (int)vector.Y * 777);
@@ -560,110 +653,7 @@ namespace JoysOfEfficiency.Utils
             return false;
         }
 
-        public static void DestroyNearDeadCrops(Player player)
-        {
-            GameLocation location = player.currentLocation;
-            foreach (KeyValuePair<Vector2, HoeDirt> kv in GetFeaturesWithin<HoeDirt>(1))
-            {
-                Vector2 loc = kv.Key;
-                HoeDirt dirt = kv.Value;
-                if (dirt.crop != null && dirt.crop.dead.Value)
-                {
-                    string name = new SVObject(dirt.crop.indexOfHarvest.Value, 1).DisplayName;
-                    dirt.destroyCrop(loc, true, location);
-                }
-            }
-        }
-
-        public static void HarvestNearCrops(Player player)
-        {
-            GameLocation location = player.currentLocation;
-            int radius = ModEntry.Conf.AutoHarvestRadius;
-            foreach (KeyValuePair<Vector2, HoeDirt> kv in GetFeaturesWithin<HoeDirt>(radius))
-            {
-                Vector2 loc = kv.Key;
-                HoeDirt dirt = kv.Value;
-                if (dirt.crop == null)
-                {
-                    continue;
-                }
-                if (dirt.readyForHarvest())
-                {
-                    if (Harvest((int)loc.X, (int)loc.Y, dirt))
-                    {
-                        if (dirt.crop.regrowAfterHarvest.Value == -1 || dirt.crop.forageCrop.Value)
-                        {
-                            //destroy crop if it does not reqrow.
-                            dirt.destroyCrop(loc, true, location);
-                        }
-                    }
-                }
-            }
-        }
-
-        public static void WaterNearbyCrops()
-        {
-            Player player = Game1.player;
-            WateringCan can = FindToolFromInventory<WateringCan>(player);
-            if (can != null)
-            {
-                bool watered = false;
-                foreach (KeyValuePair<Vector2, HoeDirt> kv in GetFeaturesWithin<HoeDirt>(ModEntry.Conf.AutoWaterRadius))
-                {
-                    Vector2 location = kv.Key;
-                    HoeDirt dirt = kv.Value;
-                    float consume = 2 * (1.0f / (can.UpgradeLevel / 2.0f + 1));
-                    if (dirt.crop != null && !dirt.crop.dead.Value && dirt.state.Value == 0 && player.Stamina >= consume && can.WaterLeft > 0)
-                    {
-                        dirt.state.Value = 1;
-                        player.Stamina -= consume;
-                        can.WaterLeft--;
-                        watered = true;
-                    }
-                }
-                if (watered)
-                {
-                    Game1.playSound("slosh");
-                }
-            }
-        }
-
-        public static void TryToggleGate(Player player)
-        {
-            GameLocation location = player.currentLocation;
-            
-            foreach(Fence fence in GetObjectsWithin<Fence>(2).Where(f=>f.isGate.Value))
-            {
-                Vector2 loc = fence.TileLocation;
-                IReflectedField<NetInt> fieldPosition = Helper.Reflection.GetField<NetInt>(fence, "gatePosition");
-
-                bool? isUpDown = IsUpsideDown(location, fence);
-                if (isUpDown == null)
-                {
-                    if (!fence.getBoundingBox(loc).Intersects(player.GetBoundingBox()))
-                    {
-                        fieldPosition.SetValue(new NetInt(0));
-                    }
-                    continue;
-                }
-
-                int gatePosition = fence.gatePosition.Value;
-                bool flag = IsPlayerInClose(player, fence.TileLocation, isUpDown);
-
-
-                if (flag && gatePosition == 0)
-                {
-                   fieldPosition.SetValue(new NetInt(88));
-                    Game1.playSound("doorClose");
-                }
-                if (!flag && gatePosition >= 88)
-                {
-                    fieldPosition.SetValue(new NetInt(0));
-                    Game1.playSound("doorClose");
-                }
-            }
-        }
-
+        
         public static T FindToolFromInventory<T>(Player player) where T : Tool
         {
             if(player.CurrentTool is T t)
