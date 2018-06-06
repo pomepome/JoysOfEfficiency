@@ -106,6 +106,13 @@ namespace JoysOfEfficiency
                     player.addedSpeed = 0;
                 }
             }
+            if(Conf.ForceMaxCasting && player.CurrentTool is FishingRod rod)
+            {
+                if (rod.isTimingCast)
+                {
+                    rod.castingPower = 1.01f;
+                }
+            }
             if (Conf.AutoGate)
             {
                 Util.TryToggleGate(player);
@@ -303,7 +310,6 @@ namespace JoysOfEfficiency
             if(args.KeyPressed == Keys.H)
             {
                 Util.ShowHUDMessage($"Hay:{Game1.getFarm().piecesOfHay}");
-                Game1.player.Money += 100000;
             }
             if (args.KeyPressed == Conf.KeyShowMenu)
             {

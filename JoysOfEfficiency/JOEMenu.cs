@@ -87,6 +87,7 @@ namespace JoysOfEfficiency
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoDepositIngredient", 22, ModEntry.Conf.AutoDepositIngredient, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoPullMachineResult,", 23, ModEntry.Conf.AutoPullMachineResult, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoPetNearbyPets", 24, ModEntry.Conf.AutoPetNearbyPets, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("ForceMaxCasting", 25, ModEntry.Conf.ForceMaxCasting, OnCheckboxValueChanged));
                 tabs.Add(tab);
             }
             {
@@ -157,6 +158,7 @@ namespace JoysOfEfficiency
                 case 22: ModEntry.Conf.AutoDepositIngredient = value; break;
                 case 23: ModEntry.Conf.AutoPullMachineResult = value; break;
                 case 24: ModEntry.Conf.AutoPetNearbyPets = value; break;
+                case 25: ModEntry.Conf.ForceMaxCasting = value; break;
                 default: return;
             }
             mod.WriteConfig();
