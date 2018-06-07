@@ -36,3 +36,7 @@ This is a changelog from 1.0.22
 - Changed Machine Detection algorithm
 - Added ProtectNectarProducingFlower option to AutoHarvest.
 - Removed ForceMaxCasting
+
+## 1.0.29
+- Fixed bug that AutoDepositIngredient couldn't work well with furnace
+- You must face to/back-to-back with fence to activate AutoGate

@@ -55,11 +55,14 @@ namespace JoysOfEfficiency.Utils
             }
             foreach (SVObject obj in GetObjectsWithin<SVObject>(ModEntry.Conf.MachineRadius))
             {
-                if (IsObjectMachine(obj) && obj.heldObject == null)
+                Vector2 loc = GetLocationOf(Game1.currentLocation, obj);
+                if (IsObjectMachine(obj) && obj.heldObject == null && player.CurrentItem is SVObject)
                 {
-                    if(obj.performObjectDropInAction((SVObject)player.CurrentItem, false, player) && obj.Name != "Furnace")
+                    if (Utility.isThereAnObjectHereWhichAcceptsThisItem(Game1.currentLocation, player.CurrentItem, (int)loc.X * Game1.tileSize, (int)loc.Y * Game1.tileSize))
                     {
-                        player.reduceActiveItemByOne();
+                        obj.performObjectDropInAction(player.CurrentItem as SVObject, false, player);
+                        if (obj.Name != "Furnace" || player.CurrentItem.getStack() == 0)
+                            player.reduceActiveItemByOne();
                     }
                 }
             }
@@ -846,11 +849,41 @@ namespace JoysOfEfficiency.Utils
                 return fence.getBoundingBox(fence.TileLocation).Intersects(player.GetBoundingBox());
             }
             Vector2 playerTileLocation = player.getTileLocation();
+            if(playerTileLocation == fenceLocation)
+            {
+                return true;
+            }
+            if(!IsPlayerFaceOrBackToFence(isUpDown == true, player))
+            {
+                return false;
+            }
             if (isUpDown == true)
             {
-                return (playerTileLocation.X == fenceLocation.X) && (playerTileLocation.Y <= fenceLocation.Y + 1 && playerTileLocation.Y >= fenceLocation.Y - 1);
+                return ExpandSpecific(fence.getBoundingBox(fenceLocation), 0, 16).Intersects(player.GetBoundingBox());
             }
-            return (playerTileLocation.X >= fenceLocation.X - 1 && playerTileLocation.X <= fenceLocation.X + 1) && (playerTileLocation.Y == fenceLocation.Y);
+            return ExpandSpecific(fence.getBoundingBox(fenceLocation), 16, 0).Intersects(player.GetBoundingBox());
+        }
+
+        private static Rectangle ExpandSpecific(Rectangle rect, int deltaX, int deltaY)
+        {
+            return new Rectangle(rect.X - deltaX, rect.Y - deltaY, rect.Width + deltaX * 2, rect.Height + deltaY * 2);
+        }
+
+        private static bool IsPlayerFaceOrBackToFence(bool isUpDown, Player player)
+        {
+            return isUpDown ? player.FacingDirection % 2 == 0 : player.FacingDirection % 2 == 1;
+        }
+
+        private static Vector2 GetDeltaFrom(Player player)
+        {
+            switch (player.FacingDirection)
+            {
+                case 0: return new Vector2(0, -1);
+                case 1: return new Vector2(1, 0);
+                case 2: return new Vector2(0, 1);
+                case 3: return new Vector2(-1, 0);
+            }
+            return Vector2.Zero;
         }
 
         public static void AutoFishing(BobberBar bar)

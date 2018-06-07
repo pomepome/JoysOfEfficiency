@@ -303,6 +303,7 @@ namespace JoysOfEfficiency
             if(args.KeyPressed == Keys.H)
             {
                 Util.ShowHUDMessage($"Hay:{Game1.getFarm().piecesOfHay}");
+                Util.ShowHUDMessage($"Direction:{Game1.player.FacingDirection}");
             }
             if (args.KeyPressed == Conf.KeyShowMenu)
             {
