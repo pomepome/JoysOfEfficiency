@@ -55,7 +55,13 @@ namespace JoysOfEfficiency.Utils
             }
             foreach (SVObject obj in GetObjectsWithin<SVObject>(ModEntry.Conf.MachineRadius))
             {
-                obj.performObjectDropInAction((SVObject)player.CurrentItem, false, player);
+                if (IsObjectMachine(obj) && obj.heldObject == null)
+                {
+                    if(obj.performObjectDropInAction((SVObject)player.CurrentItem, false, player) && obj.Name != "Furnace")
+                    {
+                        player.reduceActiveItemByOne();
+                    }
+                }
             }
         }
 
@@ -738,6 +744,38 @@ namespace JoysOfEfficiency.Utils
             }
 
             return null;
+        }
+
+        private static bool IsObjectMachine(SVObject obj)
+        {
+            if(obj is CrabPot)
+            {
+                return true;
+            }
+            if(!obj.bigCraftable)
+            {
+                return false;
+            }
+            switch (obj.Name)
+            {
+                case "Incubator":
+                case "Slime Incubator":
+                case "Keg":
+                case "Preserves Jar":
+                case "Cheese Press":
+                case "Mayonnaise Machine":
+                case "Loom":
+                case "Oil Maker":
+                case "Seed Maker":
+                case "Crystalarium":
+                case "Recycling Machine":
+                case "Furnace":
+                case "Charcoal Kiln":
+                case "Slime Egg-Press":
+                case "Cask":
+                    return true;
+                default: return false;
+            }
         }
 
         private static bool IsPlayerInClose(Player player, Fence fence, Vector2 fenceLocation, bool? isUpDown)

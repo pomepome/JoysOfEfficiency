@@ -28,3 +28,9 @@ This is a changelog from 1.0.22
 - Added AutoPetNearbyPets feature.
 - Added CJBCheatsMenu Detection.
 - Fixed AutoReelRod issue.
+
+## 1.0.27
+- Added ForceMaxCasting option
+
+## 1.0.28
+- Changed Machine Detection algorithm
