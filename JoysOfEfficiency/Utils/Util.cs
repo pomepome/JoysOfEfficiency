@@ -30,6 +30,10 @@ namespace JoysOfEfficiency.Utils
 
         private static List<T> GetObjectsWithin<T>(int radius) where T : SVObject
         {
+            if(!Context.IsWorldReady)
+            {
+                return new List<T>();
+            }
             GameLocation location = Game1.player.currentLocation;
             Vector2 ov = Game1.player.getTileLocation();
             List<T> list = new List<T>();
@@ -49,11 +53,15 @@ namespace JoysOfEfficiency.Utils
 
         private static Dictionary<Vector2, T> GetFeaturesWithin<T>(int radius) where T : TerrainFeature
         {
+            if (!Context.IsWorldReady)
+            {
+                return new Dictionary<Vector2, T>();
+            }
             GameLocation location = Game1.player.currentLocation;
             Vector2 ov = Game1.player.getTileLocation();
             Dictionary<Vector2, T> list = new Dictionary<Vector2, T>();
 
-            List<LargeTerrainFeature> lFeatures = Game1.currentLocation.largeTerrainFeatures.ToList();
+            List<LargeTerrainFeature> lFeatures = Game1.currentLocation.largeTerrainFeatures == null ? null : new List<LargeTerrainFeature>(Game1.currentLocation.largeTerrainFeatures);
 
             for (int dx = -radius; dx <= radius; dx++)
             {
@@ -69,7 +77,7 @@ namespace JoysOfEfficiency.Utils
                     {
                         foreach(LargeTerrainFeature feature in lFeatures)
                         {
-                            if(feature is T&& feature.tilePosition.X == loc.X && feature.tilePosition.Y == loc.Y)
+                            if(feature != null && feature is T&& feature.tilePosition.X == loc.X && feature.tilePosition.Y == loc.Y)
                             {
                                 list.Add(loc, feature as T);
                             }
@@ -106,11 +114,13 @@ namespace JoysOfEfficiency.Utils
             }
             foreach (SVObject obj in GetObjectsWithin<SVObject>(ModEntry.Conf.MachineRadius))
             {
-                if(obj is IndoorPot)
+                if (IsObjectMachine(obj) && obj.heldObject.Value == null)
                 {
-                    continue;
+                    if (obj.performObjectDropInAction((SVObject)player.CurrentItem, false, player) && obj.Name != "Furnace")
+                    {
+                        player.reduceActiveItemByOne();
+                    }
                 }
-                obj.performObjectDropInAction(player.CurrentItem, false, player);
             }
         }
 
@@ -850,6 +860,38 @@ namespace JoysOfEfficiency.Utils
                 }
             }
             return false;
+        }
+
+        private static bool IsObjectMachine(SVObject obj)
+        {
+            if (obj is CrabPot)
+            {
+                return true;
+            }
+            if (!obj.bigCraftable.Value)
+            {
+                return false;
+            }
+            switch (obj.Name)
+            {
+                case "Incubator":
+                case "Slime Incubator":
+                case "Keg":
+                case "Preserves Jar":
+                case "Cheese Press":
+                case "Mayonnaise Machine":
+                case "Loom":
+                case "Oil Maker":
+                case "Seed Maker":
+                case "Crystalarium":
+                case "Recycling Machine":
+                case "Furnace":
+                case "Charcoal Kiln":
+                case "Slime Egg-Press":
+                case "Cask":
+                    return true;
+                default: return false;
+            }
         }
 
         public static bool? IsUpsideDown(GameLocation location, Fence fence)

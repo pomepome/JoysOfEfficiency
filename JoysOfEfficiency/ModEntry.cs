@@ -142,7 +142,7 @@ namespace JoysOfEfficiency
                         }
                     }
                 }
-                if (player.CurrentTool is FishingRod rod)
+                if (player.CurrentTool is FishingRod rod && Game1.activeClickableMenu == null)
                 {
                     IReflectedField<int> whichFish = reflection.GetField<int>(rod, "whichFish");
                     if (rod.isNibbling && rod.isFishing && whichFish.GetValue() == -1 && !rod.isReeling && !rod.hit && !rod.isTimingCast && !rod.pullingOutOfWater && !rod.fishCaught)

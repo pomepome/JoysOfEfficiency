@@ -25,5 +25,8 @@ This is a changelog from 1.1.14-beta
 ## 1.1.18-beta
 - Adjusted some default settings to be more fair.
 - Added AutoPetNearbyPets feature.
-- Added Pot Support for AutoWaterNearbyCrops and AutoHarvest.
+- Added Pot Support for AutoWaterNearbyCrops, AutoDestroyNearDeadCrops and AutoHarvest.
 - Added CJBCheats Detection
+
+## 1.1.19-beta
+- Improved Machine detection algorithm
