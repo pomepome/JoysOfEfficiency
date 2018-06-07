@@ -563,7 +563,7 @@ namespace JoysOfEfficiency.Utils
                 }
 
                 int gatePosition = fence.gatePosition.Value;
-                bool flag = IsPlayerInClose(player, fence.TileLocation, isUpDown);
+                bool flag = IsPlayerInClose(player, fence, fence.TileLocation, isUpDown);
 
 
                 if (flag && gatePosition == 0)
@@ -998,20 +998,37 @@ namespace JoysOfEfficiency.Utils
             return null;
         }
 
-        public static bool IsPlayerInClose(Player player, Vector2 fenceLocation, bool? isUpDown)
+        private static bool IsPlayerInClose(Player player, Fence fence, Vector2 fenceLocation, bool? isUpDown)
         {
             if (isUpDown == null)
             {
-                return false;
+                return fence.getBoundingBox(fence.TileLocation).Intersects(player.GetBoundingBox());
             }
             Vector2 playerTileLocation = player.getTileLocation();
+            if (playerTileLocation == fenceLocation)
+            {
+                return true;
+            }
+            if (!IsPlayerFaceOrBackToFence(isUpDown == true, player))
+            {
+                return false;
+            }
             if (isUpDown == true)
             {
-                return (playerTileLocation.X == fenceLocation.X) && (playerTileLocation.Y <= fenceLocation.Y + 1 && playerTileLocation.Y >= fenceLocation.Y - 1);
+                return ExpandSpecific(fence.getBoundingBox(fenceLocation), 0, 16).Intersects(player.GetBoundingBox());
             }
-            return (playerTileLocation.X >= fenceLocation.X - 1 && playerTileLocation.X <= fenceLocation.X + 1) && (playerTileLocation.Y == fenceLocation.Y);
+            return ExpandSpecific(fence.getBoundingBox(fenceLocation), 16, 0).Intersects(player.GetBoundingBox());
         }
 
+        private static Rectangle ExpandSpecific(Rectangle rect, int deltaX, int deltaY)
+        {
+            return new Rectangle(rect.X - deltaX, rect.Y - deltaY, rect.Width + deltaX * 2, rect.Height + deltaY * 2);
+        }
+
+        private static bool IsPlayerFaceOrBackToFence(bool isUpDown, Player player)
+        {
+            return isUpDown ? player.FacingDirection % 2 == 0 : player.FacingDirection % 2 == 1;
+        }
         public static void TryToEatIfNeeded(Player player)
         {
             if (player.isEating)

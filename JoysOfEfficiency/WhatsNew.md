@@ -34,3 +34,6 @@ This is a changelog from 1.1.14-beta
 
 ## 1.1.20-beta
 - Fixed bug that DepositIngredient did not work with furnace well.
+
+## 1.1.21-beta
+- You must face to/back-to-back with fence to activate AutoGate
