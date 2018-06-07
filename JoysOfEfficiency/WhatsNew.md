@@ -34,3 +34,5 @@ This is a changelog from 1.0.22
 
 ## 1.0.28
 - Changed Machine Detection algorithm
+- Added ProtectNectarProducingFlower option to AutoHarvest.
+- Removed ForceMaxCasting

@@ -106,13 +106,6 @@ namespace JoysOfEfficiency
                     player.addedSpeed = 0;
                 }
             }
-            if(Conf.ForceMaxCasting && player.CurrentTool is FishingRod rod)
-            {
-                if (rod.isTimingCast)
-                {
-                    rod.castingPower = 1.01f;
-                }
-            }
             if (Conf.AutoGate)
             {
                 Util.TryToggleGate(player);

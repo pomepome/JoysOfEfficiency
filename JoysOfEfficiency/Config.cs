@@ -43,6 +43,6 @@ namespace JoysOfEfficiency
         public bool AutoPullMachineResult { get; set; } = true;
         public int MachineRadius { get; set; } = 1;
         public bool AutoPetNearbyPets { get; set; } = false;
-        public bool ForceMaxCasting { get; set; } = false;
+        public bool ProtectNectarProducingFlower { get; set; } = true;
     }
 }

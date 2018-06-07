@@ -154,6 +154,164 @@ namespace JoysOfEfficiency.Utils
             }
         }
 
+
+        public static void DestroyNearDeadCrops(Player player)
+        {
+            GameLocation location = player.currentLocation;
+            foreach (KeyValuePair<Vector2, HoeDirt> kv in GetFeaturesWithin<HoeDirt>(1))
+            {
+                Vector2 loc = kv.Key;
+                HoeDirt dirt = kv.Value;
+                if (dirt.crop != null && dirt.crop.dead)
+                {
+                    dirt.destroyCrop(loc);
+                }
+            }
+        }
+
+        public static void HarvestNearCrops(Player player)
+        {
+            GameLocation location = player.currentLocation;
+            foreach (KeyValuePair<Vector2, HoeDirt> kv in GetFeaturesWithin<HoeDirt>(ModEntry.Conf.AutoHarvestRadius))
+            {
+                Vector2 loc = kv.Key;
+                HoeDirt dirt = kv.Value;
+
+                if (dirt.crop == null)
+                {
+                    continue;
+                }
+                if (ModEntry.Conf.ProtectNectarProducingFlower && IsProducingNectar(dirt))
+                {
+                    continue;
+                }
+                if (dirt.readyForHarvest())
+                {
+                    if (Harvest((int)loc.X, (int)loc.Y, dirt))
+                    {
+                        if (dirt.crop.regrowAfterHarvest == -1 || dirt.crop.forageCrop)
+                        {
+                            //destroy crop if it does not reqrow.
+                            dirt.destroyCrop(loc);
+                        }
+                    }
+                }
+            }
+        }
+        public static void DrawMineGui(SpriteBatch batch, SpriteFont font, Player player, MineShaft shaft)
+        {
+            IReflectionHelper reflection = Helper.Reflection;
+            ITranslationHelper translation = Helper.Translation;
+            int stonesLeft = reflection.GetField<int>(shaft, "stonesLeftOnThisLevel").GetValue();
+            Vector2 ladderPos = FindLadder(shaft);
+            bool ladder = ladderPos != null && ladderPos != Vector2.Zero;
+
+            List<Monster> currentMonsters = shaft.characters.OfType<Monster>().ToList();
+            foreach (Monster mon in lastMonsters)
+            {
+                if (!currentMonsters.Contains(mon) && mon.name != "ignoreMe")
+                {
+                    lastKilledMonster = mon.name;
+                    Log($"LastMonster set {mon.name}");
+                }
+            }
+            lastMonsters = currentMonsters.ToList();
+            string tallyStr = null;
+            string ladderStr = null;
+            if (lastKilledMonster != null)
+            {
+                int kills = Game1.stats.getMonstersKilled(lastKilledMonster);
+                tallyStr = string.Format(translation.Get("monsters.tally"), lastKilledMonster, kills);
+            }
+
+            string stonesStr = null;
+            if (stonesLeft == 0)
+            {
+                stonesStr = translation.Get("stones.none");
+            }
+            else
+            {
+                bool single = stonesLeft == 1;
+                if (single)
+                {
+                    stonesStr = translation.Get("stones.one");
+                }
+                else
+                {
+                    stonesStr = string.Format(translation.Get("stones.many"), stonesLeft);
+                }
+            }
+            if (ladder)
+            {
+                ladderStr = translation.Get("ladder");
+            }
+            icons.Draw(stonesStr, tallyStr, ladderStr);
+        }
+        
+        private static Vector2 GetCropLocation(Crop crop)
+        {
+            foreach (KeyValuePair<Vector2, TerrainFeature> kv in Game1.currentLocation.terrainFeatures)
+            {
+                if (kv.Value is HoeDirt dirt)
+                {
+                    if (dirt.crop != null && !dirt.crop.dead && dirt.crop == crop)
+                    {
+                        return kv.Key;
+                    }
+                }
+            }
+            return new Vector2(-1, -1);
+        }
+
+        public static Vector2 GetLocationOf(GameLocation location, SVObject obj)
+        {
+            IEnumerable<KeyValuePair<Vector2, SVObject>> pairs = location.Objects.Where(kv => kv.Value == obj);
+            if (pairs.Count() == 0)
+            {
+                return new Vector2(-1, -1);
+            }
+            return pairs.First().Key;
+        }
+
+        public static Vector2 GetLocationOf(GameLocation location, TerrainFeature feature)
+        {
+            IEnumerable<KeyValuePair<Vector2, TerrainFeature>> pairs = location.terrainFeatures.Where(kv => kv.Value == feature);
+            if (pairs.Count() == 0)
+            {
+                return new Vector2(-1, -1);
+            }
+            return pairs.First().Key;
+        }
+
+        /// <summary>
+        /// Is the dirt's crop is a flower and producing nectar
+        /// </summary>
+        /// <param name="dirt">HoeDirt to evaluate</param>
+        /// <returns></returns>
+        private static bool IsProducingNectar(HoeDirt dirt)
+        {
+            Vector2 locToEval = GetLocationOf(Game1.currentLocation, dirt);
+            if (locToEval.X == -1 && locToEval.Y == -1)
+            {
+                return false;
+            }
+            foreach (SVObject obj in new List<SVObject>(Game1.currentLocation.Objects.Values))
+            {
+                if (obj.Name != "Bee House")
+                    continue;
+
+                Vector2 tileBeeHouse = GetLocationOf(Game1.currentLocation, obj);
+                Crop crop = Utility.findCloseFlower(tileBeeHouse);
+                if (crop != null)
+                {
+                    Vector2 tileLoc = GetCropLocation(crop);
+                    if (tileLoc == locToEval)
+                        return true;
+                }
+            }
+            return false;
+        }
+
         public static bool HarvestCrubPot(Player who, CrabPot obj, bool justCheckingForActivity = false)
         {
             IReflectionHelper reflection = Helper.Reflection;
@@ -232,57 +390,7 @@ namespace JoysOfEfficiency.Utils
             return Vector2.Zero;
         }
 
-        public static void DrawMineGui(SpriteBatch batch, SpriteFont font, Player player, MineShaft shaft)
-        {
-            IReflectionHelper reflection = Helper.Reflection;
-            ITranslationHelper translation = Helper.Translation;
-            int stonesLeft = reflection.GetField<int>(shaft, "stonesLeftOnThisLevel").GetValue();
-            Vector2 ladderPos = FindLadder(shaft);
-            bool ladder = ladderPos != null && ladderPos != Vector2.Zero;
-
-            List<Monster> currentMonsters = shaft.characters.OfType<Monster>().ToList();
-            foreach (Monster mon in lastMonsters)
-            {
-                if (!currentMonsters.Contains(mon) && mon.name != "ignoreMe")
-                {
-                    lastKilledMonster = mon.name;
-                    Log($"LastMonster set {mon.name}");
-                }
-            }
-            lastMonsters = currentMonsters.ToList();
-            string tallyStr = null;
-            string ladderStr = null;
-            if (lastKilledMonster != null)
-            {
-                int kills = Game1.stats.getMonstersKilled(lastKilledMonster);
-                tallyStr = string.Format(translation.Get("monsters.tally"), lastKilledMonster, kills);
-            }
-
-            string stonesStr = null;
-            if (stonesLeft == 0)
-            {
-                stonesStr = translation.Get("stones.none");
-            }
-            else
-            {
-                bool single = stonesLeft == 1;
-                if (single)
-                {
-                    stonesStr = translation.Get("stones.one");
-                }
-                else
-                {
-                    stonesStr = string.Format(translation.Get("stones.many"), stonesLeft);
-                }
-            }
-            if (ladder)
-            {
-                ladderStr = translation.Get("ladder");
-            }
-            icons.Draw(stonesStr, tallyStr, ladderStr);
-        }
-
-
+        
         private static bool CollectObj(GameLocation loc, SVObject obj)
         {
             Player who = Game1.player;
@@ -358,53 +466,6 @@ namespace JoysOfEfficiency.Utils
                 }
             }
             return false;
-        }
-
-        public static void DestroyNearDeadCrops(Player player)
-        {
-            GameLocation location = player.currentLocation;
-            foreach (KeyValuePair<Vector2, HoeDirt> kv in GetFeaturesWithin<HoeDirt>(1))
-            {
-                Vector2 loc = kv.Key;
-                HoeDirt dirt = kv.Value;
-                if (dirt.crop != null && dirt.crop.dead)
-                {   
-                    dirt.destroyCrop(loc);
-                }
-            }
-        }
-
-        public static void HarvestNearCrabPot(Player player)
-        {
-            foreach (CrabPot pot in GetObjectsWithin<CrabPot>(ModEntry.Conf.AutoCollectRadius))
-            {
-                if (pot.readyForHarvest && pot.heldObject != null)
-                {
-                    HarvestCrubPot(player, pot);
-                }
-            }
-        }
-
-        public static void HarvestNearCrops(Player player)
-        {
-            GameLocation location = player.currentLocation;
-            foreach (KeyValuePair<Vector2, HoeDirt> kv in GetFeaturesWithin<HoeDirt>(ModEntry.Conf.AutoHarvestRadius))
-            {
-                Vector2 loc = kv.Key;
-                HoeDirt dirt = kv.Value;
-
-                if (dirt.readyForHarvest())
-                {
-                    if (Harvest((int)loc.X, (int)loc.Y, dirt))
-                    {
-                        if (dirt.crop.regrowAfterHarvest == -1 || dirt.crop.forageCrop)
-                        {
-                            //destroy crop if it does not reqrow.
-                            dirt.destroyCrop(loc);
-                        }
-                    }
-                }
-            }
         }
 
         public static bool Harvest(int xTile, int yTile, HoeDirt soil, JunimoHarvester junimoHarvester = null)
