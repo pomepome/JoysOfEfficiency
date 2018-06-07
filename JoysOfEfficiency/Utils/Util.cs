@@ -114,11 +114,14 @@ namespace JoysOfEfficiency.Utils
             }
             foreach (SVObject obj in GetObjectsWithin<SVObject>(ModEntry.Conf.MachineRadius))
             {
+                Vector2 loc = GetLocationOf(Game1.currentLocation, obj);
                 if (IsObjectMachine(obj) && obj.heldObject.Value == null)
                 {
-                    if (obj.performObjectDropInAction((SVObject)player.CurrentItem, false, player) && obj.Name != "Furnace")
+                    if (Utility.isThereAnObjectHereWhichAcceptsThisItem(Game1.currentLocation, player.CurrentItem, (int)loc.X * Game1.tileSize, (int)loc.Y * Game1.tileSize))
                     {
-                        player.reduceActiveItemByOne();
+                        obj.performObjectDropInAction(player.CurrentItem, false, player);
+                        if (obj.Name != "Furnace" || player.CurrentItem.getStack() == 0)
+                            player.reduceActiveItemByOne();
                     }
                 }
             }
@@ -221,7 +224,126 @@ namespace JoysOfEfficiency.Utils
             }
         }
 
-        public static Vector2 FindLadder(MineShaft shaft)
+
+        public static void DestroyNearDeadCrops(Player player)
+        {
+            GameLocation location = player.currentLocation;
+            foreach (KeyValuePair<Vector2, HoeDirt> kv in GetFeaturesWithin<HoeDirt>(1))
+            {
+                Vector2 loc = kv.Key;
+                HoeDirt dirt = kv.Value;
+                if (dirt.crop != null && dirt.crop.dead.Value)
+                {
+                    dirt.destroyCrop(loc, true, location);
+                }
+            }
+            foreach (IndoorPot pot in GetObjectsWithin<IndoorPot>(1))
+            {
+                Vector2 loc = GetLocationOf(location, pot);
+                if (pot.hoeDirt.Value != null)
+                {
+                    HoeDirt dirt = pot.hoeDirt.Value;
+                    if (dirt.crop != null && dirt.crop.dead.Value)
+                    {
+                        dirt.destroyCrop(loc, true, location);
+                    }
+                }
+            }
+        }
+
+        public static void HarvestNearCrops(Player player)
+        {
+            GameLocation location = player.currentLocation;
+            int radius = ModEntry.Conf.AutoHarvestRadius;
+            foreach (KeyValuePair<Vector2, HoeDirt> kv in GetFeaturesWithin<HoeDirt>(radius))
+            {
+                Vector2 loc = kv.Key;
+                HoeDirt dirt = kv.Value;
+                if (dirt.crop == null)
+                {
+                    continue;
+                }
+                if (ModEntry.Conf.ProtectNectarProducingFlower && IsProducingNectar(dirt))
+                {
+                    continue;
+                }
+                if (dirt.readyForHarvest())
+                {
+                    if (Harvest((int)loc.X, (int)loc.Y, dirt))
+                    {
+                        if (dirt.crop.regrowAfterHarvest.Value == -1 || dirt.crop.forageCrop.Value)
+                        {
+                            //destroy crop if it does not reqrow.
+                            dirt.destroyCrop(loc, true, location);
+                        }
+                    }
+                }
+            }
+            foreach (IndoorPot pot in GetObjectsWithin<IndoorPot>(radius))
+            {
+                if (pot.hoeDirt.Value != null)
+                {
+                    HoeDirt dirt = pot.hoeDirt.Value;
+                    if (dirt.crop != null && dirt.readyForHarvest())
+                    {
+                        Vector2 tileLoc = GetLocationOf(location, pot);
+                        if (dirt.crop.harvest((int)tileLoc.X, (int)tileLoc.Y, dirt))
+                        {
+                            if (dirt.crop.regrowAfterHarvest.Value == -1 || dirt.crop.forageCrop.Value)
+                            {
+                                //destroy crop if it does not reqrow.
+                                dirt.destroyCrop(tileLoc, true, location);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public static void WaterNearbyCrops()
+        {
+            Player player = Game1.player;
+            WateringCan can = FindToolFromInventory<WateringCan>(player);
+            if (can != null)
+            {
+                bool watered = false;
+                foreach (KeyValuePair<Vector2, HoeDirt> kv in GetFeaturesWithin<HoeDirt>(ModEntry.Conf.AutoWaterRadius))
+                {
+                    Vector2 location = kv.Key;
+                    HoeDirt dirt = kv.Value;
+                    float consume = 2 * (1.0f / (can.UpgradeLevel / 2.0f + 1));
+                    if (dirt.crop != null && !dirt.crop.dead.Value && dirt.state.Value == 0 && player.Stamina >= consume && can.WaterLeft > 0)
+                    {
+                        dirt.state.Value = 1;
+                        player.Stamina -= consume;
+                        can.WaterLeft--;
+                        watered = true;
+                    }
+                }
+                foreach (IndoorPot pot in GetObjectsWithin<IndoorPot>(ModEntry.Conf.AutoWaterRadius))
+                {
+                    if (pot.hoeDirt.Value != null)
+                    {
+                        HoeDirt dirt = pot.hoeDirt.Value;
+                        float consume = 2 * (1.0f / (can.UpgradeLevel / 2.0f + 1));
+                        if (dirt.crop != null && !dirt.crop.dead.Value && dirt.state.Value != 1 && player.Stamina >= consume && can.WaterLeft > 0)
+                        {
+                            dirt.state.Value = 1;
+                            pot.showNextIndex.Value = true;
+                            player.Stamina -= consume;
+                            can.WaterLeft--;
+                            watered = true;
+                        }
+                    }
+                }
+                if (watered)
+                {
+                    Game1.playSound("slosh");
+                }
+            }
+        }
+
+        private static Vector2 FindLadder(MineShaft shaft)
         {
             for (int i = 0; i < shaft.Map.GetLayer("Buildings").LayerWidth; i++)
             {
@@ -417,124 +539,6 @@ namespace JoysOfEfficiency.Utils
                 else
                 {
                     DrawString(batch, font, ref vec2, caughtText, Color.ForestGreen, scale, false);
-                }
-            }
-        }
-
-        public static void DestroyNearDeadCrops(Player player)
-        {
-            GameLocation location = player.currentLocation;
-            foreach (KeyValuePair<Vector2, HoeDirt> kv in GetFeaturesWithin<HoeDirt>(1))
-            {
-                Vector2 loc = kv.Key;
-                HoeDirt dirt = kv.Value;
-                if (dirt.crop != null && dirt.crop.dead.Value)
-                {
-                    dirt.destroyCrop(loc, true, location);
-                }
-            }
-            foreach (IndoorPot pot in GetObjectsWithin<IndoorPot>(1))
-            {
-                Vector2 loc = GetLocationOf(location, pot);
-                if(pot.hoeDirt.Value != null)
-                {
-                    HoeDirt dirt = pot.hoeDirt.Value;
-                    if (dirt.crop != null && dirt.crop.dead.Value)
-                    {
-                        dirt.destroyCrop(loc, true, location);
-                    }
-                }
-            }
-        }
-
-        public static void HarvestNearCrops(Player player)
-        {
-            GameLocation location = player.currentLocation;
-            int radius = ModEntry.Conf.AutoHarvestRadius;
-            foreach (KeyValuePair<Vector2, HoeDirt> kv in GetFeaturesWithin<HoeDirt>(radius))
-            {
-                Vector2 loc = kv.Key;
-                HoeDirt dirt = kv.Value;
-                if (dirt.crop == null)
-                {
-                    continue;
-                }
-                if(ModEntry.Conf.ProtectNectarProducingFlower && IsProducingNectar(dirt))
-                {
-                    continue;
-                }
-                if (dirt.readyForHarvest())
-                {
-                    if (Harvest((int)loc.X, (int)loc.Y, dirt))
-                    {
-                        if (dirt.crop.regrowAfterHarvest.Value == -1 || dirt.crop.forageCrop.Value)
-                        {
-                            //destroy crop if it does not reqrow.
-                            dirt.destroyCrop(loc, true, location);
-                        }
-                    }
-                }
-            }
-            foreach(IndoorPot pot in GetObjectsWithin<IndoorPot>(radius))
-            {
-                if (pot.hoeDirt.Value != null)
-                {
-                    HoeDirt dirt = pot.hoeDirt.Value;
-                    if(dirt.crop != null && dirt.readyForHarvest())
-                    {
-                        Vector2 tileLoc = GetLocationOf(location, pot);
-                        if(dirt.crop.harvest((int)tileLoc.X, (int)tileLoc.Y, dirt))
-                        {
-                            if (dirt.crop.regrowAfterHarvest.Value == -1 || dirt.crop.forageCrop.Value)
-                            {
-                                //destroy crop if it does not reqrow.
-                                dirt.destroyCrop(tileLoc, true, location);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        public static void WaterNearbyCrops()
-        {
-            Player player = Game1.player;
-            WateringCan can = FindToolFromInventory<WateringCan>(player);
-            if (can != null)
-            {
-                bool watered = false;
-                foreach (KeyValuePair<Vector2, HoeDirt> kv in GetFeaturesWithin<HoeDirt>(ModEntry.Conf.AutoWaterRadius))
-                {
-                    Vector2 location = kv.Key;
-                    HoeDirt dirt = kv.Value;
-                    float consume = 2 * (1.0f / (can.UpgradeLevel / 2.0f + 1));
-                    if (dirt.crop != null && !dirt.crop.dead.Value && dirt.state.Value == 0 && player.Stamina >= consume && can.WaterLeft > 0)
-                    {
-                        dirt.state.Value = 1;
-                        player.Stamina -= consume;
-                        can.WaterLeft--;
-                        watered = true;
-                    }
-                }
-                foreach (IndoorPot pot in GetObjectsWithin<IndoorPot>(ModEntry.Conf.AutoWaterRadius))
-                {
-                    if(pot.hoeDirt.Value != null)
-                    {
-                        HoeDirt dirt = pot.hoeDirt.Value;
-                        float consume = 2 * (1.0f / (can.UpgradeLevel / 2.0f + 1));
-                        if (dirt.crop != null && !dirt.crop.dead.Value && dirt.state.Value != 1 && player.Stamina >= consume && can.WaterLeft > 0)
-                        {
-                            dirt.state.Value = 1;
-                            pot.showNextIndex.Value = true;
-                            player.Stamina -= consume;
-                            can.WaterLeft--;
-                            watered = true;
-                        }
-                    }
-                }
-                if (watered)
-                {
-                    Game1.playSound("slosh");
                 }
             }
         }

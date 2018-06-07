@@ -227,9 +227,9 @@ namespace JoysOfEfficiency
                     Util.ShakeNearbyFruitedTree();
                     Util.ShakeNearbyFruitedBush();
                 }
-                if (Conf.FastToolUpgrade && player.daysLeftForToolUpgrade > 1)
+                if (Conf.FastToolUpgrade && player.daysLeftForToolUpgrade.Value > 1)
                 {
-                    player.daysLeftForToolUpgrade = 1;
+                    player.daysLeftForToolUpgrade.Value = 1;
                 }
                 if(Conf.AutoAnimalDoor && !DayEnded && Game1.timeOfDay >= 1900)
                 {

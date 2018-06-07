@@ -31,3 +31,6 @@ This is a changelog from 1.1.14-beta
 ## 1.1.19-beta
 - Improved Machine detection algorithm.
 - Added ProtectNectarProducingFlower option to AutoHarvest.
+
+## 1.1.20-beta
+- Fixed bug that DepositIngredient did not work with furnace well.
