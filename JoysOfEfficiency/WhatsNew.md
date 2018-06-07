@@ -29,4 +29,5 @@ This is a changelog from 1.1.14-beta
 - Added CJBCheats Detection
 
 ## 1.1.19-beta
-- Improved Machine detection algorithm
+- Improved Machine detection algorithm.
+- Added ProtectNectarProducingFlower option to AutoHarvest.

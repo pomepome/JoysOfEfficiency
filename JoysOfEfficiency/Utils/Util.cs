@@ -459,6 +459,10 @@ namespace JoysOfEfficiency.Utils
                 {
                     continue;
                 }
+                if(ModEntry.Conf.ProtectNectarProducingFlower && IsProducingNectar(dirt))
+                {
+                    continue;
+                }
                 if (dirt.readyForHarvest())
                 {
                     if (Harvest((int)loc.X, (int)loc.Y, dirt))
@@ -574,6 +578,16 @@ namespace JoysOfEfficiency.Utils
         public static Vector2 GetLocationOf(GameLocation location, SVObject obj)
         {
             IEnumerable<KeyValuePair<Vector2, SVObject>> pairs = location.Objects.Pairs.Where(kv => kv.Value == obj);
+            if (pairs.Count() == 0)
+            {
+                return new Vector2(-1, -1);
+            }
+            return pairs.First().Key;
+        }
+
+        public static Vector2 GetLocationOf(GameLocation location, TerrainFeature feature)
+        {
+            IEnumerable<KeyValuePair<Vector2, TerrainFeature>> pairs = location.terrainFeatures.Pairs.Where(kv => kv.Value == feature);
             if (pairs.Count() == 0)
             {
                 return new Vector2(-1, -1);
@@ -857,6 +871,50 @@ namespace JoysOfEfficiency.Utils
                 }
                 else
                 {
+                }
+            }
+            return false;
+        }
+
+        private static Vector2 getCropLocation(Crop crop)
+        {
+            foreach(KeyValuePair<Vector2, TerrainFeature> kv in Game1.currentLocation.terrainFeatures.Pairs)
+            {
+                if(kv.Value is HoeDirt dirt)
+                {
+                    if(dirt.crop != null && !dirt.crop.dead.Value && dirt.crop == crop)
+                    {
+                        return kv.Key;
+                    }
+                }
+            }
+            return new Vector2(-1, -1);
+        }
+
+        /// <summary>
+        /// Is the dirt's crop is a flower and producing nectar
+        /// </summary>
+        /// <param name="dirt">HoeDirt to evaluate</param>
+        /// <returns></returns>
+        private static bool IsProducingNectar(HoeDirt dirt)
+        {
+            Vector2 locToEval = GetLocationOf(Game1.currentLocation, dirt);
+            if(locToEval.X == -1 && locToEval.Y == -1)
+            {
+                return false;
+            }
+            foreach(SVObject obj in new List<SVObject>(Game1.currentLocation.Objects.Values))
+            {
+                if(obj.Name != "Bee House")
+                    continue;
+
+                Vector2 tileBeeHouse = GetLocationOf(Game1.currentLocation, obj);
+                Crop crop = Utility.findCloseFlower(Game1.currentLocation, tileBeeHouse);
+                if (crop != null)
+                {
+                    Vector2 tileLoc = getCropLocation(crop);
+                    if(tileLoc == locToEval)
+                        return true;
                 }
             }
             return false;
