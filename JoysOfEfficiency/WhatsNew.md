@@ -37,3 +37,8 @@ This is a changelog from 1.1.14-beta
 
 ## 1.1.21-beta
 - You must face to/back-to-back with fence to activate AutoGate
+
+## 1.1.22-beta
+- Reduced lag when using ProtectNectarProducingFlower.
+- Fixed CanMax value did not changed by its upgrade level.
+- Added FPS Counter.

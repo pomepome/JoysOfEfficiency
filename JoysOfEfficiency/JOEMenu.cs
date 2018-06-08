@@ -75,7 +75,7 @@ namespace JoysOfEfficiency
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoGate", 9, ModEntry.Conf.AutoGate, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoEat", 10, ModEntry.Conf.AutoEat, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoHarvest", 11, ModEntry.Conf.AutoHarvest, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedCheckBox("ProtectNectarProducingFlower", 25, ModEntry.Conf.ProtectNectarProducingFlower, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("ProtectNectarProducingFlower", 25, ModEntry.Conf.ProtectNectarProducingFlower, OnCheckboxValueChanged, i => !ModEntry.Conf.AutoHarvest));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoDestroyDeadCrops", 12, ModEntry.Conf.AutoDestroyDeadCrops, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoRefillWateringCan", 13, ModEntry.Conf.AutoRefillWateringCan, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoCollectCollectibles", 14, ModEntry.Conf.AutoCollectCollectibles, OnCheckboxValueChanged));
@@ -88,6 +88,7 @@ namespace JoysOfEfficiency
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoDepositIngredient", 22, ModEntry.Conf.AutoDepositIngredient, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoPullMachineResult,", 23, ModEntry.Conf.AutoPullMachineResult, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoPetNearbyPets", 24, ModEntry.Conf.AutoPetNearbyPets, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("FPSCounter", 26, ModEntry.Conf.FPSCounter, OnCheckboxValueChanged));
                 tabs.Add(tab);
             }
             {
@@ -104,6 +105,8 @@ namespace JoysOfEfficiency
                 tab.AddOptionsElement(new ModifiedSlider("AutoDigRadius", 8, ModEntry.Conf.AutoDigRadius, 1, 3, OnSliderValueChanged, (() => !ModEntry.Conf.AutoDigArtifactSpot)));
                 tab.AddOptionsElement(new ModifiedSlider("MachineRadius", 10, ModEntry.Conf.MachineRadius, 1, 3, OnSliderValueChanged, (() => !(ModEntry.Conf.AutoPullMachineResult || ModEntry.Conf.AutoDepositIngredient))));
                 tab.AddOptionsElement(new ModifiedSlider("AddedSpeedMultiplier", 9, ModEntry.Conf.AddedSpeedMultiplier, 1, 19, OnSliderValueChanged, (() => !ModEntry.Conf.FasterRunningSpeed)));
+                tab.AddOptionsElement(new ModifiedSlider("FPSCounterPosX,", 11, ModEntry.Conf.FPSCounterPosX, 0, 1280, OnSliderValueChanged, (() => !ModEntry.Conf.FPSCounter)));
+                tab.AddOptionsElement(new ModifiedSlider("FPSCounterPosY", 12, ModEntry.Conf.FPSCounterPosY, 0, 720, OnSliderValueChanged, (() => !ModEntry.Conf.FPSCounter)));
                 tabs.Add(tab);
             }
             {
@@ -159,6 +162,7 @@ namespace JoysOfEfficiency
                 case 23: ModEntry.Conf.AutoPullMachineResult = value; break;
                 case 24: ModEntry.Conf.AutoPetNearbyPets = value; break;
                 case 25: ModEntry.Conf.ProtectNectarProducingFlower = value; break;
+                case 26: ModEntry.Conf.FPSCounter = value; break;
                 default: return;
             }
             mod.WriteConfig();
@@ -208,6 +212,14 @@ namespace JoysOfEfficiency
             if (index == 10)
             {
                 ModEntry.Conf.MachineRadius = value;
+            }
+            if(index == 11)
+            {
+                ModEntry.Conf.FPSCounterPosX = value;
+            }
+            if(index == 12)
+            {
+                ModEntry.Conf.FPSCounterPosY = value;
             }
             mod.WriteConfig();
         }
@@ -418,9 +430,10 @@ namespace JoysOfEfficiency
             for (int i = firstIndex; i < menuElements.Count; i++)
             {
                 OptionsElement element = menuElements[i];
-                if (y + element.bounds.Height < height)
+                int hElem = element is ModifiedSlider ? element.bounds.Height + 4 : element.bounds.Height;
+                if (y + hElem < height)
                 {
-                    y += element.bounds.Height + 16;
+                    y += hElem + 16;
                     elements.Add(element);
                 }
             }
@@ -434,9 +447,10 @@ namespace JoysOfEfficiency
             for (int i = firstIndex; i < menuElements.Count; i++)
             {
                 OptionsElement element = menuElements[i];
-                if (y + element.bounds.Height < height)
+                int hElem = element is ModifiedSlider ? element.bounds.Height + 4 : element.bounds.Height;
+                if (y + hElem < height)
                 {
-                    y += element.bounds.Height + 16;
+                    y += hElem + 16;
                 }
                 else
                 {

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using JoysOfEfficiency.ModCheckers;
 using JoysOfEfficiency.Utils;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Netcode;
 using StardewModdingAPI;
@@ -19,6 +20,8 @@ namespace JoysOfEfficiency
     using Player = Farmer;
     public class ModEntry : Mod
     {
+        private static readonly int fpsCounterThreashold = 500;
+
         public static bool IsCJBCheatsOn { get;  private set; }
         public static Config Conf { get; private set; } = null;
 
@@ -28,6 +31,10 @@ namespace JoysOfEfficiency
         private bool DayEnded = false;
 
         private int ticks = 0;
+
+        private double lastMillisec = 0;
+        private int frameCount = 0;
+        private double fps = 0;
 
         public override void Entry(IModHelper helper)
         {
@@ -41,7 +48,8 @@ namespace JoysOfEfficiency
             
             TimeEvents.AfterDayStarted += OnPostSave;
             SaveEvents.BeforeSave += OnBeforeSave;
-
+            GraphicsEvents.OnPostRenderEvent += OnPostRender;
+            GraphicsEvents.OnPreRenderHudEvent += OnPreRenderHUD;
             GraphicsEvents.OnPostRenderHudEvent += OnPostRenderHUD;
 
             Conf.CPUThresholdFishing = Util.Cap(Conf.CPUThresholdFishing, 0, 0.5f);
@@ -55,6 +63,8 @@ namespace JoysOfEfficiency
             Conf.AutoShakeRadius = (int)Util.Cap(Conf.AutoShakeRadius, 1, 3);
             Conf.AddedSpeedMultiplier = (int)Util.Cap(Conf.AddedSpeedMultiplier, 1, 19);
             Conf.MachineRadius = (int)Util.Cap(Conf.MachineRadius, 1, 3);
+
+            Game1.graphics.SynchronizeWithVerticalRetrace = false;
 
             if(ModChecker.IsCJBCheatsLoaded(helper))
             {
@@ -100,6 +110,14 @@ namespace JoysOfEfficiency
 
         private void OnGameUpdate(object sender, EventArgs args)
         {
+            if(Game1.currentGameTime == null)
+            {
+                return;
+            }
+            if (lastMillisec == 0)
+            {
+                lastMillisec = Game1.currentGameTime.TotalGameTime.TotalMilliseconds;
+            }
             if (!Context.IsWorldReady || !Context.IsPlayerFree)
             {
                 return;
@@ -174,11 +192,11 @@ namespace JoysOfEfficiency
                 if (Conf.AutoPetNearbyAnimals)
                 {
                     int radius = Conf.AutoPetRadius * Game1.tileSize;
-                    RectangleE bb = new RectangleE(player.position.X - radius, player.position.Y - radius, radius * 2, radius * 2);
+                    Rectangle bb = Util.Expand(player.GetBoundingBox(), radius);
                     List<FarmAnimal> animalList = Util.GetAnimalsList(player);
                     foreach (FarmAnimal animal in animalList)
                     {
-                        if (bb.IsInternalPoint(animal.position.X, animal.position.Y) && !animal.wasPet.Value)
+                        if (bb.Contains((int)animal.Position.X, (int)animal.Position.Y) && !animal.wasPet.Value)
                         {
                             if (Game1.timeOfDay >= 1900 && !animal.isMoving())
                             {
@@ -207,7 +225,7 @@ namespace JoysOfEfficiency
                 if (Conf.AutoRefillWateringCan)
                 {
                     WateringCan can = Util.FindToolFromInventory<WateringCan>(Conf.FindCanFromInventory);
-                    if (can != null && can.WaterLeft < can.waterCanMax && Util.IsThereAnyWaterNear(player.currentLocation, player.getTileLocation()))
+                    if (can != null && can.WaterLeft < Util.GetMaxCan(can) && Util.IsThereAnyWaterNear(player.currentLocation, player.getTileLocation()))
                     {
                         can.WaterLeft = can.waterCanMax;
                         Game1.playSound("slosh");
@@ -277,9 +295,30 @@ namespace JoysOfEfficiency
             }
         }
 
+        private void OnPostRender(object sender, EventArgs args)
+        {
+            frameCount++;
+            double delta = Game1.currentGameTime.TotalGameTime.TotalMilliseconds - lastMillisec;
+            if (delta >= fpsCounterThreashold)
+            {
+                lastMillisec = Game1.currentGameTime.TotalGameTime.TotalMilliseconds;
+                fps = (double)frameCount * 1000 / delta;
+                frameCount = 0;
+            }
+
+        }
+
+        private void OnPreRenderHUD(object sender, EventArgs args)
+        {
+            if (Game1.currentLocation is MineShaft shaft && Conf.MineInfoGUI)
+            {
+                Util.DrawMineGui(Game1.spriteBatch, Game1.smallFont, Game1.player, shaft);
+            }
+        }
+
         private void OnPostRenderHUD(object sender, EventArgs args)
         {
-            if(Context.IsPlayerFree && !string.IsNullOrEmpty(hoverText) && Game1.player.CurrentItem != null)
+            if (Context.IsPlayerFree && !string.IsNullOrEmpty(hoverText) && Game1.player.CurrentItem != null)
             {
                 Util.DrawSimpleTextbox(Game1.spriteBatch, hoverText, Game1.smallFont, Game1.player.CurrentItem);
             }
@@ -295,9 +334,9 @@ namespace JoysOfEfficiency
                     Util.AutoFishing(bar);
                 }
             }
-            if(Game1.currentLocation is MineShaft shaft && Conf.MineInfoGUI)
+            if (Conf.FPSCounter)
             {
-                Util.DrawMineGui(Game1.spriteBatch, Game1.smallFont, Game1.player, shaft);
+                Util.DrawSimpleTextbox(Game1.spriteBatch, string.Format("{0:f1}fps", fps), Conf.FPSCounterPosX, Conf.FPSCounterPosY, Game1.smallFont);
             }
         }
 
@@ -380,9 +419,6 @@ namespace JoysOfEfficiency
                 }
             }
         }
-
-        
-
         public void WriteConfig()
         {
             Helper.WriteConfig(Conf);

@@ -26,6 +26,7 @@ namespace JoysOfEfficiency.Utils
 
         private static MineIcons icons = new MineIcons();
         private static List<Monster> lastMonsters = new List<Monster>();
+        private static List<Vector2> flowerLocationProducingNectar = new List<Vector2>();
         private static string lastKilledMonster;
 
         private static List<T> GetObjectsWithin<T>(int radius) where T : SVObject
@@ -86,6 +87,20 @@ namespace JoysOfEfficiency.Utils
                 }
             }
             return list;
+        }
+
+        public static void UpdateNectarInfo()
+        {
+            flowerLocationProducingNectar.Clear();
+            foreach(KeyValuePair<Vector2, SVObject> kv in Game1.currentLocation.Objects.Pairs.Where(pair=>pair.Value.Name == "Bee House"))
+            {
+                Vector2 houseLoc = kv.Key;
+                Vector2 flowerLoc = GetCropLocation(Utility.findCloseFlower(Game1.currentLocation, houseLoc));
+                if(flowerLoc.X != -1 && flowerLoc.Y != -1 && !flowerLocationProducingNectar.Contains(flowerLoc))
+                {
+                    flowerLocationProducingNectar.Add(flowerLoc);
+                }
+            }
         }
 
         public static void PetNearbyPets()
@@ -251,24 +266,51 @@ namespace JoysOfEfficiency.Utils
             }
         }
 
+        public static int GetMaxCan(WateringCan can)
+        {
+            switch (can.UpgradeLevel)
+            {
+                case 0:
+                    can.waterCanMax = 40;
+                    break;
+                case 1:
+                    can.waterCanMax = 55;
+                    break;
+                case 2:
+                    can.waterCanMax = 70;
+                    break;
+                case 3:
+                    can.waterCanMax = 85;
+                    break;
+                case 4:
+                    can.waterCanMax = 100;
+                    break;
+            }
+            return can.waterCanMax;
+        }
+
         public static void HarvestNearCrops(Player player)
         {
             GameLocation location = player.currentLocation;
             int radius = ModEntry.Conf.AutoHarvestRadius;
+
+            if(ModEntry.Conf.ProtectNectarProducingFlower)
+            {
+                UpdateNectarInfo();
+            }
+
             foreach (KeyValuePair<Vector2, HoeDirt> kv in GetFeaturesWithin<HoeDirt>(radius))
             {
                 Vector2 loc = kv.Key;
                 HoeDirt dirt = kv.Value;
                 if (dirt.crop == null)
-                {
                     continue;
-                }
-                if (ModEntry.Conf.ProtectNectarProducingFlower && IsProducingNectar(dirt))
-                {
-                    continue;
-                }
+
                 if (dirt.readyForHarvest())
                 {
+                    if (ModEntry.Conf.ProtectNectarProducingFlower && IsProducingNectar(loc))
+                        continue;
+
                     if (Harvest((int)loc.X, (int)loc.Y, dirt))
                     {
                         if (dirt.crop.regrowAfterHarvest.Value == -1 || dirt.crop.forageCrop.Value)
@@ -304,6 +346,7 @@ namespace JoysOfEfficiency.Utils
         {
             Player player = Game1.player;
             WateringCan can = FindToolFromInventory<WateringCan>(player);
+            GetMaxCan(can);
             if (can != null)
             {
                 bool watered = false;
@@ -578,7 +621,7 @@ namespace JoysOfEfficiency.Utils
                 }
             }
         }
-
+        
         public static Vector2 GetLocationOf(GameLocation location, SVObject obj)
         {
             IEnumerable<KeyValuePair<Vector2, SVObject>> pairs = location.Objects.Pairs.Where(kv => kv.Value == obj);
@@ -880,7 +923,7 @@ namespace JoysOfEfficiency.Utils
             return false;
         }
 
-        private static Vector2 getCropLocation(Crop crop)
+        private static Vector2 GetCropLocation(Crop crop)
         {
             foreach(KeyValuePair<Vector2, TerrainFeature> kv in Game1.currentLocation.terrainFeatures.Pairs)
             {
@@ -900,28 +943,9 @@ namespace JoysOfEfficiency.Utils
         /// </summary>
         /// <param name="dirt">HoeDirt to evaluate</param>
         /// <returns></returns>
-        private static bool IsProducingNectar(HoeDirt dirt)
+        private static bool IsProducingNectar(Vector2 location)
         {
-            Vector2 locToEval = GetLocationOf(Game1.currentLocation, dirt);
-            if(locToEval.X == -1 && locToEval.Y == -1)
-            {
-                return false;
-            }
-            foreach(SVObject obj in new List<SVObject>(Game1.currentLocation.Objects.Values))
-            {
-                if(obj.Name != "Bee House")
-                    continue;
-
-                Vector2 tileBeeHouse = GetLocationOf(Game1.currentLocation, obj);
-                Crop crop = Utility.findCloseFlower(Game1.currentLocation, tileBeeHouse);
-                if (crop != null)
-                {
-                    Vector2 tileLoc = getCropLocation(crop);
-                    if(tileLoc == locToEval)
-                        return true;
-                }
-            }
-            return false;
+            return flowerLocationProducingNectar.Contains(location);
         }
 
         private static bool IsObjectMachine(SVObject obj)
@@ -1212,12 +1236,9 @@ namespace JoysOfEfficiency.Utils
             return new RectangleE(rect.Left - radius, rect.Top - radius, 2 * radius, 2 * radius);
         }
 
-        public static void DrawSimpleTextbox(SpriteBatch batch, string text, SpriteFont font, Item item = null)
+        public static void DrawSimpleTextbox(SpriteBatch batch, string text, int x, int y, SpriteFont font, Item item = null)
         {
             Vector2 stringSize = font.MeasureString(text);
-            int x = Game1.getMouseX() + Game1.tileSize / 2;
-            int y = Game1.getMouseY() + (int)(Game1.tileSize * 1.5f);
-
             if (x < 0)
             {
                 x = 0;
@@ -1247,10 +1268,15 @@ namespace JoysOfEfficiency.Utils
             IClickableMenu.drawTextureBox(batch, Game1.menuTexture, new Rectangle(0, 256, 60, 60), x, y, rightX, bottomY, Color.White, 1f, true);
             if (!string.IsNullOrEmpty(text))
             {
-                Vector2 vector2 = new Vector2(x + Game1.tileSize / 4, y + bottomY / 2 - 10);
+                Vector2 vector2 = new Vector2(x + Game1.tileSize / 4, y + bottomY / 2 - stringSize.Y / 2);
                 Utility.drawTextWithShadow(batch, text, font, vector2, Color.Black);
             }
             item?.drawInMenu(batch, new Vector2(x + (int)stringSize.X + 24, y + 16), 1.0f, 1.0f, 0.9f, false);
+        }
+
+        public static void DrawSimpleTextbox(SpriteBatch batch, string text, SpriteFont font, Item item = null)
+        {
+            DrawSimpleTextbox(batch, text, Game1.getMouseX() + Game1.tileSize / 2, Game1.getMouseY() + Game1.tileSize / 2 + 16, font, item);
         }
 
         public static string GetKeyForQuality(int fishQuality)
