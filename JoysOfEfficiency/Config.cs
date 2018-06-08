@@ -45,7 +45,6 @@ namespace JoysOfEfficiency
         public bool AutoPetNearbyPets { get; set; } = false;
         public bool ProtectNectarProducingFlower { get; set; } = true;
         public bool FPSCounter { get; set; } = true;
-        public int FPSCounterPosX { get; set; } = 16;
-        public int FPSCounterPosY { get; set; } = 192;
+        public int FPSlocation { get; set; } = 1;
     }
 }

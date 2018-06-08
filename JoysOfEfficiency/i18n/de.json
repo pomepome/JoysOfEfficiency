@@ -28,6 +28,8 @@
   "button.awaiting": "Drücken Sie die Taste zuweisen...",
   "button.esc": " Drücken Sie Esc, um abzubrechen",
   "button.conflict": "Die Taste, die Sie gedrückt haben, ist widersprüchlich",
-  "monsters.tally": "{0}: {1}Morde",
-  "ladder": "Leiter hat erzeugt!"
+  "option.tl": "Oben-links",
+  "option.bl": "Unten-links",
+  "option.br": "Unten-rechts",
+  "option.tr": "Oben-rechts"
 }

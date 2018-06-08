@@ -82,16 +82,16 @@
     <Compile Include="Utils\Util.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="de.json" />
-    <None Include="default.json" />
-    <None Include="es.json" />
-    <None Include="ja.json" />
+    <None Include="i18n\de.json" />
+    <None Include="i18n\default.json" />
+    <None Include="i18n\es.json" />
+    <None Include="i18n\ja.json" />
+    <None Include="i18n\pt.json" />
+    <None Include="i18n\ru.json" />
+    <None Include="i18n\zh.json" />
     <None Include="manifest.json" />
     <None Include="packages.config" />
-    <None Include="pt.json" />
-    <None Include="ru.json" />
     <None Include="WhatsNew.md" />
-    <None Include="zh.json" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">

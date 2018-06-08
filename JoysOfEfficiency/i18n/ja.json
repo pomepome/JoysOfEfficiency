@@ -28,6 +28,8 @@
   "button.awaiting": "割り当てるキーを押してください...",
   "button.esc": "Escキーを押すとキャンセルできます",
   "button.conflict": "そのキーはすでに割り当てられています",
-  "monsters.tally": "{0}: {1}キル",
-  "ladder": "はしごが出現した!"
+  "option.tl": "左上",
+  "option.bl": "左下",
+  "option.br": "右下",
+  "option.tr": "右上"
 }

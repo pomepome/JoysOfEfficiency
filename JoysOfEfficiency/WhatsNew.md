@@ -42,3 +42,6 @@ This is a changelog from 1.1.14-beta
 - Reduced lag when using ProtectNectarProducingFlower.
 - Fixed CanMax value did not changed by its upgrade level.
 - Added FPS Counter.
+
+## 1.1.23-beta
+- Fixed auto things couldn't work when not holding watering can

@@ -28,6 +28,8 @@
   "button.awaiting": "Pressione a tecla para atribuir...",
   "button.esc": "Pressione a tecla Esc para cancelar",
   "button.conflict": "A tecla que você pressionou está em conflito",
-  "monsters.tally": "{0}: {1}matança",
-  "ladder": "Escada é gerada!"
+  "option.tl": "Superior esquerdo",
+  "option.bl": "Inferior esquerdo",
+  "option.br": "Inferior direito",
+  "option.tr": "Superior direito"
 }

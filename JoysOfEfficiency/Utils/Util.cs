@@ -266,8 +266,20 @@ namespace JoysOfEfficiency.Utils
             }
         }
 
+        public static void DrawCursor()
+        {
+            if (!Game1.options.hardwareCursor)
+            {
+                Game1.spriteBatch.Draw(Game1.mouseCursors, new Vector2(Game1.getOldMouseX(), Game1.getOldMouseY()), Game1.getSourceRectForStandardTileSheet(Game1.mouseCursors, Game1.options.gamepadControls ? 44 : 0, 16, 16), Color.White, 0f, Vector2.Zero, Game1.pixelZoom + Game1.dialogueButtonScale / 150f, SpriteEffects.None, 1f);
+            }
+        }
+
         public static int GetMaxCan(WateringCan can)
         {
+            if(can == null)
+            {
+                return -1;
+            }
             switch (can.UpgradeLevel)
             {
                 case 0:
@@ -346,9 +358,9 @@ namespace JoysOfEfficiency.Utils
         {
             Player player = Game1.player;
             WateringCan can = FindToolFromInventory<WateringCan>(player);
-            GetMaxCan(can);
             if (can != null)
             {
+                GetMaxCan(can);
                 bool watered = false;
                 foreach (KeyValuePair<Vector2, HoeDirt> kv in GetFeaturesWithin<HoeDirt>(ModEntry.Conf.AutoWaterRadius))
                 {

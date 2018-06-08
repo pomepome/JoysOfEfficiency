@@ -29,8 +29,8 @@
   "button.awaiting": "Press the key to assign...",
   "button.esc": "Press Esc key to Cancel",
   "button.conflict": "The key you pressed is conflicting",
-  "monsters.tally": "{0}: {1}kills",
-  "ladder": "Ladder has Spawned!",
-  "mineinfo.enabled": "MineInfo enabled!",
-  "mineinfo.disabled": "MineInfo disabled."
+  "option.tl": "Top-left",
+  "option.bl": "Bottom-left",
+  "option.br": "Bottom-right",
+  "option.tr": "Top-right"
 }

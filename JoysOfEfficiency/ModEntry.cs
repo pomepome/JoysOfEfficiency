@@ -305,7 +305,6 @@ namespace JoysOfEfficiency
                 fps = (double)frameCount * 1000 / delta;
                 frameCount = 0;
             }
-
         }
 
         private void OnPreRenderHUD(object sender, EventArgs args)
@@ -336,7 +335,14 @@ namespace JoysOfEfficiency
             }
             if (Conf.FPSCounter)
             {
-                Util.DrawSimpleTextbox(Game1.spriteBatch, string.Format("{0:f1}fps", fps), Conf.FPSCounterPosX, Conf.FPSCounterPosY, Game1.smallFont);
+                Point point = new Point();
+                switch (Conf.FPSlocation)
+                {
+                    case 1: point = new Point(0, 10000); break;
+                    case 2: point = new Point(10000, 10000); break;
+                    case 3: point = new Point(10000, 0); break;
+                }
+                Util.DrawSimpleTextbox(Game1.spriteBatch, string.Format("{0:f1}fps", fps), point.X, point.Y, Game1.smallFont);
             }
         }
 
