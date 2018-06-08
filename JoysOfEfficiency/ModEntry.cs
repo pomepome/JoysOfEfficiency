@@ -76,6 +76,7 @@ namespace JoysOfEfficiency
             Conf.AutoShakeRadius = (int)Util.Cap(Conf.AutoShakeRadius, 1, 3);
             Conf.AddedSpeedMultiplier = (int)Util.Cap(Conf.AddedSpeedMultiplier, 1, 19);
             Conf.MachineRadius = (int)Util.Cap(Conf.MachineRadius, 1, 3);
+            Conf.FPSlocation = (int)Util.Cap(Conf.FPSlocation, 0, 3);
 
             if(ModChecker.IsCJBCheatsLoaded(helper))
             {

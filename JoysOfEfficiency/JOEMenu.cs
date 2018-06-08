@@ -124,10 +124,6 @@ namespace JoysOfEfficiency
             isListening = true;
             this.listener = listener;
         }
-        private void OnDropdownChanged(int index, int option)
-        {
-            mod.Monitor.Log($"ID:{index} changed to {option}");
-        }
         private void OnInputListnerChanged(int index, Keys value)
         {
             if (index == 0)

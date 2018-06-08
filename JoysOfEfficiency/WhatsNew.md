@@ -46,3 +46,6 @@ This is a changelog from 1.0.22
 - Fixed CanMax value did not changed by its upgrade level.
 - Added FPS Counter.
 - Fixed auto things couldn't work when not holding watering can
+
+## 1.0.31
+- Updated languages
