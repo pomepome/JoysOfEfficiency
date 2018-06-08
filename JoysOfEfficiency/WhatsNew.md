@@ -40,3 +40,9 @@ This is a changelog from 1.0.22
 ## 1.0.29
 - Fixed bug that AutoDepositIngredient couldn't work well with furnace
 - You must face to/back-to-back with fence to activate AutoGate
+
+## 1.0.30
+- Reduced lag when using ProtectNectarProducingFlower.
+- Fixed CanMax value did not changed by its upgrade level.
+- Added FPS Counter.
+- Fixed auto things couldn't work when not holding watering can

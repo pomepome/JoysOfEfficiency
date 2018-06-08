@@ -27,5 +27,9 @@
   "tab.controls": "Kontrollen",
   "button.awaiting": "Drücken Sie die Taste zuweisen...",
   "button.esc": " Drücken Sie Esc, um abzubrechen",
-  "button.conflict": "Die Taste, die Sie gedrückt haben, ist widersprüchlich"
+  "button.conflict": "Die Taste, die Sie gedrückt haben, ist widersprüchlich",
+  "option.tl": "Oben-links",
+  "option.bl": "Unten-links",
+  "option.br": "Unten-rechts",
+  "option.tr": "Oben-rechts"
 }

@@ -26,6 +26,8 @@ namespace JoysOfEfficiency
     using SVObject = StardewValley.Object;
     public class ModEntry : Mod
     {
+        private static readonly int fpsCounterThreashold = 500;
+
         public static bool IsCJBCheatsOn { get; private set; } = false;
 
         public static Mod Instance { get; private set; }
@@ -35,6 +37,10 @@ namespace JoysOfEfficiency
 
         private static bool isNight;
         private static int ticks;
+
+        private double lastMillisec = 0;
+        private int frameCount = 0;
+        private double fps = 0;
 
         public ModEntry()
         {
@@ -55,6 +61,8 @@ namespace JoysOfEfficiency
             SaveEvents.BeforeSave += OnBeforeSave;
             TimeEvents.AfterDayStarted += OnPostSave;
 
+            GraphicsEvents.OnPostRenderEvent += OnPostRender;
+            GraphicsEvents.OnPreRenderHudEvent += OnPreRenderHUD;
             GraphicsEvents.OnPostRenderHudEvent += OnPostRenderHUD;
 
             Conf.CPUThresholdFishing = Util.Cap(Conf.CPUThresholdFishing, 0, 0.5f);
@@ -86,6 +94,14 @@ namespace JoysOfEfficiency
 
         private void OnGameTick(object senderm, EventArgs args)
         {
+            if (Game1.currentGameTime == null)
+            {
+                return;
+            }
+            if (lastMillisec == 0)
+            {
+                lastMillisec = Game1.currentGameTime.TotalGameTime.TotalMilliseconds;
+            }
             if (!Context.IsWorldReady)
             {
                 return;
@@ -222,7 +238,7 @@ namespace JoysOfEfficiency
                 if (Conf.AutoRefillWateringCan)
                 {
                     WateringCan can = Util.FindToolFromInventory<WateringCan>(Conf.FindCanFromInventory);
-                    if (can != null && can.WaterLeft < can.waterCanMax && Util.IsThereAnyWaterNear(player.currentLocation, player.getTileLocation()))
+                    if (can != null && can.WaterLeft < Util.GetMaxCan(can) && Util.IsThereAnyWaterNear(player.currentLocation, player.getTileLocation()))
                     {
                         can.WaterLeft = can.waterCanMax;
                         Game1.playSound("slosh");
@@ -314,6 +330,26 @@ namespace JoysOfEfficiency
             }
         }
 
+        private void OnPostRender(object sender, EventArgs args)
+        {
+            frameCount++;
+            double delta = Game1.currentGameTime.TotalGameTime.TotalMilliseconds - lastMillisec;
+            if (delta >= fpsCounterThreashold)
+            {
+                lastMillisec = Game1.currentGameTime.TotalGameTime.TotalMilliseconds;
+                fps = (double)frameCount * 1000 / delta;
+                frameCount = 0;
+            }
+        }
+
+        private void OnPreRenderHUD(object sender, EventArgs args)
+        {
+            if (Game1.currentLocation is MineShaft shaft && Conf.MineInfoGUI)
+            {
+                Util.DrawMineGui(Game1.spriteBatch, Game1.smallFont, Game1.player, shaft);
+            }
+        }
+
         private void OnPostRenderHUD(object sender, EventArgs args)
         {
             if(Context.IsPlayerFree && !string.IsNullOrEmpty(hoverText) && Game1.player.CurrentItem != null)
@@ -331,9 +367,16 @@ namespace JoysOfEfficiency
                     Util.AutoFishing(bar);
                 }
             }
-            if (Game1.currentLocation is MineShaft shaft && Conf.MineInfoGUI)
+            if (Conf.FPSCounter)
             {
-                Util.DrawMineGui(Game1.spriteBatch, Game1.smallFont, Game1.player, shaft);
+                Point point = new Point();
+                switch(Conf.FPSlocation)
+                {
+                    case 1: point = new Point(0,10000); break;
+                    case 2: point = new Point(10000, 10000); break;
+                    case 3: point = new Point(10000, 0); break;
+                }
+                Util.DrawSimpleTextbox(Game1.spriteBatch, string.Format("{0:f1}fps", fps), point.X, point.Y, Game1.smallFont);
             }
         }
 

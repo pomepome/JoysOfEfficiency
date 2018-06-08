@@ -27,5 +27,9 @@
   "tab.controls": "Controles",
   "button.awaiting": "Pressione a tecla para atribuir...",
   "button.esc": "Pressione a tecla Esc para cancelar",
-  "button.conflict": "A tecla que você pressionou está em conflito"
+  "button.conflict": "A tecla que você pressionou está em conflito",
+  "option.tl": "Superior esquerdo",
+  "option.bl": "Inferior esquerdo",
+  "option.br": "Inferior direito",
+  "option.tr": "Superior direito"
 }

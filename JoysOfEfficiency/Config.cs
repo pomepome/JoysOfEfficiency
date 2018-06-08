@@ -44,5 +44,7 @@ namespace JoysOfEfficiency
         public int MachineRadius { get; set; } = 1;
         public bool AutoPetNearbyPets { get; set; } = false;
         public bool ProtectNectarProducingFlower { get; set; } = true;
+        public bool FPSCounter { get; set; } = true;
+        public int FPSlocation { get; set; } = 1;
     }
 }

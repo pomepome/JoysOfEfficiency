@@ -27,5 +27,9 @@
   "tab.controls": "控制",
   "button.awaiting": "按键分配...",
   "button.esc": "按Esc键取消",
-  "button.conflict": "你按的键是冲突的"
+  "button.conflict": "你按的键是冲突的",
+  "option.tl": "左上角",
+  "option.bl": "左下角",
+  "option.br": "右下角",
+  "option.tr": "右上角"
 }
