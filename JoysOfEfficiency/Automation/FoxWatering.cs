@@ -28,7 +28,7 @@ namespace JoysOfEfficiency.Automation
             if ( FoxBalance.MustBeWalking( player )) 
                 return;
 
-            if ( can != null ) {
+            if ( can != null && player.Stamina > 3 || can.WaterLeft < 0 ) {
                 Location location = player.currentLocation;
                 Vector2 xy = player.getTileLocation();
                 int totalTilesWatered = 0;
