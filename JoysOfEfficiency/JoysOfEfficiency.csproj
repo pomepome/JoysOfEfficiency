@@ -23,6 +23,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -32,6 +33,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DebugSymbols>true</DebugSymbols>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
@@ -63,22 +65,27 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Config.cs" />
-    <Compile Include="JOEMenu.cs" />
-    <Compile Include="MineIcons.cs" />
+    <Compile Include="Automation\FoxHarvesting.cs" />
+    <Compile Include="Automation\FoxWatering.cs" />
+    <Compile Include="Common\FoxBalance.cs" />
+    <Compile Include="Common\FoxTileSelection.cs" />
+    <Compile Include="Configuration\Config.cs" />
+    <Compile Include="Configuration\JOEMenu.cs" />
+    <Compile Include="Configuration\OptionsElements\MenuEmptySpace.cs" />
+    <Compile Include="Information\MineIcons.cs" />
     <Compile Include="ModCheckers\ModChecker.cs" />
     <Compile Include="ModEntry.cs" />
-    <Compile Include="OptionsElements\MenuTab.cs" />
-    <Compile Include="OptionsElements\ModifiedCheckBox.cs" />
-    <Compile Include="OptionsElements\ModifiedInputListener.cs" />
-    <Compile Include="OptionsElements\ModifiedSlider.cs" />
+    <Compile Include="Configuration\OptionsElements\MenuTab.cs" />
+    <Compile Include="Configuration\OptionsElements\ModifiedCheckBox.cs" />
+    <Compile Include="Configuration\OptionsElements\ModifiedInputListener.cs" />
+    <Compile Include="Configuration\OptionsElements\ModifiedSlider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="RectangleE.cs" />
+    <Compile Include="Information\RectangleE.cs" />
     <Compile Include="Utils\Util.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -102,6 +109,7 @@
   <ItemGroup>
     <Analyzer Include="..\packages\Pathoschild.Stardew.ModBuildConfig.2.1.0-beta-20180428\analyzers\dotnet\cs\StardewModdingAPI.ModBuildConfig.Analyzer.dll" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
     <VisualStudio>
