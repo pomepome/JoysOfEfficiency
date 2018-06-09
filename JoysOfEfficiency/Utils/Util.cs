@@ -203,7 +203,7 @@ namespace JoysOfEfficiency.Utils
             }
 
             GameLocation location = player.currentLocation;
-            if ( hoe != null ) {
+            if ( hoe != null && player.Stamina > 3 ) {
                 bool flag = false;
                 for ( int i = -radius ; i <= radius ; i++ ) {
                     for ( int j = -radius ; j <= radius ; j++ ) {
@@ -217,6 +217,7 @@ namespace JoysOfEfficiency.Utils
                             if ( ModEntry.config.balancedMode ) {
                                 Game.playSound( "hoeHit" );
                                 FoxBalance.clickCooldown = 3;
+                                player.Stamina -= 2 - ( player.farmingLevel.Value / 10.0F );
                                 return;
                             }
                         }
