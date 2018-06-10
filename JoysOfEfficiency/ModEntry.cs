@@ -26,8 +26,6 @@ namespace JoysOfEfficiency
     using SVObject = StardewValley.Object;
     public class ModEntry : Mod
     {
-        private static readonly int fpsCounterThreashold = 500;
-
         public static bool IsCJBCheatsOn { get; private set; } = false;
 
         public static Mod Instance { get; private set; }
@@ -37,10 +35,6 @@ namespace JoysOfEfficiency
 
         private static bool isNight;
         private static int ticks;
-
-        private double lastMillisec = 0;
-        private int frameCount = 0;
-        private double fps = 0;
 
         public ModEntry()
         {
@@ -60,8 +54,7 @@ namespace JoysOfEfficiency
 
             SaveEvents.BeforeSave += OnBeforeSave;
             TimeEvents.AfterDayStarted += OnPostSave;
-
-            GraphicsEvents.OnPostRenderEvent += OnPostRender;
+            
             GraphicsEvents.OnPreRenderHudEvent += OnPreRenderHUD;
             GraphicsEvents.OnPostRenderHudEvent += OnPostRenderHUD;
 
@@ -74,16 +67,11 @@ namespace JoysOfEfficiency
             Conf.AutoWaterRadius = (int)Util.Cap(Conf.AutoWaterRadius, 1, 3);
             Conf.AutoDigRadius = (int)Util.Cap(Conf.AutoDigRadius, 1, 3);
             Conf.AutoShakeRadius = (int)Util.Cap(Conf.AutoShakeRadius, 1, 3);
-            Conf.AddedSpeedMultiplier = (int)Util.Cap(Conf.AddedSpeedMultiplier, 1, 19);
             Conf.MachineRadius = (int)Util.Cap(Conf.MachineRadius, 1, 3);
-            Conf.FPSlocation = (int)Util.Cap(Conf.FPSlocation, 0, 3);
 
             if(ModChecker.IsCJBCheatsLoaded(helper))
             {
                 IsCJBCheatsOn = true;
-                Monitor.Log("FasterRunningSpeed will be disabled since detected CJBCheatsMenu");
-
-                Conf.FasterRunningSpeed = false;
             }
 
             helper.WriteConfig(Conf);
@@ -99,30 +87,11 @@ namespace JoysOfEfficiency
             {
                 return;
             }
-            if (lastMillisec == 0)
-            {
-                lastMillisec = Game1.currentGameTime.TotalGameTime.TotalMilliseconds;
-            }
             if (!Context.IsWorldReady)
             {
                 return;
             }
             Player player = Game1.player;
-            if (!IsCJBCheatsOn)
-            {
-                if (Conf.FasterRunningSpeed && player.running)
-                {
-                    player.addedSpeed = Conf.AddedSpeedMultiplier;
-                }
-                else
-                {
-                    player.addedSpeed = 0;
-                }
-                if (player.controller != null)
-                {
-                    player.addedSpeed = 0;
-                }
-            }
             if (Conf.AutoGate)
             {
                 Util.TryToggleGate(player);
@@ -286,10 +255,6 @@ namespace JoysOfEfficiency
                     Util.ShakeNearbyFruitedTree();
                     Util.ShakeNearbyFruitedBush();
                 }
-                if (Conf.FastToolUpgrade && player.daysLeftForToolUpgrade > 1)
-                {
-                    player.daysLeftForToolUpgrade = 1;
-                }
                 if(Conf.AutoDepositIngredient)
                 {
                     Util.DepositIngredientsToMachines();
@@ -327,19 +292,7 @@ namespace JoysOfEfficiency
                 Player player = Game1.player;
                 //Open Up Menu
                 Game1.playSound("bigSelect");
-                Game1.activeClickableMenu = new JOEMenu(800, 500, this);
-            }
-        }
-
-        private void OnPostRender(object sender, EventArgs args)
-        {
-            frameCount++;
-            double delta = Game1.currentGameTime.TotalGameTime.TotalMilliseconds - lastMillisec;
-            if (delta >= fpsCounterThreashold)
-            {
-                lastMillisec = Game1.currentGameTime.TotalGameTime.TotalMilliseconds;
-                fps = (double)frameCount * 1000 / delta;
-                frameCount = 0;
+                Game1.activeClickableMenu = new JOEMenu(800, 548, this);
             }
         }
 
@@ -367,17 +320,6 @@ namespace JoysOfEfficiency
                 {
                     Util.AutoFishing(bar);
                 }
-            }
-            if (Conf.FPSCounter)
-            {
-                Point point = new Point();
-                switch(Conf.FPSlocation)
-                {
-                    case 1: point = new Point(0,10000); break;
-                    case 2: point = new Point(10000, 10000); break;
-                    case 3: point = new Point(10000, 0); break;
-                }
-                Util.DrawSimpleTextbox(Game1.spriteBatch, string.Format("{0:f1}fps", fps), point.X, point.Y, Game1.smallFont);
             }
         }
 

@@ -5,10 +5,6 @@ using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Menus;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace JoysOfEfficiency.OptionsElements
 {
@@ -30,9 +26,10 @@ namespace JoysOfEfficiency.OptionsElements
 
         public ModifiedInputListener(IClickableMenu parent ,string label, int which, Keys initial, ITranslationHelper translationHelper, Action<int, Keys> onButtonPressed, Action<int, ModifiedInputListener> onStartListening = null, Func<int, bool> isDisabled = null) : base(label, -1, -1, 9 * Game1.pixelZoom, 9 * Game1.pixelZoom, 0)
         {
+            this.label = ModEntry.Instance.Helper.Translation.Get($"options.{label}");
             button = initial;
             OnButtonPressed = onButtonPressed;
-            IsDisabled = isDisabled ?? (i => false);
+            IsDisabled = isDisabled ?? ((i) => false);
             translation = translationHelper;
             OnStartListening = onStartListening ?? ((i,obj) => { });
             whichOption = which;
@@ -87,7 +84,6 @@ namespace JoysOfEfficiency.OptionsElements
         public override void receiveLeftClick(int x, int y)
         {
             base.receiveLeftClick(x, y);
-            IMonitor mon = ModEntry.Instance.Monitor;
             x += menu.xPositionOnScreen;
             y += ButtonRect.Height / 2;
             if(ButtonRect != null && x >= ButtonRect.Left && x <= ButtonRect.Right)

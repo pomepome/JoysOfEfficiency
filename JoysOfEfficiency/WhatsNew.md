@@ -49,3 +49,8 @@ This is a changelog from 1.0.22
 
 ## 1.0.31
 - Updated languages
+
+## 1.0.32
+- Removed FPSCounter and FastToolUpgrade because I added it to debug and don't need them anymore. (also, they're a bit cheaty)
+- Removed FasterRunningSpeed because it causes many confliction with other mods or even game itselef.
+- Re-adjusted BalancedMode to be more balanced.

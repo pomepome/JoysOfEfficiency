@@ -3,6 +3,10 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
 using StardewValley.Menus;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace JoysOfEfficiency.OptionsElements
 {
@@ -25,7 +29,7 @@ namespace JoysOfEfficiency.OptionsElements
             : base(label, -1, -1, width * Game1.pixelZoom, 6 * Game1.pixelZoom, 0)
         {
             whichOption = which;
-            Label = label;
+            Label = ModEntry.Instance.Helper.Translation.Get($"options.{label}");
             Value = initialValue - minValue;
             MinValue = minValue;
             MaxValue = maxValue - minValue;

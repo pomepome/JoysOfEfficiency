@@ -35,16 +35,11 @@ namespace JoysOfEfficiency
         public int AutoShakeRadius { get; set; } = 1;
         public bool AutoDigArtifactSpot { get; set; } = false;
         public int AutoDigRadius { get; set; } = 1;
-        public bool FastToolUpgrade { get; set; } = false;
         public bool BalancedMode { get; set; } = true;
-        public bool FasterRunningSpeed { get; set; } = false;
-        public int AddedSpeedMultiplier { get; set; } = 1;
         public bool AutoDepositIngredient { get; set; } = false;
         public bool AutoPullMachineResult { get; set; } = true;
         public int MachineRadius { get; set; } = 1;
         public bool AutoPetNearbyPets { get; set; } = false;
         public bool ProtectNectarProducingFlower { get; set; } = true;
-        public bool FPSCounter { get; set; } = true;
-        public int FPSlocation { get; set; } = 1;
     }
 }
