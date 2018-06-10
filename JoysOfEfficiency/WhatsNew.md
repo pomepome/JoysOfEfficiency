@@ -45,3 +45,11 @@ This is a changelog from 1.1.14-beta
 
 ## 1.1.23-beta
 - Fixed auto things couldn't work when not holding watering can
+
+## 1.1.24-beta
+- Updated language files
+
+## 1.1.25-beta
+- Removed FPSCounter and FastToolUpgrade because I added it to debug and don't need them anymore. (also, they're a bit cheaty)
+- Removed FasterRunningSpeed because it causes many confliction with other mods or even game itselef.
+- Re-adjusted BalancedMode to be more balanced.

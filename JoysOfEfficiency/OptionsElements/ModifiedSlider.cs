@@ -29,7 +29,7 @@ namespace JoysOfEfficiency.OptionsElements
             : base(label, -1, -1, width * Game1.pixelZoom, 6 * Game1.pixelZoom, 0)
         {
             whichOption = which;
-            Label = label;
+            Label = ModEntry.ModHelper.Translation.Get($"options.{label}");
             Value = initialValue - minValue;
             MinValue = minValue;
             MaxValue = maxValue - minValue;

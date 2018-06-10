@@ -18,6 +18,7 @@ namespace JoysOfEfficiency.OptionsElements
         Func<int, bool> IsDisabled;
         public ModifiedCheckBox(string label, int which, bool initial, Action<int, bool> callback = null, Func<int,bool> isDisabled = null) : base(label, -1, -1, 9 * Game1.pixelZoom, 9 * Game1.pixelZoom, 0)
         {
+            this.label = ModEntry.ModHelper.Translation.Get($"options.{label}");
             IsChecked = initial;
             ValueChanged = callback;
             whichOption = which;

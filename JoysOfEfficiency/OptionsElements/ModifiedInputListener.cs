@@ -26,6 +26,7 @@ namespace JoysOfEfficiency.OptionsElements
 
         public ModifiedInputListener(IClickableMenu parent ,string label, int which, Keys initial, ITranslationHelper translationHelper, Action<int, Keys> onButtonPressed, Action<int, ModifiedInputListener> onStartListening = null, Func<int, bool> isDisabled = null) : base(label, -1, -1, 9 * Game1.pixelZoom, 9 * Game1.pixelZoom, 0)
         {
+            this.label = ModEntry.ModHelper.Translation.Get($"options.{label}");
             button = initial;
             OnButtonPressed = onButtonPressed;
             IsDisabled = isDisabled ?? ((i) => false);

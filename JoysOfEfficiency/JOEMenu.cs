@@ -25,16 +25,16 @@ namespace JoysOfEfficiency
         private ClickableTextureComponent upCursor;
         private ClickableTextureComponent downCursor;
 
-        private Rectangle tabEnabled;
-        private Rectangle tabSliders;
+        private Rectangle tabAutomation;
+        private Rectangle tabCheats;
         private Rectangle tabControls;
 
         private int tabIndex = 0;
         private int firstIndex = 0;
 
         private readonly SpriteFont font = Game1.smallFont;
-        private readonly string tabEnabledString;
-        private readonly string tabSlidersString;
+        private readonly string tabAutomationString;
+        private readonly string tabCheatsString;
         private readonly string tabControlsString;
 
         private bool isListening;
@@ -50,71 +50,119 @@ namespace JoysOfEfficiency
             upCursor = new ClickableTextureComponent("up-arrow", new Rectangle(xPositionOnScreen + this.width + Game1.tileSize / 4, yPositionOnScreen + Game1.tileSize, 11 * Game1.pixelZoom, 12 * Game1.pixelZoom), "", "", Game1.mouseCursors, new Rectangle(421, 459, 11, 12), Game1.pixelZoom);
             downCursor = new ClickableTextureComponent("down-arrow", new Rectangle(xPositionOnScreen + this.width + Game1.tileSize / 4, yPositionOnScreen + this.height - Game1.tileSize, 11 * Game1.pixelZoom, 12 * Game1.pixelZoom), "", "", Game1.mouseCursors, new Rectangle(421, 472, 11, 12), Game1.pixelZoom);
 
-            tabEnabledString = translation.Get("tab.enabled");
-            Vector2 Size = font.MeasureString(tabEnabledString);
-            tabEnabled = new Rectangle(xPositionOnScreen - (int)Size.X - 20, yPositionOnScreen, ((int)Size.X + 32), 64);
+            tabAutomationString = translation.Get("tab.automation");
+            Vector2 Size = font.MeasureString(tabAutomationString);
+            tabAutomation = new Rectangle(xPositionOnScreen - (int)Size.X - 20, yPositionOnScreen, ((int)Size.X + 32), 64);
 
-            tabSlidersString = translation.Get("tab.sliders");
-            Size = font.MeasureString(tabSlidersString);
-            tabSliders = new Rectangle(xPositionOnScreen - (int)Size.X - 20, yPositionOnScreen + 68, ((int)Size.X + 32), 64);
+            tabCheatsString = translation.Get("tab.cheats");
+            Size = font.MeasureString(tabCheatsString);
+            tabCheats = new Rectangle(xPositionOnScreen - (int)Size.X - 20, yPositionOnScreen + 68, ((int)Size.X + 32), 64);
 
             tabControlsString = translation.Get("tab.controls");
             Size = font.MeasureString(tabControlsString);
             tabControls = new Rectangle(xPositionOnScreen - (int)Size.X - 20, yPositionOnScreen + 136, ((int)Size.X + 32), 64);
 
             {
-                //Enabled Tab
+                //Automation Tab
                 MenuTab tab = new MenuTab();
+                tab.AddOptionsElement(new LabelComponent("Balanced Mode"));
                 tab.AddOptionsElement(new ModifiedCheckBox("BalancedMode", 20, ModEntry.Conf.BalancedMode, OnCheckboxValueChanged));
+
+                tab.AddOptionsElement(new EmptyLabel());
+                tab.AddOptionsElement(new LabelComponent("Mine Info GUI"));
                 tab.AddOptionsElement(new ModifiedCheckBox("MineInfoGUI", 0, ModEntry.Conf.MineInfoGUI, OnCheckboxValueChanged));
+
+                tab.AddOptionsElement(new EmptyLabel());
+                tab.AddOptionsElement(new LabelComponent("Gift Information Tooltip"));
                 tab.AddOptionsElement(new ModifiedCheckBox("GiftInformation", 1, ModEntry.Conf.GiftInformation, OnCheckboxValueChanged));
+
+                tab.AddOptionsElement(new EmptyLabel());
+                tab.AddOptionsElement(new LabelComponent("Auto Water Nearby Crops"));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoWaterNearbyCrops", 2, ModEntry.Conf.AutoWaterNearbyCrops, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoPetNearbyAnimals", 3, ModEntry.Conf.AutoPetNearbyAnimals, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoAnimalDoor", 4, ModEntry.Conf.AutoAnimalDoor, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoFishing", 5, ModEntry.Conf.AutoFishing, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoReelRod", 6, ModEntry.Conf.AutoReelRod, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedCheckBox("MuchFasterBiting", 7, ModEntry.Conf.MuchFasterBiting, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedCheckBox("FishingInfo", 8, ModEntry.Conf.FishingInfo, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoGate", 9, ModEntry.Conf.AutoGate, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoEat", 10, ModEntry.Conf.AutoEat, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoHarvest", 11, ModEntry.Conf.AutoHarvest, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedCheckBox("ProtectNectarProducingFlower", 25, ModEntry.Conf.ProtectNectarProducingFlower, OnCheckboxValueChanged, i => !ModEntry.Conf.AutoHarvest));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoDestroyDeadCrops", 12, ModEntry.Conf.AutoDestroyDeadCrops, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoRefillWateringCan", 13, ModEntry.Conf.AutoRefillWateringCan, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoCollectCollectibles", 14, ModEntry.Conf.AutoCollectCollectibles, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoShakeFruitedPlants", 15, ModEntry.Conf.AutoShakeFruitedPlants, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedSlider("AutoWaterRadius", 3, ModEntry.Conf.AutoWaterRadius, 1, 3, OnSliderValueChanged, (() => !ModEntry.Conf.AutoWaterNearbyCrops || ModEntry.Conf.BalancedMode)));
                 tab.AddOptionsElement(new ModifiedCheckBox("FindCanFromInventory", 16, ModEntry.Conf.FindCanFromInventory, OnCheckboxValueChanged, (i => !(ModEntry.Conf.AutoWaterNearbyCrops || ModEntry.Conf.AutoRefillWateringCan))));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoDigArtifactSpot", 17, ModEntry.Conf.AutoDigArtifactSpot, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedCheckBox("FindHoeFromInventory", 18, ModEntry.Conf.FindHoeFromInventory, OnCheckboxValueChanged, i => !ModEntry.Conf.AutoDigArtifactSpot));
-                tab.AddOptionsElement(new ModifiedCheckBox("FastToolUpgrade", 19, ModEntry.Conf.FastToolUpgrade, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedCheckBox("FasterRunningSpeed", 21, ModEntry.Conf.FasterRunningSpeed, OnCheckboxValueChanged, i => ModEntry.IsCJBCheatsOn));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoDepositIngredient", 22, ModEntry.Conf.AutoDepositIngredient, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoPullMachineResult,", 23, ModEntry.Conf.AutoPullMachineResult, OnCheckboxValueChanged));
+
+                tab.AddOptionsElement(new EmptyLabel());
+                tab.AddOptionsElement(new LabelComponent("Auto Pet Nearby Animals/Pets"));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoPetNearbyAnimals", 3, ModEntry.Conf.AutoPetNearbyAnimals, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoPetNearbyPets", 24, ModEntry.Conf.AutoPetNearbyPets, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedCheckBox("FPSCounter", 26, ModEntry.Conf.FPSCounter, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedSlider("AutoPetRadius", 4, ModEntry.Conf.AutoPetRadius, 1, 3, OnSliderValueChanged, (() => !ModEntry.Conf.AutoPetNearbyAnimals || ModEntry.Conf.BalancedMode)));
+
+                tab.AddOptionsElement(new EmptyLabel());
+                tab.AddOptionsElement(new LabelComponent("Auto Animal Door"));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoAnimalDoor", 4, ModEntry.Conf.AutoAnimalDoor, OnCheckboxValueChanged));
+
+                tab.AddOptionsElement(new EmptyLabel());
+                tab.AddOptionsElement(new LabelComponent("Auto Fishing"));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoFishing", 5, ModEntry.Conf.AutoFishing, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedSlider("CPUThresholdFishing", 0, (int)(ModEntry.Conf.CPUThresholdFishing * 10), 0, 5, OnSliderValueChanged, (() => !ModEntry.Conf.AutoFishing), Format));
+
+                tab.AddOptionsElement(new EmptyLabel());
+                tab.AddOptionsElement(new LabelComponent("Fishing Tweaks"));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoReelRod", 6, ModEntry.Conf.AutoReelRod, OnCheckboxValueChanged));
+
+                tab.AddOptionsElement(new EmptyLabel());
+                tab.AddOptionsElement(new LabelComponent("Fishing Info"));
+                tab.AddOptionsElement(new ModifiedCheckBox("FishingInfo", 8, ModEntry.Conf.FishingInfo, OnCheckboxValueChanged));
+
+                tab.AddOptionsElement(new EmptyLabel());
+                tab.AddOptionsElement(new LabelComponent("Auto Gate"));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoGate", 9, ModEntry.Conf.AutoGate, OnCheckboxValueChanged));
+
+                tab.AddOptionsElement(new EmptyLabel());
+                tab.AddOptionsElement(new LabelComponent("Auto Eat"));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoEat", 10, ModEntry.Conf.AutoEat, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedSlider("StaminaToEatRatio", 1, (int)(ModEntry.Conf.StaminaToEatRatio * 10), 3, 8, OnSliderValueChanged, (() => !ModEntry.Conf.AutoEat), Format));
+                tab.AddOptionsElement(new ModifiedSlider("HealthToEatRatio", 2, (int)(ModEntry.Conf.HealthToEatRatio * 10), 3, 8, OnSliderValueChanged, (() => !ModEntry.Conf.AutoEat), Format));
+
+                tab.AddOptionsElement(new EmptyLabel());
+                tab.AddOptionsElement(new LabelComponent("Auto Harvest"));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoHarvest", 11, ModEntry.Conf.AutoHarvest, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedSlider("AutoHarvestRadius", 5, ModEntry.Conf.AutoHarvestRadius, 1, 3, OnSliderValueChanged, (() => !ModEntry.Conf.AutoHarvest || ModEntry.Conf.BalancedMode)));
+                tab.AddOptionsElement(new ModifiedCheckBox("ProtectNectarProducingFlower", 25, ModEntry.Conf.ProtectNectarProducingFlower, OnCheckboxValueChanged, i => !ModEntry.Conf.AutoHarvest));
+
+                tab.AddOptionsElement(new EmptyLabel());
+                tab.AddOptionsElement(new LabelComponent("Auto Destroy Dead Crops"));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoDestroyDeadCrops", 12, ModEntry.Conf.AutoDestroyDeadCrops, OnCheckboxValueChanged));
+
+                tab.AddOptionsElement(new EmptyLabel());
+                tab.AddOptionsElement(new LabelComponent("Auto Refill Watering Can"));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoRefillWateringCan", 13, ModEntry.Conf.AutoRefillWateringCan, OnCheckboxValueChanged));
+
+                tab.AddOptionsElement(new EmptyLabel());
+                tab.AddOptionsElement(new LabelComponent("Auto Collect Collectibles"));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoCollectCollectibles", 14, ModEntry.Conf.AutoCollectCollectibles, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedSlider("AutoCollectRadius", 6, ModEntry.Conf.AutoCollectRadius, 1, 3, OnSliderValueChanged, (() => !ModEntry.Conf.AutoCollectCollectibles || ModEntry.Conf.BalancedMode)));
+
+                tab.AddOptionsElement(new EmptyLabel());
+                tab.AddOptionsElement(new LabelComponent("Auto Shake Fruited Plants"));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoShakeFruitedPlants", 15, ModEntry.Conf.AutoShakeFruitedPlants, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedSlider("AutoShakeRadius", 7, ModEntry.Conf.AutoShakeRadius, 1, 3, OnSliderValueChanged, (() => !ModEntry.Conf.AutoShakeFruitedPlants || ModEntry.Conf.BalancedMode)));
+
+                tab.AddOptionsElement(new EmptyLabel());
+                tab.AddOptionsElement(new LabelComponent("Auto Dig Artifact Spot"));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoDigArtifactSpot", 17, ModEntry.Conf.AutoDigArtifactSpot, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedSlider("AutoDigRadius", 8, ModEntry.Conf.AutoDigRadius, 1, 3, OnSliderValueChanged, (() => !ModEntry.Conf.AutoDigArtifactSpot || ModEntry.Conf.BalancedMode)));
+                tab.AddOptionsElement(new ModifiedCheckBox("FindHoeFromInventory", 18, ModEntry.Conf.FindHoeFromInventory, OnCheckboxValueChanged, i => !ModEntry.Conf.AutoDigArtifactSpot));
+
+                tab.AddOptionsElement(new EmptyLabel());
+                tab.AddOptionsElement(new LabelComponent("Auto Deposit/Pull Machines"));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoDepositIngredient", 22, ModEntry.Conf.AutoDepositIngredient, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoPullMachineResult", 23, ModEntry.Conf.AutoPullMachineResult, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedSlider("MachineRadius", 10, ModEntry.Conf.MachineRadius, 1, 3, OnSliderValueChanged, (() => !(ModEntry.Conf.AutoPullMachineResult || ModEntry.Conf.AutoDepositIngredient) || ModEntry.Conf.BalancedMode)));
+
                 tabs.Add(tab);
             }
             {
-                //Sliders Tab
+                //Cheats Tab
                 MenuTab tab = new MenuTab();
-                tab.AddOptionsElement(new ModifiedSlider("CPUThresholdFishing", 0, (int)(ModEntry.Conf.CPUThresholdFishing * 10), 0, 5, OnSliderValueChanged, (() => !ModEntry.Conf.AutoFishing), Format));
-                tab.AddOptionsElement(new ModifiedSlider("StaminaToEatRatio", 1, (int)(ModEntry.Conf.StaminaToEatRatio * 10), 3, 8, OnSliderValueChanged, (() => !ModEntry.Conf.AutoEat), Format));
-                tab.AddOptionsElement(new ModifiedSlider("HealthToEatRatio", 2, (int)(ModEntry.Conf.HealthToEatRatio * 10), 3, 8, OnSliderValueChanged, (() => !ModEntry.Conf.AutoEat), Format));
-                tab.AddOptionsElement(new ModifiedSlider("AutoWaterRadius", 3, ModEntry.Conf.AutoWaterRadius, 1, 3, OnSliderValueChanged, (() => !ModEntry.Conf.AutoWaterNearbyCrops)));
-                tab.AddOptionsElement(new ModifiedSlider("AutoPetRadius", 4, ModEntry.Conf.AutoPetRadius, 1, 3, OnSliderValueChanged, (() => !ModEntry.Conf.AutoPetNearbyAnimals)));
-                tab.AddOptionsElement(new ModifiedSlider("AutoHarvestRadius", 5, ModEntry.Conf.AutoHarvestRadius, 1, 3, OnSliderValueChanged, (() => !ModEntry.Conf.AutoHarvest)));
-                tab.AddOptionsElement(new ModifiedSlider("AutoCollectRadius", 6, ModEntry.Conf.AutoCollectRadius, 1, 3, OnSliderValueChanged, (() => !ModEntry.Conf.AutoCollectCollectibles)));
-                tab.AddOptionsElement(new ModifiedSlider("AutoShakeRadius", 7, ModEntry.Conf.AutoShakeRadius, 1, 3, OnSliderValueChanged, (() => !ModEntry.Conf.AutoShakeFruitedPlants)));
-                tab.AddOptionsElement(new ModifiedSlider("AutoDigRadius", 8, ModEntry.Conf.AutoDigRadius, 1, 3, OnSliderValueChanged, (() => !ModEntry.Conf.AutoDigArtifactSpot)));
-                tab.AddOptionsElement(new ModifiedSlider("MachineRadius", 10, ModEntry.Conf.MachineRadius, 1, 3, OnSliderValueChanged, (() => !(ModEntry.Conf.AutoPullMachineResult || ModEntry.Conf.AutoDepositIngredient))));
-                tab.AddOptionsElement(new ModifiedSlider("AddedSpeedMultiplier", 9, ModEntry.Conf.AddedSpeedMultiplier, 1, 19, OnSliderValueChanged, (() => !ModEntry.Conf.FasterRunningSpeed)));
-                tab.AddOptionsElement(new ModifiedSlider("FPSlocation", 11, ModEntry.Conf.FPSlocation, 0, 3, OnSliderValueChanged, (() => !ModEntry.Conf.FPSCounter), Format));
+                tab.AddOptionsElement(new ModifiedCheckBox("MuchFasterBiting", 7, ModEntry.Conf.MuchFasterBiting, OnCheckboxValueChanged, (i => !ModEntry.IsCJBCheatsOn)));
                 tabs.Add(tab);
             }
             {
                 //Controls Tab
                 MenuTab tab = new MenuTab();
-                tab.AddOptionsElement(new ModifiedInputListener(this, "Show Menu", 0, ModEntry.Conf.KeyShowMenu, translation, OnInputListnerChanged, OnStartListening));
+                tab.AddOptionsElement(new ModifiedInputListener(this, "KeyShowMenu", 0, ModEntry.Conf.KeyShowMenu, translation, OnInputListnerChanged, OnStartListening));
                 tabs.Add(tab);
             }
             mon = mod.Monitor;
@@ -157,14 +205,11 @@ namespace JoysOfEfficiency
                 case 16: ModEntry.Conf.FindCanFromInventory = value; break;
                 case 17: ModEntry.Conf.AutoDigArtifactSpot = value; break;
                 case 18: ModEntry.Conf.FindHoeFromInventory = value; break;
-                case 19: ModEntry.Conf.FastToolUpgrade = value; break;
                 case 20: ModEntry.Conf.BalancedMode = value; break;
-                case 21: ModEntry.Conf.FasterRunningSpeed = value; break;
                 case 22: ModEntry.Conf.AutoDepositIngredient = value; break;
                 case 23: ModEntry.Conf.AutoPullMachineResult = value; break;
                 case 24: ModEntry.Conf.AutoPetNearbyPets = value; break;
                 case 25: ModEntry.Conf.ProtectNectarProducingFlower = value; break;
-                case 26: ModEntry.Conf.FPSCounter = value; break;
                 default: return;
             }
             mod.WriteConfig();
@@ -207,17 +252,9 @@ namespace JoysOfEfficiency
             {
                 ModEntry.Conf.AutoDigRadius = value;
             }
-            if (index == 9)
-            {
-                ModEntry.Conf.AddedSpeedMultiplier = value;
-            }
             if (index == 10)
             {
                 ModEntry.Conf.MachineRadius = value;
-            }
-            if (index == 11)
-            {
-                ModEntry.Conf.FPSlocation = value;
             }
             mod.WriteConfig();
         }
@@ -266,11 +303,11 @@ namespace JoysOfEfficiency
             int x = 16, y = 16;
 
 
-            drawTextureBox(b, tabEnabled.Left, tabEnabled.Top, tabEnabled.Width, tabEnabled.Height, Color.White * (tabIndex == 0 ? 1.0f : 0.6f));
-            b.DrawString(Game1.smallFont, tabEnabledString, new Vector2(tabEnabled.Left + 16, tabEnabled.Top + (tabEnabled.Height - font.MeasureString(tabEnabledString).Y) / 2), Color.Black * (tabIndex == 0 ? 1.0f : 0.6f));
+            drawTextureBox(b, tabAutomation.Left, tabAutomation.Top, tabAutomation.Width, tabAutomation.Height, Color.White * (tabIndex == 0 ? 1.0f : 0.6f));
+            b.DrawString(Game1.smallFont, tabAutomationString, new Vector2(tabAutomation.Left + 16, tabAutomation.Top + (tabAutomation.Height - font.MeasureString(tabAutomationString).Y) / 2), Color.Black * (tabIndex == 0 ? 1.0f : 0.6f));
 
-            drawTextureBox(b, tabSliders.Left, tabSliders.Top, tabSliders.Width, tabSliders.Height, Color.White * (tabIndex == 1 ? 1.0f : 0.6f));
-            b.DrawString(Game1.smallFont, tabSlidersString, new Vector2(tabSliders.Left + 16, tabSliders.Top + (tabSliders.Height - font.MeasureString(tabSlidersString).Y) / 2), Color.Black * (tabIndex == 1 ? 1.0f : 0.6f));
+            drawTextureBox(b, tabCheats.Left, tabCheats.Top, tabCheats.Width, tabCheats.Height, Color.White * (tabIndex == 1 ? 1.0f : 0.6f));
+            b.DrawString(Game1.smallFont, tabCheatsString, new Vector2(tabCheats.Left + 16, tabCheats.Top + (tabCheats.Height - font.MeasureString(tabCheatsString).Y) / 2), Color.Black * (tabIndex == 1 ? 1.0f : 0.6f));
 
             drawTextureBox(b, tabControls.Left, tabControls.Top, tabControls.Width, tabControls.Height, Color.White * (tabIndex == 2 ? 1.0f : 0.6f));
             b.DrawString(Game1.smallFont, tabControlsString, new Vector2(tabControls.Left + 16, tabControls.Top + (tabControls.Height - font.MeasureString(tabControlsString).Y) / 2), Color.Black * (tabIndex == 2 ? 1.0f : 0.6f));
@@ -367,12 +404,12 @@ namespace JoysOfEfficiency
             {
                 return;
             }
-            if (tabEnabled.Contains(x, y))
+            if (tabAutomation.Contains(x, y))
             {
                 TryToChangeTab(0);
                 return;
             }
-            if (tabSliders.Contains(x, y))
+            if (tabCheats.Contains(x, y))
             {
                 TryToChangeTab(1);
                 return;

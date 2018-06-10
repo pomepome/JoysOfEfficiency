@@ -35,6 +35,11 @@ namespace JoysOfEfficiency.Utils
             {
                 return new List<T>();
             }
+            if(ModEntry.Conf.BalancedMode)
+            {
+                radius = 1;
+            }
+
             GameLocation location = Game1.player.currentLocation;
             Vector2 ov = Game1.player.getTileLocation();
             List<T> list = new List<T>();
@@ -464,7 +469,6 @@ namespace JoysOfEfficiency.Utils
             }
             icons.Draw(stonesStr, tallyStr, ladderStr);
         }
-
 
         public static void DrawFishingInfoBox(SpriteBatch batch, BobberBar bar, SpriteFont font)
         {
