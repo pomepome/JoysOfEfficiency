@@ -1,0 +1,8 @@
+K:\My Projects\Programming\C#\Stardew\JoysOfEfficiency-beta\JoysOfEfficiency\obj\Debug\JoysOfEfficiency.csprojAssemblyReference.cache
+K:\My Projects\Programming\C#\Stardew\JoysOfEfficiency-beta\JoysOfEfficiency\obj\Debug\JoysOfEfficiency.Properties.Resources.resources
+K:\My Projects\Programming\C#\Stardew\JoysOfEfficiency-beta\JoysOfEfficiency\obj\Debug\JoysOfEfficiency.csproj.GenerateResource.cache
+K:\My Projects\Programming\C#\Stardew\JoysOfEfficiency-beta\JoysOfEfficiency\obj\Debug\JoysOfEfficiency.csproj.CoreCompileInputs.cache
+K:\My Projects\Programming\C#\Stardew\JoysOfEfficiency-beta\JoysOfEfficiency\bin\Debug\JoysOfEfficiency.dll
+K:\My Projects\Programming\C#\Stardew\JoysOfEfficiency-beta\JoysOfEfficiency\bin\Debug\JoysOfEfficiency.pdb
+K:\My Projects\Programming\C#\Stardew\JoysOfEfficiency-beta\JoysOfEfficiency\obj\Debug\JoysOfEfficiency.dll
+K:\My Projects\Programming\C#\Stardew\JoysOfEfficiency-beta\JoysOfEfficiency\obj\Debug\JoysOfEfficiency.pdb

@@ -45,3 +45,10 @@ This is a changelog from 1.1.14-beta
 
 ## 1.1.23-beta
 - Fixed auto things couldn't work when not holding watering can
+
+## 1.1.24-beta-fokson
+- Tidied and organized code a bit
+- Reorganized config menu
+- Added rebalanced automatic actions, such as watering and harvesting, to be a bit truer to how a player would act
+- Rebalanced watering uses the shape and approximate cooldown of the watering can upgrade level you have
+- Destroy Dead Crops plays a cutting sound when used
