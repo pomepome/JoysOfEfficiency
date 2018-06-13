@@ -83,6 +83,10 @@ namespace JoysOfEfficiency
 
         private void OnGameUpdate(object sender, EventArgs args)
         {
+            if(Conf.BalancedMode)
+            {
+                Conf.MuchFasterBiting = false;
+            }
             if(Game1.currentGameTime == null)
             {
                 return;

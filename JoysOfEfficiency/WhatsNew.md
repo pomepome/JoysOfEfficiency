@@ -53,3 +53,7 @@ This is a changelog from 1.1.14-beta
 - Removed FPSCounter and FastToolUpgrade because I added it to debug and don't need them anymore. (also, they're a bit cheaty)
 - Removed FasterRunningSpeed because it causes many confliction with other mods or even game itselef.
 - Re-adjusted BalancedMode to be more balanced.
+
+## 1.1.26-beta
+- Fixed some sliders appear on inappropriate position.
+- AutoEat won't execute when fishing or in menu.
