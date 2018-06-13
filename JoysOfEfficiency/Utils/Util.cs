@@ -711,9 +711,16 @@ namespace JoysOfEfficiency.Utils
 
         public static void TryToEatIfNeeded(Player player)
         {
-            if (Game1.isEating)
+            if (Game1.isEating || Game1.activeClickableMenu != null)
             {
                 return;
+            }
+            if (player.CurrentTool != null && player.CurrentTool is FishingRod rod)
+            {
+                if (rod.inUse() && !player.UsingTool)
+                {
+                    return;
+                }
             }
             if (player.Stamina <= player.MaxStamina * ModEntry.Conf.StaminaToEatRatio || player.health <= player.maxHealth * ModEntry.Conf.HealthToEatRatio)
             {

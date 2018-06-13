@@ -156,12 +156,14 @@ namespace JoysOfEfficiency
             {
                 //Cheats Tab
                 MenuTab tab = new MenuTab();
-                tab.AddOptionsElement(new ModifiedCheckBox("MuchFasterBiting", 7, ModEntry.Conf.MuchFasterBiting, OnCheckboxValueChanged, (i => !ModEntry.IsCJBCheatsOn)));
+                tab.AddOptionsElement(new LabelComponent("Fishing Tweaks"));
+                tab.AddOptionsElement(new ModifiedCheckBox("MuchFasterBiting", 7, ModEntry.Conf.MuchFasterBiting, OnCheckboxValueChanged));
                 tabs.Add(tab);
             }
             {
                 //Controls Tab
                 MenuTab tab = new MenuTab();
+                tab.AddOptionsElement(new LabelComponent("Settings Menu"));
                 tab.AddOptionsElement(new ModifiedInputListener(this, "KeyShowMenu", 0, ModEntry.Conf.KeyShowMenu, translation, OnInputListnerChanged, OnStartListening));
                 tabs.Add(tab);
             }
@@ -411,7 +413,10 @@ namespace JoysOfEfficiency
             }
             if (tabCheats.Contains(x, y))
             {
-                TryToChangeTab(1);
+                if (!ModEntry.Conf.BalancedMode)
+                    TryToChangeTab(1);
+                else
+                    Game1.playSound("coin");
                 return;
             }
             if (tabControls.Contains(x, y))
@@ -471,6 +476,10 @@ namespace JoysOfEfficiency
                 {
                     y += hElem + 16;
                     elements.Add(element);
+                }
+                else
+                {
+                    break;
                 }
             }
             return elements;

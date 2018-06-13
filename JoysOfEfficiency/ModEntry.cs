@@ -18,6 +18,7 @@ using StardewValley.Monsters;
 using JoysOfEfficiency.Utils;
 using Microsoft.Xna.Framework.Input;
 using JoysOfEfficiency.ModCheckers;
+using Microsoft.Xna.Framework.Audio;
 
 namespace JoysOfEfficiency
 {
