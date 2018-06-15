@@ -58,3 +58,6 @@ This is a changelog from 1.0.22
 ## 1.0.33
 - Fixed some sliders appear on inappropriate position.
 - AutoEat won't execute when fishing or in menu.
+
+## 1.0.34
+- Added Harvest Exception

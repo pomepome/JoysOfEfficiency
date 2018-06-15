@@ -19,8 +19,9 @@ namespace JoysOfEfficiency.Utils
     using SVObject = StardewValley.Object;
     public class Util
     {
-        public static IModHelper Helper;
-        public static IMonitor Monitor;
+        internal static IModHelper Helper;
+        internal static IMonitor Monitor;
+        internal static ModEntry ModInstance;
         
         private static bool catchingTreasure = false;
 
@@ -43,6 +44,41 @@ namespace JoysOfEfficiency.Utils
                 if (!wasPet)
                 {
                     pet.checkAction(player, location); // Pet pet... lol
+                }
+            }
+        }
+
+        public static void TryToggleGate(Player player)
+        {
+            GameLocation location = player.currentLocation;
+
+            foreach (Fence fence in GetObjectsWithin<Fence>(2).Where(f => f.isGate))
+            {
+                Vector2 loc = fence.TileLocation;
+
+                bool? isUpDown = IsUpsideDown(location, fence);
+                if (isUpDown == null)
+                {
+                    if (!player.GetBoundingBox().Intersects(fence.getBoundingBox(loc)))
+                    {
+                        fence.gatePosition = 0;
+                    }
+                    continue;
+                }
+
+                int gatePosition = fence.gatePosition;
+                bool flag = IsPlayerInClose(player, fence, fence.TileLocation, isUpDown);
+
+
+                if (flag && gatePosition == 0)
+                {
+                    fence.gatePosition = 88;
+                    Game1.playSound("doorClose");
+                }
+                if (!flag && gatePosition >= 88)
+                {
+                    fence.gatePosition = 0;
+                    Game1.playSound("doorClose");
                 }
             }
         }
@@ -181,7 +217,7 @@ namespace JoysOfEfficiency.Utils
                 Vector2 loc = kv.Key;
                 HoeDirt dirt = kv.Value;
 
-                if (dirt.crop == null)
+                if (dirt.crop == null || IsBlackListed(dirt.crop))
                 {
                     continue;
                 }
@@ -503,6 +539,50 @@ namespace JoysOfEfficiency.Utils
             return false;
         }
 
+        public static void ToggleBlacklistUnderCursor()
+        {
+            GameLocation location = Game1.currentLocation;
+            Vector2 tile = Game1.currentCursorTile;
+            if (location.terrainFeatures.TryGetValue(tile, out TerrainFeature terrain))
+            {
+                if (terrain is HoeDirt dirt)
+                {
+                    if (dirt.crop == null)
+                    {
+                        ShowHUDMessage("There is no crop under the cursor");
+                        return;
+                    }
+                    else
+                    {
+                        string name = "";
+                        if (dirt.crop.forageCrop)
+                        {
+                            name = new SVObject(dirt.crop.whichForageCrop, 1).Name;
+                        }
+                        else
+                        {
+                            name = new SVObject(dirt.crop.indexOfHarvest, 1).Name;
+                        }
+                        if (name == "")
+                        {
+                            return;
+                        }
+                        string text = "";
+                        if (ToggleBlackList(dirt.crop))
+                        {
+                            text = $"{name} has been added to AutoHarvest exception";
+                        }
+                        else
+                        {
+                            text = $"{name} has been removed from AutoHarvest exception";
+                        }
+                        ShowHUDMessage(text, 1000);
+                        Monitor.Log(text);
+                    }
+                }
+            }
+        }
+
         public static bool Harvest(int xTile, int yTile, HoeDirt soil, JunimoHarvester junimoHarvester = null)
         {
             IReflectionHelper reflection = Helper.Reflection;
@@ -772,39 +852,22 @@ namespace JoysOfEfficiency.Utils
             return find;
         }
 
-        public static void TryToggleGate(Player player)
+        private static bool IsBlackListed(Crop crop)
         {
-            GameLocation location = player.currentLocation;
+            int index = crop.forageCrop ? crop.whichForageCrop : crop.indexOfHarvest;
+            return ModEntry.Conf.HarvestException.Contains(index);
+        }
 
-            foreach (Fence fence in GetObjectsWithin<Fence>(2).Where(f=>f.isGate))
-            {
-                Vector2 loc = fence.TileLocation;
+        private static bool ToggleBlackList(Crop crop)
+        {
+            int index = crop.forageCrop ? crop.whichForageCrop : crop.indexOfHarvest;
+            if (IsBlackListed(crop))
+                ModEntry.Conf.HarvestException.Remove(index);
+            else
+                ModEntry.Conf.HarvestException.Add(index);
 
-                bool? isUpDown = IsUpsideDown(location, fence);
-                if (isUpDown == null)
-                {
-                    if (!player.GetBoundingBox().Intersects(fence.getBoundingBox(loc)))
-                    {
-                        fence.gatePosition = 0;
-                    }
-                    continue;
-                }
-
-                int gatePosition = fence.gatePosition;
-                bool flag = IsPlayerInClose(player, fence, fence.TileLocation, isUpDown);
-
-
-                if (flag && gatePosition == 0)
-                {
-                    fence.gatePosition = 88;
-                    Game1.playSound("doorClose");
-                }
-                if (!flag && gatePosition >= 88)
-                {
-                    fence.gatePosition = 0;
-                    Game1.playSound("doorClose");
-                }
-            }
+            ModInstance.WriteConfig();
+            return IsBlackListed(crop);
         }
 
         private static bool? IsUpsideDown(GameLocation location, Fence fence)

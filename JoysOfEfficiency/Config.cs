@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 namespace JoysOfEfficiency
 {
-    public class Config
+    internal class Config
     {
         public bool MineInfoGUI { get; set; } = true;
         public bool AutoWaterNearbyCrops { get; set; } = true;
@@ -41,5 +41,7 @@ namespace JoysOfEfficiency
         public int MachineRadius { get; set; } = 1;
         public bool AutoPetNearbyPets { get; set; } = false;
         public bool ProtectNectarProducingFlower { get; set; } = true;
+        public List<int> HarvestException { get; set; } = new List<int>();
+        public Keys KeyToggleBlackList { get; set; } = Keys.F2;
     }
 }

@@ -25,12 +25,12 @@ namespace JoysOfEfficiency
 
     using Player = StardewValley.Farmer;
     using SVObject = StardewValley.Object;
-    public class ModEntry : Mod
+    internal class ModEntry : Mod
     {
         public static bool IsCJBCheatsOn { get; private set; } = false;
 
         public static Mod Instance { get; private set; }
-        public static Config Conf { get; private set; }
+        internal static Config Conf { get; private set; }
         
         private string hoverText;
 
@@ -46,6 +46,7 @@ namespace JoysOfEfficiency
         {
             Util.Helper = helper;
             Util.Monitor = Monitor;
+            Util.ModInstance = this;
 
             Conf = helper.ReadConfig<Config>();
             GameEvents.EighthUpdateTick += OnGameUpdate;
@@ -294,6 +295,10 @@ namespace JoysOfEfficiency
                 //Open Up Menu
                 Game1.playSound("bigSelect");
                 Game1.activeClickableMenu = new JOEMenu(800, 548, this);
+            }
+            else if(args.KeyPressed == Conf.KeyToggleBlackList)
+            {
+                Util.ToggleBlacklistUnderCursor();
             }
         }
 
