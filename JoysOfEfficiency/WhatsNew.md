@@ -65,3 +65,6 @@ This is a changelog from 1.0.22
 ## 1.0.35
 - Auto things won't work when falling down shaft or player can't move.
 - Updated default.json
+
+## 1.0.36
+- Fixed casks absorbs ingredient infinitely when not in cellar.

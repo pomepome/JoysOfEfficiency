@@ -92,6 +92,10 @@ namespace JoysOfEfficiency.Utils
             }
             foreach (SVObject obj in GetObjectsWithin<SVObject>(ModEntry.Conf.MachineRadius))
             {
+                if (obj is Cask && Game1.currentLocation as Cellar == null)
+                {
+                    return;
+                }
                 Vector2 loc = GetLocationOf(Game1.currentLocation, obj);
                 if (IsObjectMachine(obj) && obj.heldObject == null && player.CurrentItem is SVObject)
                 {
