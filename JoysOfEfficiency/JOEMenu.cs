@@ -42,9 +42,8 @@ namespace JoysOfEfficiency
         private bool isFirstTime;
         private ModifiedInputListener listener = null;
 
-        public JOEMenu(int width, int height, ModEntry mod) : base(Game1.viewport.Width / 2 - width / 2, Game1.viewport.Height / 2 - height / 2, width, height, true)
+        internal JOEMenu(int width, int height, ModEntry mod) : base(Game1.viewport.Width / 2 - width / 2, Game1.viewport.Height / 2 - height / 2, width, height, true)
         {
-
             this.mod = mod;
             translation = mod.Helper.Translation;
             upCursor = new ClickableTextureComponent("up-arrow", new Rectangle(xPositionOnScreen + this.width + Game1.tileSize / 4, yPositionOnScreen + Game1.tileSize, 11 * Game1.pixelZoom, 12 * Game1.pixelZoom), "", "", Game1.mouseCursors, new Rectangle(421, 459, 11, 12), Game1.pixelZoom);
@@ -165,6 +164,9 @@ namespace JoysOfEfficiency
                 MenuTab tab = new MenuTab();
                 tab.AddOptionsElement(new LabelComponent("Settings Menu"));
                 tab.AddOptionsElement(new ModifiedInputListener(this, "KeyShowMenu", 0, ModEntry.Conf.KeyShowMenu, translation, OnInputListnerChanged, OnStartListening));
+                tab.AddOptionsElement(new EmptyLabel());
+                tab.AddOptionsElement(new LabelComponent("Auto Harvest"));
+                tab.AddOptionsElement(new ModifiedInputListener(this, "KeyToggleBlackList", 1, ModEntry.Conf.KeyToggleBlackList, translation, OnInputListnerChanged, OnStartListening));
                 tabs.Add(tab);
             }
             mon = mod.Monitor;

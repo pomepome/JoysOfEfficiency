@@ -18,81 +18,17 @@ namespace JoysOfEfficiency.Utils
 {
     using Player = Farmer;
     using SVObject = StardewValley.Object;
-    public class Util
+    internal class Util
     {
         public static IModHelper Helper;
         public static IMonitor Monitor;
+        internal static ModEntry ModInstance;
         private static bool catchingTreasure;
 
         private static MineIcons icons = new MineIcons();
         private static List<Monster> lastMonsters = new List<Monster>();
         private static List<Vector2> flowerLocationProducingNectar = new List<Vector2>();
         private static string lastKilledMonster;
-
-        private static List<T> GetObjectsWithin<T>(int radius) where T : SVObject
-        {
-            if(!Context.IsWorldReady)
-            {
-                return new List<T>();
-            }
-            if(ModEntry.Conf.BalancedMode)
-            {
-                radius = 1;
-            }
-
-            GameLocation location = Game1.player.currentLocation;
-            Vector2 ov = Game1.player.getTileLocation();
-            List<T> list = new List<T>();
-            for(int dx = -radius; dx <= radius; dx++)
-            {
-                for(int dy = -radius; dy <= radius; dy++)
-                {
-                    Vector2 loc = ov + new Vector2(dx, dy);
-                    if(location.Objects.ContainsKey(loc) && location.Objects[loc] is T t)
-                    {
-                        list.Add(t);
-                    }
-                }
-            }
-            return list;
-        }
-
-        private static Dictionary<Vector2, T> GetFeaturesWithin<T>(int radius) where T : TerrainFeature
-        {
-            if (!Context.IsWorldReady)
-            {
-                return new Dictionary<Vector2, T>();
-            }
-            GameLocation location = Game1.player.currentLocation;
-            Vector2 ov = Game1.player.getTileLocation();
-            Dictionary<Vector2, T> list = new Dictionary<Vector2, T>();
-
-            List<LargeTerrainFeature> lFeatures = Game1.currentLocation.largeTerrainFeatures == null ? null : new List<LargeTerrainFeature>(Game1.currentLocation.largeTerrainFeatures);
-
-            for (int dx = -radius; dx <= radius; dx++)
-            {
-                for (int dy = -radius; dy <= radius; dy++)
-                {
-                    Vector2 loc = ov + new Vector2(dx, dy);
-                    if (location.terrainFeatures.ContainsKey(loc) && location.terrainFeatures[loc] is T t)
-                    {
-                        list.Add(loc, t);
-                        continue;
-                    }
-                    else if(lFeatures != null && typeof(LargeTerrainFeature).IsAssignableFrom(typeof(T)))
-                    {
-                        foreach(LargeTerrainFeature feature in lFeatures)
-                        {
-                            if(feature != null && feature is T&& feature.tilePosition.X == loc.X && feature.tilePosition.Y == loc.Y)
-                            {
-                                list.Add(loc, feature as T);
-                            }
-                        }
-                    }
-                }
-            }
-            return list;
-        }
 
         public static void UpdateNectarInfo()
         {
@@ -325,7 +261,7 @@ namespace JoysOfEfficiency.Utils
 
                 if (dirt.readyForHarvest())
                 {
-                    if (ModEntry.Conf.ProtectNectarProducingFlower && IsProducingNectar(loc))
+                    if (IsBlackListed(dirt.crop) || (ModEntry.Conf.ProtectNectarProducingFlower && IsProducingNectar(loc)))
                         continue;
 
                     if (Harvest((int)loc.X, (int)loc.Y, dirt))
@@ -403,22 +339,48 @@ namespace JoysOfEfficiency.Utils
             }
         }
 
-        private static Vector2 FindLadder(MineShaft shaft)
+        public static void ToggleBlacklistUnderCursor()
         {
-            for (int i = 0; i < shaft.Map.GetLayer("Buildings").LayerWidth; i++)
+            GameLocation location = Game1.currentLocation;
+            Vector2 tile = Game1.currentCursorTile;
+            if (location.terrainFeatures.TryGetValue(tile, out TerrainFeature terrain))
             {
-                for (int j = 0; j < shaft.Map.GetLayer("Buildings").LayerHeight; j++)
+                if (terrain is HoeDirt dirt)
                 {
-                    int index = shaft.getTileIndexAt(new Point(i, j), "Buildings");
-                    Vector2 loc = new Vector2(i, j);
-                    if (!shaft.Objects.ContainsKey(loc) && !shaft.terrainFeatures.ContainsKey(loc))
+                    if (dirt.crop == null)
                     {
-                        if (index == 171 || index == 173 || index == 174)
-                            return loc;
+                        ShowHUDMessage("There is no crop under the cursor");
+                        return;
+                    }
+                    else
+                    {
+                        string name = "";
+                        if (dirt.crop.forageCrop.Value)
+                        {
+                            name = new SVObject(dirt.crop.whichForageCrop.Value, 1).Name;
+                        }
+                        else
+                        {
+                            name = new SVObject(dirt.crop.indexOfHarvest.Value, 1).Name;
+                        }
+                        if (name == "")
+                        {
+                            return;
+                        }
+                        string text = "";
+                        if (ToggleBlackList(dirt.crop))
+                        {
+                            text = $"{name} has been added to AutoHarvest exception";
+                        }
+                        else
+                        {
+                            text = $"{name} has been removed from AutoHarvest exception";
+                        }
+                        ShowHUDMessage(text, 1000);
+                        Monitor.Log(text);
                     }
                 }
             }
-            return Vector2.Zero;
         }
 
         public static void DrawMineGui(SpriteBatch batch, SpriteFont font, Player player, MineShaft shaft)
@@ -637,8 +599,90 @@ namespace JoysOfEfficiency.Utils
                 }
             }
         }
+
+
+        private static List<T> GetObjectsWithin<T>(int radius) where T : SVObject
+        {
+            if (!Context.IsWorldReady)
+            {
+                return new List<T>();
+            }
+            if (ModEntry.Conf.BalancedMode)
+            {
+                radius = 1;
+            }
+
+            GameLocation location = Game1.player.currentLocation;
+            Vector2 ov = Game1.player.getTileLocation();
+            List<T> list = new List<T>();
+            for (int dx = -radius; dx <= radius; dx++)
+            {
+                for (int dy = -radius; dy <= radius; dy++)
+                {
+                    Vector2 loc = ov + new Vector2(dx, dy);
+                    if (location.Objects.ContainsKey(loc) && location.Objects[loc] is T t)
+                    {
+                        list.Add(t);
+                    }
+                }
+            }
+            return list;
+        }
+
+        private static Dictionary<Vector2, T> GetFeaturesWithin<T>(int radius) where T : TerrainFeature
+        {
+            if (!Context.IsWorldReady)
+            {
+                return new Dictionary<Vector2, T>();
+            }
+            GameLocation location = Game1.player.currentLocation;
+            Vector2 ov = Game1.player.getTileLocation();
+            Dictionary<Vector2, T> list = new Dictionary<Vector2, T>();
+
+            for (int dx = -radius; dx <= radius; dx++)
+            {
+                for (int dy = -radius; dy <= radius; dy++)
+                {
+                    Vector2 loc = ov + new Vector2(dx, dy);
+                    if (location.terrainFeatures.ContainsKey(loc) && location.terrainFeatures[loc] is T t)
+                    {
+                        list.Add(loc, t);
+                        continue;
+                    }
+                    else if (location.largeTerrainFeatures.Count > 0 && typeof(LargeTerrainFeature).IsAssignableFrom(typeof(T)))
+                    {
+                        foreach (LargeTerrainFeature feature in location.largeTerrainFeatures)
+                        {
+                            if (feature != null && feature is T && feature.tilePosition.X == loc.X && feature.tilePosition.Y == loc.Y)
+                            {
+                                list.Add(loc, feature as T);
+                            }
+                        }
+                    }
+                }
+            }
+            return list;
+        }
+
+        private static Vector2 FindLadder(MineShaft shaft)
+        {
+            for (int i = 0; i < shaft.Map.GetLayer("Buildings").LayerWidth; i++)
+            {
+                for (int j = 0; j < shaft.Map.GetLayer("Buildings").LayerHeight; j++)
+                {
+                    int index = shaft.getTileIndexAt(new Point(i, j), "Buildings");
+                    Vector2 loc = new Vector2(i, j);
+                    if (!shaft.Objects.ContainsKey(loc) && !shaft.terrainFeatures.ContainsKey(loc))
+                    {
+                        if (index == 171 || index == 173 || index == 174)
+                            return loc;
+                    }
+                }
+            }
+            return Vector2.Zero;
+        }
         
-        public static Vector2 GetLocationOf(GameLocation location, SVObject obj)
+        private static Vector2 GetLocationOf(GameLocation location, SVObject obj)
         {
             IEnumerable<KeyValuePair<Vector2, SVObject>> pairs = location.Objects.Pairs.Where(kv => kv.Value == obj);
             if (pairs.Count() == 0)
@@ -648,7 +692,7 @@ namespace JoysOfEfficiency.Utils
             return pairs.First().Key;
         }
 
-        public static Vector2 GetLocationOf(GameLocation location, TerrainFeature feature)
+        private static Vector2 GetLocationOf(GameLocation location, TerrainFeature feature)
         {
             IEnumerable<KeyValuePair<Vector2, TerrainFeature>> pairs = location.terrainFeatures.Pairs.Where(kv => kv.Value == feature);
             if (pairs.Count() == 0)
@@ -750,7 +794,7 @@ namespace JoysOfEfficiency.Utils
             return player.Items.OfType<T>().FirstOrDefault();
         }
 
-        public static bool Harvest(int xTile, int yTile, HoeDirt soil, JunimoHarvester junimoHarvester = null)
+        private static bool Harvest(int xTile, int yTile, HoeDirt soil, JunimoHarvester junimoHarvester = null)
         {
             IReflectionHelper reflection = Helper.Reflection;
 
@@ -964,16 +1008,32 @@ namespace JoysOfEfficiency.Utils
             return flowerLocationProducingNectar.Contains(location);
         }
 
+        private static bool IsBlackListed(Crop crop)
+        {
+            int index = crop.forageCrop.Value ? crop.whichForageCrop : crop.indexOfHarvest;
+            return ModEntry.Conf.HarvestException.Contains(index);
+        }
+
+        private static bool ToggleBlackList(Crop crop)
+        {
+            int index = crop.forageCrop.Value ? crop.whichForageCrop : crop.indexOfHarvest;
+            if (IsBlackListed(crop))
+                ModEntry.Conf.HarvestException.Remove(index);
+            else
+                ModEntry.Conf.HarvestException.Add(index);
+
+            ModInstance.WriteConfig();
+            return IsBlackListed(crop);
+        }
+
         private static bool IsObjectMachine(SVObject obj)
         {
             if (obj is CrabPot)
-            {
                 return true;
-            }
+
             if (!obj.bigCraftable.Value)
-            {
                 return false;
-            }
+
             switch (obj.Name)
             {
                 case "Incubator":
@@ -990,13 +1050,12 @@ namespace JoysOfEfficiency.Utils
                 case "Furnace":
                 case "Charcoal Kiln":
                 case "Slime Egg-Press":
-                case "Cask":
-                    return true;
+                case "Cask": return true;
                 default: return false;
             }
         }
 
-        public static bool? IsUpsideDown(GameLocation location, Fence fence)
+        private static bool? IsUpsideDown(GameLocation location, Fence fence)
         {
             int num2 = 0;
             Vector2 tileLocation = fence.TileLocation;

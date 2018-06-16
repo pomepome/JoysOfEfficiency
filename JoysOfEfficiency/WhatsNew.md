@@ -57,3 +57,10 @@ This is a changelog from 1.1.14-beta
 ## 1.1.26-beta
 - Fixed some sliders appear on inappropriate position.
 - AutoEat won't execute when fishing or in menu.
+
+## 1.1.27-beta
+- Added Harvest Exception
+
+## 1.1.28-beta
+- Auto things won't work when falling down shaft or player can't move.
+- Updated default.json

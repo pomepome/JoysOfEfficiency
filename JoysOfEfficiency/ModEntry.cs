@@ -18,9 +18,8 @@ using StardewValley.Tools;
 namespace JoysOfEfficiency
 {
     using Player = Farmer;
-    public class ModEntry : Mod
+    internal class ModEntry : Mod
     {
-
         public static bool IsCJBCheatsOn { get;  private set; }
         public static Config Conf { get; private set; } = null;
 
@@ -36,6 +35,7 @@ namespace JoysOfEfficiency
             ModHelper = helper;
             Util.Helper = helper;
             Util.Monitor = Monitor;
+            Util.ModInstance = this;
             Conf = helper.ReadConfig<Config>();
             GameEvents.UpdateTick += OnGameTick;
             GameEvents.EighthUpdateTick += OnGameUpdate;
@@ -147,6 +147,18 @@ namespace JoysOfEfficiency
                     {
                         rod.timeUntilFishingBite -= 10000;
                     }
+                }
+                if (Game1.currentLocation is MineShaft shaft)
+                {
+                    bool isFallingDownShaft = Helper.Reflection.GetField<bool>(shaft, "isFallingDownShaft").GetValue();
+                    if (isFallingDownShaft)
+                    {
+                        return;
+                    }
+                }
+                if (!Context.CanPlayerMove)
+                {
+                    return;
                 }
                 if (Conf.AutoEat)
                 {
@@ -261,6 +273,10 @@ namespace JoysOfEfficiency
                 //Open Up Menu
                 Game1.playSound("bigSelect");
                 Game1.activeClickableMenu = new JOEMenu(800, 548, this);
+            }
+            else if (args.KeyPressed == Conf.KeyToggleBlackList)
+            {
+                Util.ToggleBlacklistUnderCursor();
             }
         }
 

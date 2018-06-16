@@ -53,7 +53,7 @@
   "options.AutoHarvestRadius": "How far tiles to harvest",
   "options.AutoDestroyDeadCrops": "Auto-destroy dead crops nearby",
   "options.AutoRefillWateringCan": "Auto-refill watering can near water",
-  "options.KeyShowMenu": "Key to shwo Settings Menu",
+  "options.KeyShowMenu": "Key to show Settings Menu",
   "options.AutoCollectCollectibles": "Auto-collect collectibles nearby",
   "options.AutoCollectRadius": "How far tiles to auto-collect",
   "options.AutoShakeFruitedPlants": "Auto-shake nearby fruited plants",
@@ -65,5 +65,6 @@
   "options.MachineRadius": "How far tiles to find machines",
   "options.AutoPetNearbyPets": "Auto-pet nearby pets",
   "options.ProtectNectarProducingFlower": "Protect flowers near bee houses",
-  "options.FindHoeFromInventory": "Find Hoe from inventory"
+  "options.FindHoeFromInventory": "Find Hoe from inventory",
+  "options.KeyToggleBlackList": "Key to toggle harvest blacklist"
 }
