@@ -64,20 +64,44 @@ namespace JoysOfEfficiency.Utils
         public static void DepositIngredientsToMachines()
         {
             Player player = Game1.player;
-            if (player.CurrentItem == null || !(Game1.player.CurrentItem is SVObject))
+            if (player.CurrentItem == null || !(Game1.player.CurrentItem is SVObject item))
             {
                 return;
             }
             foreach (SVObject obj in GetObjectsWithin<SVObject>(ModEntry.Conf.MachineRadius))
             {
                 Vector2 loc = GetLocationOf(Game1.currentLocation, obj);
-                if (IsObjectMachine(obj) && obj.heldObject.Value == null)
+                if (IsObjectMachine(obj))
                 {
-                    if (Utility.isThereAnObjectHereWhichAcceptsThisItem(Game1.currentLocation, player.CurrentItem, (int)loc.X * Game1.tileSize, (int)loc.Y * Game1.tileSize))
+                    bool flag = false;
+                    bool accepted = Utility.isThereAnObjectHereWhichAcceptsThisItem(Game1.currentLocation, item, (int)loc.X * Game1.tileSize, (int)loc.Y * Game1.tileSize);
+                    if (obj is Cask)
                     {
-                        obj.performObjectDropInAction(player.CurrentItem, false, player);
-                        if (obj.Name != "Furnace" || player.CurrentItem.getStack() == 0)
+                        if(ModEntry.IsCoGOn)
+                        {
+                            if(obj.performObjectDropInAction(item, true, player))
+                            {
+                                player.currentLocation.playSound("Ship");
+                                player.currentLocation.playSound("bubbles");
+                                flag = true;
+                            }
+                        }
+                        else if(Game1.currentLocation is Cellar && accepted)
+                        {
+                            flag = true;
+                        }
+                    }
+                    else if (accepted)
+                    {
+                        flag = true;
+                    }
+                    if (flag)
+                    {
+                        obj.performObjectDropInAction(item, false, player);
+                        if (obj.Name != "Furnace" || item.getStack() == 0)
+                        {
                             player.reduceActiveItemByOne();
+                        }
                     }
                 }
             }
@@ -571,30 +595,28 @@ namespace JoysOfEfficiency.Utils
             foreach (Fence fence in GetObjectsWithin<Fence>(2).Where(f => f.isGate.Value))
             {
                 Vector2 loc = fence.TileLocation;
-                IReflectedField<NetInt> fieldPosition = Helper.Reflection.GetField<NetInt>(fence, "gatePosition");
 
                 bool? isUpDown = IsUpsideDown(location, fence);
                 if (isUpDown == null)
                 {
                     if (!fence.getBoundingBox(loc).Intersects(player.GetBoundingBox()))
                     {
-                        fieldPosition.SetValue(new NetInt(0));
+                        fence.gatePosition.Value = 0;
                     }
                     continue;
                 }
 
                 int gatePosition = fence.gatePosition.Value;
                 bool flag = IsPlayerInClose(player, fence, fence.TileLocation, isUpDown);
-
-
+                
                 if (flag && gatePosition == 0)
                 {
-                    fieldPosition.SetValue(new NetInt(88));
+                    fence.gatePosition.Value = 88;
                     Game1.playSound("doorClose");
                 }
                 if (!flag && gatePosition >= 88)
                 {
-                    fieldPosition.SetValue(new NetInt(0));
+                    fence.gatePosition.Value = 0;
                     Game1.playSound("doorClose");
                 }
             }
@@ -1030,7 +1052,7 @@ namespace JoysOfEfficiency.Utils
         {
             if (obj is CrabPot)
                 return true;
-
+   
             if (!obj.bigCraftable.Value)
                 return false;
 

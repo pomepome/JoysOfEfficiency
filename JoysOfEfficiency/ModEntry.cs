@@ -20,7 +20,9 @@ namespace JoysOfEfficiency
     using Player = Farmer;
     internal class ModEntry : Mod
     {
-        public static bool IsCJBCheatsOn { get;  private set; }
+        public static bool IsCJBCheatsOn { get; private set; }
+        public static bool IsCoGOn { get; private set; }
+
         public static Config Conf { get; private set; } = null;
 
         public static IModHelper ModHelper { get; private set; } = null;
@@ -61,6 +63,11 @@ namespace JoysOfEfficiency
             if(ModChecker.IsCJBCheatsLoaded(helper))
             {
                 IsCJBCheatsOn = true;
+            }
+            if(ModChecker.IsCoGLoaded(helper))
+            {
+                Monitor.Log("CasksOnGround detected.");
+                IsCoGOn = true;
             }
 
             helper.WriteConfig(Conf);

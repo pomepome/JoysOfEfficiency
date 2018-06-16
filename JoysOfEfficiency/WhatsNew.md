@@ -64,3 +64,6 @@ This is a changelog from 1.1.14-beta
 ## 1.1.28-beta
 - Auto things won't work when falling down shaft or player can't move.
 - Updated default.json
+
+## 1.1.29-beta
+- Added Casks on Ground support.

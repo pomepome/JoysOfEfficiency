@@ -8,5 +8,9 @@ namespace JoysOfEfficiency.ModCheckers
         {
             return helper.ModRegistry.IsLoaded("CJBok.CheatsMenu");
         }
+        public static bool IsCoGLoaded(IModHelper helper)
+        {
+            return helper.ModRegistry.IsLoaded("punyo.CasksOnGround");
+        }
     }
 }
