@@ -143,19 +143,6 @@ namespace JoysOfEfficiency
                         }
                     }
                 }
-                if (Conf.AutoWaterNearbyCrops)
-                {
-                    Util.WaterNearbyCrops();
-                }
-                if (Conf.AutoEat)
-                {
-                    Util.TryToEatIfNeeded(player);
-                }
-                if(Conf.AutoAnimalDoor && !isNight && Game1.timeOfDay >= 1900)
-                {
-                    isNight = true;
-                    OnBeforeSave(null, null);
-                }
                 if (player.CurrentTool is FishingRod rod)
                 {
                     IReflectedField<int> whichFish = reflection.GetField<int>(rod, "whichFish");
@@ -170,6 +157,31 @@ namespace JoysOfEfficiency
                     {
                         rod.timeUntilFishingBite = 0;
                     }
+                }
+                if (Game1.currentLocation is MineShaft shaft)
+                {
+                    bool isFallingDownShaft = Helper.Reflection.GetField<bool>(shaft, "isFallingDownShaft").GetValue();
+                    if (isFallingDownShaft)
+                    {
+                        return;
+                    }
+                }
+                if (!Context.CanPlayerMove)
+                {
+                    return;
+                }
+                if (Conf.AutoWaterNearbyCrops)
+                {
+                    Util.WaterNearbyCrops();
+                }
+                if (Conf.AutoEat)
+                {
+                    Util.TryToEatIfNeeded(player);
+                }
+                if(Conf.AutoAnimalDoor && !isNight && Game1.timeOfDay >= 1900)
+                {
+                    isNight = true;
+                    OnBeforeSave(null, null);
                 }
                 if (Conf.AutoAnimalDoor && !isNight && Game1.timeOfDay >= 1900)
                 {

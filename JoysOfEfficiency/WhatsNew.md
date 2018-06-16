@@ -61,3 +61,7 @@ This is a changelog from 1.0.22
 
 ## 1.0.34
 - Added Harvest Exception
+
+## 1.0.35
+- Auto things won't work when falling down shaft or player can't move.
+- Updated default.json
