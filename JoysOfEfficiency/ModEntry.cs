@@ -13,11 +13,13 @@ using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Locations;
 using StardewValley.Menus;
+using StardewValley.Objects;
 using StardewValley.Tools;
 
 namespace JoysOfEfficiency
 {
     using Player = Farmer;
+    using SVObject = StardewValley.Object;
     internal class ModEntry : Mod
     {
         public static bool IsCJBCheatsOn { get; private set; }

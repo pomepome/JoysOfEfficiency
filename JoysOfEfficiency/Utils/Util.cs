@@ -71,18 +71,17 @@ namespace JoysOfEfficiency.Utils
             foreach (SVObject obj in GetObjectsWithin<SVObject>(ModEntry.Conf.MachineRadius))
             {
                 Vector2 loc = GetLocationOf(Game1.currentLocation, obj);
-                if (IsObjectMachine(obj))
+                if (IsObjectMachine(obj) && obj.heldObject.Value == null)
                 {
                     bool flag = false;
-                    bool accepted = Utility.isThereAnObjectHereWhichAcceptsThisItem(Game1.currentLocation, item, (int)loc.X * Game1.tileSize, (int)loc.Y * Game1.tileSize);
+                    bool accepted = obj.Name == "Furnace" ? CanFurnaceAcceptItem(obj, item, player) : Utility.isThereAnObjectHereWhichAcceptsThisItem(Game1.currentLocation, item, (int)loc.X * Game1.tileSize, (int)loc.Y * Game1.tileSize);
                     if (obj is Cask)
                     {
                         if(ModEntry.IsCoGOn)
                         {
                             if(obj.performObjectDropInAction(item, true, player))
                             {
-                                player.currentLocation.playSound("Ship");
-                                player.currentLocation.playSound("bubbles");
+                                obj.heldObject.Value = null;
                                 flag = true;
                             }
                         }
@@ -110,7 +109,7 @@ namespace JoysOfEfficiency.Utils
         public static void PullMachineResult()
         {
             Player player = Game1.player;
-            foreach(SVObject obj in GetObjectsWithin<SVObject>(ModEntry.Conf.MachineRadius))
+            foreach(SVObject obj in GetObjectsWithin<SVObject>(ModEntry.Conf.MachineRadius).Where(o=>IsObjectMachine(o)))
             {
                 if(obj.readyForHarvest.Value && obj.heldObject.Value != null)
                 {
@@ -622,6 +621,26 @@ namespace JoysOfEfficiency.Utils
             }
         }
 
+        private static bool CanFurnaceAcceptItem(SVObject furnace, Item item, Player player)
+        {
+            if (player.getTallyOfObject(382, false) <= 0)
+                return false;
+            if (item.Stack < 5 && item.ParentSheetIndex != 80 && item.ParentSheetIndex != 82 && item.ParentSheetIndex != 330)
+                return false;
+            switch (item.ParentSheetIndex)
+            {
+                case 378:
+                case 380:
+                case 384:
+                case 386:
+                case 80:
+                case 82:
+                    break;
+                default:
+                    return false;
+            }
+            return true;
+        }
 
         private static List<T> GetObjectsWithin<T>(int radius) where T : SVObject
         {

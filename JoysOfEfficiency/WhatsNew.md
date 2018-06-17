@@ -67,3 +67,7 @@ This is a changelog from 1.1.14-beta
 
 ## 1.1.29-beta
 - Added Casks on Ground support.
+
+## 1.1.30-beta
+- Improved CoG support
+- Updated ja.json
