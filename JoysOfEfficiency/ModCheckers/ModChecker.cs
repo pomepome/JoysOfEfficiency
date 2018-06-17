@@ -14,5 +14,9 @@ namespace JoysOfEfficiency.ModCheckers
         {
             return helper.ModRegistry.IsLoaded("CJBok.CheatsMenu");
         }
+        public static bool IsCasksAnywhereLoaded(IModHelper helper)
+        {
+            return helper.ModRegistry.IsLoaded("CasksAnywhere");
+        }
     }
 }

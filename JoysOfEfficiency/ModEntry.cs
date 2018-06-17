@@ -28,6 +28,7 @@ namespace JoysOfEfficiency
     internal class ModEntry : Mod
     {
         public static bool IsCJBCheatsOn { get; private set; } = false;
+        public static bool IsCasksAnywhereOn { get; private set; } = false;
 
         public static Mod Instance { get; private set; }
         internal static Config Conf { get; private set; }
@@ -56,7 +57,7 @@ namespace JoysOfEfficiency
 
             SaveEvents.BeforeSave += OnBeforeSave;
             TimeEvents.AfterDayStarted += OnPostSave;
-            
+
             GraphicsEvents.OnPreRenderHudEvent += OnPreRenderHUD;
             GraphicsEvents.OnPostRenderHudEvent += OnPostRenderHUD;
 
@@ -71,11 +72,16 @@ namespace JoysOfEfficiency
             Conf.AutoShakeRadius = (int)Util.Cap(Conf.AutoShakeRadius, 1, 3);
             Conf.MachineRadius = (int)Util.Cap(Conf.MachineRadius, 1, 3);
 
-            if(ModChecker.IsCJBCheatsLoaded(helper))
+            if (ModChecker.IsCJBCheatsLoaded(helper))
             {
+                Monitor.Log("CJBCheatsMenu detected.");
                 IsCJBCheatsOn = true;
             }
-
+            if (ModChecker.IsCasksAnywhereLoaded(helper))
+            {
+                Monitor.Log("CasksAnywhere detected.");
+                IsCasksAnywhereOn = true;
+            }
             helper.WriteConfig(Conf);
 
             MineIcons.Init(helper);

@@ -68,3 +68,6 @@ This is a changelog from 1.0.22
 
 ## 1.0.36
 - Fixed casks absorbs ingredient infinitely when not in cellar.
+
+## 1.0.37
+- Added CasksAnywhere support.

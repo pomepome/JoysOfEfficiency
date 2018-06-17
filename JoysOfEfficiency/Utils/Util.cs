@@ -86,24 +86,42 @@ namespace JoysOfEfficiency.Utils
         public static void DepositIngredientsToMachines()
         {
             Player player = Game1.player;
-            if (player.CurrentItem == null || !(player.CurrentItem is SVObject))
+            if (player.CurrentItem == null || !(player.CurrentItem is SVObject item))
             {
                 return;
             }
             foreach (SVObject obj in GetObjectsWithin<SVObject>(ModEntry.Conf.MachineRadius))
             {
-                if (obj is Cask && Game1.currentLocation as Cellar == null)
-                {
-                    return;
-                }
                 Vector2 loc = GetLocationOf(Game1.currentLocation, obj);
-                if (IsObjectMachine(obj) && obj.heldObject == null && player.CurrentItem is SVObject)
+                if (IsObjectMachine(obj) && obj.heldObject == null)
                 {
-                    if (Utility.isThereAnObjectHereWhichAcceptsThisItem(Game1.currentLocation, player.CurrentItem, (int)loc.X * Game1.tileSize, (int)loc.Y * Game1.tileSize))
+                    bool flag = false;
+                    bool accepted = obj.Name == "Furnace" ? CanFurnaceAcceptItem(obj, item, player) : Utility.isThereAnObjectHereWhichAcceptsThisItem(Game1.currentLocation, item, (int)loc.X * Game1.tileSize, (int)loc.Y * Game1.tileSize);
+                    if (obj is Cask cask)
                     {
-                        obj.performObjectDropInAction(player.CurrentItem as SVObject, false, player);
-                        if (obj.Name != "Furnace" || player.CurrentItem.getStack() == 0)
+                        if (ModEntry.IsCasksAnywhereOn)
+                        {
+                            if (CanCaskAcceptThisItem(cask, item))
+                            {
+                                flag = true;
+                            }
+                        }
+                        else if (Game1.currentLocation is Cellar && accepted)
+                        {
+                            flag = true;
+                        }
+                    }
+                    else if (accepted)
+                    {
+                        flag = true;
+                    }
+                    if (flag)
+                    {
+                        obj.performObjectDropInAction(item, false, player);
+                        if (obj.Name != "Furnace" || item.getStack() == 0)
+                        {
                             player.reduceActiveItemByOne();
+                        }
                     }
                 }
             }
@@ -355,6 +373,30 @@ namespace JoysOfEfficiency.Utils
                 }
             }
             return new Vector2(-1, -1);
+        }
+
+
+        private static bool CanCaskAcceptThisItem(Cask cask, Item dropIn)
+        {
+            if (cask.quality >= 4 || cask.heldObject != null)
+            {
+                return false;
+            }
+            if (dropIn is SVObject obj && obj.quality == 4)
+            {
+                return false;
+            }
+            switch (dropIn.parentSheetIndex)
+            {
+                case 426:
+                case 424:
+                case 348:
+                case 459:
+                case 303:
+                case 346:
+                    return true;
+            }
+            return false;
         }
 
         public static Vector2 GetLocationOf(GameLocation location, SVObject obj)
@@ -1353,6 +1395,27 @@ namespace JoysOfEfficiency.Utils
             return "";
         }
 
+        private static bool CanFurnaceAcceptItem(SVObject furnace, Item item, Player player)
+        {
+            if (player.getTallyOfObject(382, false) <= 0)
+                return false;
+            if (item.Stack < 5 && item.parentSheetIndex != 80 && item.parentSheetIndex != 82 && item.parentSheetIndex != 330)
+                return false;
+            switch (item.parentSheetIndex)
+            {
+                case 378:
+                case 380:
+                case 384:
+                case 386:
+                case 80:
+                case 82:
+                    break;
+                default:
+                    return false;
+            }
+            return true;
+        }
+
         private static List<T> GetObjectsWithin<T>(int radius) where T : SVObject
         {
             GameLocation location = Game1.player.currentLocation;
@@ -1387,7 +1450,7 @@ namespace JoysOfEfficiency.Utils
                     {
                         list.Add(loc, t);
                     }
-                    else if (lFeatures != null && typeof(LargeTerrainFeature).IsAssignableFrom(typeof(T)))
+                    else if (lFeatures != null && lFeatures.Count > 0 && typeof(LargeTerrainFeature).IsAssignableFrom(typeof(T)))
                     {
                         foreach (LargeTerrainFeature feature in lFeatures)
                         {
