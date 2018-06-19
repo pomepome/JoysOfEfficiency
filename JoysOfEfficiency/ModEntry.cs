@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using JoysOfEfficiency.ModCheckers;
+﻿using JoysOfEfficiency.ModCheckers;
 using JoysOfEfficiency.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -13,26 +9,28 @@ using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Locations;
 using StardewValley.Menus;
-using StardewValley.Objects;
 using StardewValley.Tools;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace JoysOfEfficiency
 {
     using Player = Farmer;
-    using SVObject = StardewValley.Object;
     internal class ModEntry : Mod
     {
-        public static bool IsCJBCheatsOn { get; private set; }
+        public static bool IsCjbCheatsOn { get; private set; }
         public static bool IsCoGOn { get; private set; }
 
-        public static Config Conf { get; private set; } = null;
+        public static Config Conf { get; private set; }
 
-        public static IModHelper ModHelper { get; private set; } = null;
+        public static IModHelper ModHelper { get; private set; }
         
-        private string hoverText;
-        private bool DayEnded = false;
+        private string _hoverText;
+        private bool _dayEnded;
 
-        private int ticks = 0;
+        private int _ticks;
 
         public override void Entry(IModHelper helper)
         {
@@ -48,10 +46,10 @@ namespace JoysOfEfficiency
             TimeEvents.AfterDayStarted += OnPostSave;
             SaveEvents.BeforeSave += OnBeforeSave;
             
-            GraphicsEvents.OnPreRenderHudEvent += OnPreRenderHUD;
-            GraphicsEvents.OnPostRenderHudEvent += OnPostRenderHUD;
+            GraphicsEvents.OnPreRenderHudEvent += OnPreRenderHud;
+            GraphicsEvents.OnPostRenderHudEvent += OnPostRenderHud;
 
-            Conf.CPUThresholdFishing = Util.Cap(Conf.CPUThresholdFishing, 0, 0.5f);
+            Conf.CpuThresholdFishing = Util.Cap(Conf.CpuThresholdFishing, 0, 0.5f);
             Conf.HealthToEatRatio = Util.Cap(Conf.HealthToEatRatio, 0.3f, 0.8f);
             Conf.StaminaToEatRatio = Util.Cap(Conf.StaminaToEatRatio, 0.3f, 0.8f);
             Conf.AutoCollectRadius = (int)Util.Cap(Conf.AutoCollectRadius, 1, 3);
@@ -62,9 +60,9 @@ namespace JoysOfEfficiency
             Conf.AutoShakeRadius = (int)Util.Cap(Conf.AutoShakeRadius, 1, 3);
             Conf.MachineRadius = (int)Util.Cap(Conf.MachineRadius, 1, 3);
 
-            if(ModChecker.IsCJBCheatsLoaded(helper))
+            if(ModChecker.IsCjbCheatsLoaded(helper))
             {
-                IsCJBCheatsOn = true;
+                IsCjbCheatsOn = true;
             }
             if(ModChecker.IsCoGLoaded(helper))
             {
@@ -88,6 +86,39 @@ namespace JoysOfEfficiency
             {
                 Util.TryToggleGate(player);
             }
+            if (Conf.GiftInformation)
+            {
+                _hoverText = null;
+                if (player.CurrentItem != null && player.CurrentItem.canBeGivenAsGift())
+                {
+                    List<NPC> npcList = player.currentLocation.characters.Where(a => a.isVillager()).ToList();
+                    foreach (NPC npc in npcList)
+                    {
+                        RectangleE npcRect = new RectangleE(npc.position.X, npc.position.Y - npc.Sprite.getHeight() - Game1.tileSize / 1.5f, npc.Sprite.getWidth() * 3 + npc.Sprite.getWidth() / 1.5f, (npc.Sprite.getHeight() * 3.5f));
+
+                        if (npcRect.IsInternalPoint(Game1.getMouseX() + Game1.viewport.X, Game1.getMouseY() + Game1.viewport.Y))
+                        {
+                            //Mouse hovered on the NPC
+                            StringBuilder key = new StringBuilder("taste.");
+                            switch (npc.getGiftTasteForThisItem(player.CurrentItem))
+                            {
+                                case 0: key.Append("love."); break;
+                                case 2: key.Append("like."); break;
+                                case 4: key.Append("dislike."); break;
+                                case 6: key.Append("hate."); break;
+                                default: key.Append("neutral."); break;
+                            }
+                            switch (npc.Gender)
+                            {
+                                case 0: key.Append("male"); break;
+                                default: key.Append("female"); break;
+                            }
+                            Translation translation = Helper.Translation.Get(key.ToString());
+                            _hoverText = translation?.ToString();
+                        }
+                    }
+                }
+            }
         }
 
         private void OnGameUpdate(object sender, EventArgs args)
@@ -109,39 +140,6 @@ namespace JoysOfEfficiency
             IReflectionHelper reflection = Helper.Reflection;
             try
             {
-                if (Conf.GiftInformation)
-                {
-                    hoverText = null;
-                    if (player.CurrentItem != null && player.CurrentItem.canBeGivenAsGift())
-                    {
-                        List<NPC> npcList = player.currentLocation.characters.Where(a => a.isVillager()).ToList();
-                        foreach (NPC npc in npcList)
-                        {
-                            RectangleE npcRect = new RectangleE(npc.position.X, npc.position.Y - npc.Sprite.getHeight() - Game1.tileSize / 1.5f, npc.Sprite.getWidth() * 3 + npc.Sprite.getWidth() / 1.5f, (npc.Sprite.getHeight() * 3.5f));
-
-                            if (npcRect.IsInternalPoint(Game1.getMouseX() + Game1.viewport.X, Game1.getMouseY() + Game1.viewport.Y))
-                            {
-                                //Mouse hovered on the NPC
-                                StringBuilder key = new StringBuilder("taste.");
-                                switch (npc.getGiftTasteForThisItem(player.CurrentItem))
-                                {
-                                    case 0: key.Append("love."); break;
-                                    case 2: key.Append("like."); break;
-                                    case 4: key.Append("dislike."); break;
-                                    case 6: key.Append("hate."); break;
-                                    default: key.Append("neutral."); break;
-                                }
-                                switch (npc.Gender)
-                                {
-                                    case 0: key.Append("male"); break;
-                                    default: key.Append("female"); break;
-                                }
-                                Translation translation = Helper.Translation.Get(key.ToString());
-                                hoverText = translation?.ToString();
-                            }
-                        }
-                    }
-                }
                 if (player.CurrentTool is FishingRod rod && Game1.activeClickableMenu == null)
                 {
                     IReflectedField<int> whichFish = reflection.GetField<int>(rod, "whichFish");
@@ -173,8 +171,8 @@ namespace JoysOfEfficiency
                 {
                     Util.TryToEatIfNeeded(player);
                 }
-                ticks = (ticks + 1) % 8;
-                if(Conf.BalancedMode && ticks % 8 != 0)
+                _ticks = (_ticks + 1) % 8;
+                if(Conf.BalancedMode && _ticks % 8 != 0)
                 {
                     return;
                 }
@@ -239,9 +237,9 @@ namespace JoysOfEfficiency
                     Util.ShakeNearbyFruitedTree();
                     Util.ShakeNearbyFruitedBush();
                 }
-                if(Conf.AutoAnimalDoor && !DayEnded && Game1.timeOfDay >= 1900)
+                if(Conf.AutoAnimalDoor && !_dayEnded && Game1.timeOfDay >= 1900)
                 {
-                    DayEnded = true;
+                    _dayEnded = true;
                     OnBeforeSave(null, null);
                 }
                 if(Conf.AutoPetNearbyPets)
@@ -265,23 +263,21 @@ namespace JoysOfEfficiency
             if (args.KeyPressed == Keys.H)
             {
                 Player player = Game1.player;
-                Util.ShowHUDMessage($"Hay:{Game1.getFarm().piecesOfHay}");
+                Util.ShowHudMessage($"Hay:{Game1.getFarm().piecesOfHay}");
                 if(player.CurrentItem != null)
                 {
-                    Util.ShowHUDMessage(player.CurrentItem.ParentSheetIndex+"");
+                    Util.ShowHudMessage(player.CurrentItem.ParentSheetIndex+"");
                 }
             }
             if (!Context.IsPlayerFree || Game1.activeClickableMenu != null)
             {
                 return;
             }
-            IReflectionHelper reflection = Helper.Reflection;
-            ITranslationHelper translation = Helper.Translation;
             if (args.KeyPressed == Conf.KeyShowMenu)
             {
                 //Open Up Menu
                 Game1.playSound("bigSelect");
-                Game1.activeClickableMenu = new JOEMenu(800, 548, this);
+                Game1.activeClickableMenu = new JoeMenu(800, 548, this);
             }
             else if (args.KeyPressed == Conf.KeyToggleBlackList)
             {
@@ -289,19 +285,19 @@ namespace JoysOfEfficiency
             }
         }
 
-        private void OnPreRenderHUD(object sender, EventArgs args)
+        private void OnPreRenderHud(object sender, EventArgs args)
         {
-            if (Game1.currentLocation is MineShaft shaft && Conf.MineInfoGUI)
+            if (Game1.currentLocation is MineShaft shaft && Conf.MineInfoGui)
             {
                 Util.DrawMineGui(Game1.spriteBatch, Game1.smallFont, Game1.player, shaft);
             }
         }
 
-        private void OnPostRenderHUD(object sender, EventArgs args)
+        private void OnPostRenderHud(object sender, EventArgs args)
         {
-            if (Context.IsPlayerFree && !string.IsNullOrEmpty(hoverText) && Game1.player.CurrentItem != null)
+            if (Context.IsPlayerFree && !string.IsNullOrEmpty(_hoverText) && Game1.player.CurrentItem != null)
             {
-                Util.DrawSimpleTextbox(Game1.spriteBatch, hoverText, Game1.smallFont, Game1.player.CurrentItem);
+                Util.DrawSimpleTextbox(Game1.spriteBatch, _hoverText, Game1.smallFont, Game1.player.CurrentItem);
             }
             if (Game1.activeClickableMenu != null && Game1.activeClickableMenu is BobberBar bar)
             {
@@ -358,7 +354,7 @@ namespace JoysOfEfficiency
             {
                 return;
             }
-            DayEnded = false;
+            _dayEnded = false;
             if (Game1.isRaining || Game1.isSnowing)
             {
                 Monitor.Log("Don't open the animal door because of rainy/snowy weather.");

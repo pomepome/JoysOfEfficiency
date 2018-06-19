@@ -71,3 +71,6 @@ This is a changelog from 1.1.14-beta
 ## 1.1.30-beta
 - Improved CoG support
 - Updated ja.json
+
+## 1.1.31-beta
+- Pickup motion won't be played when riding.

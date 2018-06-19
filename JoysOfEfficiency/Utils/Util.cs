@@ -13,6 +13,8 @@ using StardewValley.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static System.String;
+using static StardewValley.Game1;
 
 namespace JoysOfEfficiency.Utils
 {
@@ -23,33 +25,33 @@ namespace JoysOfEfficiency.Utils
         public static IModHelper Helper;
         public static IMonitor Monitor;
         internal static ModEntry ModInstance;
-        private static bool catchingTreasure;
+        private static bool _catchingTreasure;
 
-        private static MineIcons icons = new MineIcons();
-        private static List<Monster> lastMonsters = new List<Monster>();
-        private static List<Vector2> flowerLocationProducingNectar = new List<Vector2>();
-        private static string lastKilledMonster;
+        private static readonly MineIcons Icons = new MineIcons();
+        private static List<Monster> _lastMonsters = new List<Monster>();
+        private static readonly List<Vector2> FlowerLocationProducingNectar = new List<Vector2>();
+        private static string _lastKilledMonster;
 
         public static void UpdateNectarInfo()
         {
-            flowerLocationProducingNectar.Clear();
-            foreach(KeyValuePair<Vector2, SVObject> kv in Game1.currentLocation.Objects.Pairs.Where(pair=>pair.Value.Name == "Bee House"))
+            FlowerLocationProducingNectar.Clear();
+            foreach(KeyValuePair<Vector2, SVObject> kv in currentLocation.Objects.Pairs.Where(pair=>pair.Value.Name == "Bee House"))
             {
                 Vector2 houseLoc = kv.Key;
-                Vector2 flowerLoc = GetCropLocation(Utility.findCloseFlower(Game1.currentLocation, houseLoc));
-                if(flowerLoc.X != -1 && flowerLoc.Y != -1 && !flowerLocationProducingNectar.Contains(flowerLoc))
+                Vector2 flowerLoc = GetCropLocation(Utility.findCloseFlower(currentLocation, houseLoc));
+                if((int)flowerLoc.X != -1 && (int)flowerLoc.Y != -1 && !FlowerLocationProducingNectar.Contains(flowerLoc))
                 {
-                    flowerLocationProducingNectar.Add(flowerLoc);
+                    FlowerLocationProducingNectar.Add(flowerLoc);
                 }
             }
         }
 
         public static void PetNearbyPets()
         {
-            GameLocation location = Game1.currentLocation;
+            GameLocation location = currentLocation;
             Player player = Game1.player;
 
-            Rectangle bb = Expand(player.GetBoundingBox(), ModEntry.Conf.AutoPetRadius * Game1.tileSize);
+            Rectangle bb = Expand(player.GetBoundingBox(), ModEntry.Conf.AutoPetRadius * tileSize);
 
             foreach (Pet pet in location.characters.OfType<Pet>().Where(pet => pet.GetBoundingBox().Intersects(bb)))
             {
@@ -70,11 +72,11 @@ namespace JoysOfEfficiency.Utils
             }
             foreach (SVObject obj in GetObjectsWithin<SVObject>(ModEntry.Conf.MachineRadius))
             {
-                Vector2 loc = GetLocationOf(Game1.currentLocation, obj);
+                Vector2 loc = GetLocationOf(currentLocation, obj);
                 if (IsObjectMachine(obj) && obj.heldObject.Value == null)
                 {
                     bool flag = false;
-                    bool accepted = obj.Name == "Furnace" ? CanFurnaceAcceptItem(obj, item, player) : Utility.isThereAnObjectHereWhichAcceptsThisItem(Game1.currentLocation, item, (int)loc.X * Game1.tileSize, (int)loc.Y * Game1.tileSize);
+                    bool accepted = obj.Name == "Furnace" ? CanFurnaceAcceptItem(item, player) : Utility.isThereAnObjectHereWhichAcceptsThisItem(currentLocation, item, (int)loc.X * tileSize, (int)loc.Y * tileSize);
                     if (obj is Cask)
                     {
                         if(ModEntry.IsCoGOn)
@@ -85,7 +87,7 @@ namespace JoysOfEfficiency.Utils
                                 flag = true;
                             }
                         }
-                        else if(Game1.currentLocation is Cellar && accepted)
+                        else if(currentLocation is Cellar && accepted)
                         {
                             flag = true;
                         }
@@ -129,9 +131,9 @@ namespace JoysOfEfficiency.Utils
                 Vector2 loc = bushes.Key;
                 Bush bush = bushes.Value;
 
-                if(!bush.townBush.Value && bush.tileSheetOffset.Value == 1 && bush.inBloom(Game1.currentSeason, Game1.dayOfMonth))
+                if(!bush.townBush.Value && bush.tileSheetOffset.Value == 1 && bush.inBloom(currentSeason, dayOfMonth))
                 {
-                    bush.performUseAction(loc, Game1.currentLocation);
+                    bush.performUseAction(loc, currentLocation);
                 }
             }
         }
@@ -187,7 +189,7 @@ namespace JoysOfEfficiency.Utils
                 }
                 if (flag)
                 {
-                    Game1.playSound("hoeHit");
+                    playSound("hoeHit");
                 }
             }
         }
@@ -219,22 +221,19 @@ namespace JoysOfEfficiency.Utils
             foreach (IndoorPot pot in GetObjectsWithin<IndoorPot>(1))
             {
                 Vector2 loc = GetLocationOf(location, pot);
-                if (pot.hoeDirt.Value != null)
+                HoeDirt dirt = pot.hoeDirt.Value;
+                if (dirt?.crop != null && dirt.crop.dead.Value)
                 {
-                    HoeDirt dirt = pot.hoeDirt.Value;
-                    if (dirt.crop != null && dirt.crop.dead.Value)
-                    {
-                        dirt.destroyCrop(loc, true, location);
-                    }
+                    dirt.destroyCrop(loc, true, location);
                 }
             }
         }
 
         public static void DrawCursor()
         {
-            if (!Game1.options.hardwareCursor)
+            if (!options.hardwareCursor)
             {
-                Game1.spriteBatch.Draw(Game1.mouseCursors, new Vector2(Game1.getOldMouseX(), Game1.getOldMouseY()), Game1.getSourceRectForStandardTileSheet(Game1.mouseCursors, Game1.options.gamepadControls ? 44 : 0, 16, 16), Color.White, 0f, Vector2.Zero, Game1.pixelZoom + Game1.dialogueButtonScale / 150f, SpriteEffects.None, 1f);
+                spriteBatch.Draw(mouseCursors, new Vector2(getOldMouseX(), getOldMouseY()), getSourceRectForStandardTileSheet(mouseCursors, options.gamepadControls ? 44 : 0, 16, 16), Color.White, 0f, Vector2.Zero, pixelZoom + dialogueButtonScale / 150f, SpriteEffects.None, 1f);
             }
         }
 
@@ -299,20 +298,16 @@ namespace JoysOfEfficiency.Utils
             }
             foreach (IndoorPot pot in GetObjectsWithin<IndoorPot>(radius))
             {
-                if (pot.hoeDirt.Value != null)
+                HoeDirt dirt = pot.hoeDirt.Value;
+                if (dirt?.crop == null || !dirt.readyForHarvest())
+                    continue;
+                Vector2 tileLoc = GetLocationOf(location, pot);
+                if (dirt.crop.harvest((int)tileLoc.X, (int)tileLoc.Y, dirt))
                 {
-                    HoeDirt dirt = pot.hoeDirt.Value;
-                    if (dirt.crop != null && dirt.readyForHarvest())
+                    if (dirt.crop.regrowAfterHarvest.Value == -1 || dirt.crop.forageCrop.Value)
                     {
-                        Vector2 tileLoc = GetLocationOf(location, pot);
-                        if (dirt.crop.harvest((int)tileLoc.X, (int)tileLoc.Y, dirt))
-                        {
-                            if (dirt.crop.regrowAfterHarvest.Value == -1 || dirt.crop.forageCrop.Value)
-                            {
-                                //destroy crop if it does not reqrow.
-                                dirt.destroyCrop(tileLoc, true, location);
-                            }
-                        }
+                        //destroy crop if it does not reqrow.
+                        dirt.destroyCrop(tileLoc, true, location);
                     }
                 }
             }
@@ -328,7 +323,6 @@ namespace JoysOfEfficiency.Utils
                 bool watered = false;
                 foreach (KeyValuePair<Vector2, HoeDirt> kv in GetFeaturesWithin<HoeDirt>(ModEntry.Conf.AutoWaterRadius))
                 {
-                    Vector2 location = kv.Key;
                     HoeDirt dirt = kv.Value;
                     float consume = 2 * (1.0f / (can.UpgradeLevel / 2.0f + 1));
                     if (dirt.crop != null && !dirt.crop.dead.Value && dirt.state.Value == 0 && player.Stamina >= consume && can.WaterLeft > 0)
@@ -357,27 +351,26 @@ namespace JoysOfEfficiency.Utils
                 }
                 if (watered)
                 {
-                    Game1.playSound("slosh");
+                    playSound("slosh");
                 }
             }
         }
 
         public static void ToggleBlacklistUnderCursor()
         {
-            GameLocation location = Game1.currentLocation;
-            Vector2 tile = Game1.currentCursorTile;
+            GameLocation location = currentLocation;
+            Vector2 tile = currentCursorTile;
             if (location.terrainFeatures.TryGetValue(tile, out TerrainFeature terrain))
             {
                 if (terrain is HoeDirt dirt)
                 {
                     if (dirt.crop == null)
                     {
-                        ShowHUDMessage("There is no crop under the cursor");
-                        return;
+                        ShowHudMessage("There is no crop under the cursor");
                     }
                     else
                     {
-                        string name = "";
+                        string name;
                         if (dirt.crop.forageCrop.Value)
                         {
                             name = new SVObject(dirt.crop.whichForageCrop.Value, 1).Name;
@@ -390,16 +383,11 @@ namespace JoysOfEfficiency.Utils
                         {
                             return;
                         }
-                        string text = "";
-                        if (ToggleBlackList(dirt.crop))
-                        {
-                            text = $"{name} has been added to AutoHarvest exception";
-                        }
-                        else
-                        {
-                            text = $"{name} has been removed from AutoHarvest exception";
-                        }
-                        ShowHUDMessage(text, 1000);
+
+                        string text = ToggleBlackList(dirt.crop)
+                            ? $"{name} has been added to AutoHarvest exception"
+                            : $"{name} has been removed from AutoHarvest exception";
+                        ShowHudMessage(text, 1000);
                         Monitor.Log(text);
                     }
                 }
@@ -410,28 +398,28 @@ namespace JoysOfEfficiency.Utils
         {
             IReflectionHelper reflection = Helper.Reflection;
             ITranslationHelper translation = Helper.Translation;
-            int stonesLeft = reflection.GetField<NetIntDelta>(shaft, "netStonesLeftOnThisLevel").GetValue();
+            int stonesLeft = reflection.GetField<NetIntDelta>(shaft, "netStonesLeftOnThisLevel").GetValue().Value;
             Vector2 ladderPos = FindLadder(shaft);
-            bool ladder = ladderPos != null && ladderPos != Vector2.Zero;
+            bool ladder = ladderPos != Vector2.Zero;
 
             List<Monster> currentMonsters = shaft.characters.OfType<Monster>().ToList();
-            foreach (Monster mon in lastMonsters)
+            foreach (Monster mon in _lastMonsters)
             {
                 if (!currentMonsters.Contains(mon) && mon.Name != "ignoreMe")
                 {
-                    lastKilledMonster = mon.Name;
+                    _lastKilledMonster = mon.Name;
                 }
             }
-            lastMonsters = currentMonsters.ToList();
+            _lastMonsters = currentMonsters.ToList();
             string tallyStr = null;
             string ladderStr = null;
-            if (lastKilledMonster != null)
+            if (_lastKilledMonster != null)
             {
-                int kills = Game1.stats.getMonstersKilled(lastKilledMonster);
-                tallyStr = string.Format(translation.Get("monsters.tally"), lastKilledMonster, kills);
+                int kills = stats.getMonstersKilled(_lastKilledMonster);
+                tallyStr = String.Format(translation.Get("monsters.tally"), _lastKilledMonster, kills);
             }
 
-            string stonesStr = null;
+            string stonesStr;
             if (stonesLeft == 0)
             {
                 stonesStr = translation.Get("stones.none");
@@ -452,7 +440,7 @@ namespace JoysOfEfficiency.Utils
             {
                 ladderStr = translation.Get("ladder");
             }
-            icons.Draw(stonesStr, tallyStr, ladderStr);
+            Icons.Draw(stonesStr, tallyStr, ladderStr);
         }
 
         public static void DrawFishingInfoBox(SpriteBatch batch, BobberBar bar, SpriteFont font)
@@ -548,22 +536,19 @@ namespace JoysOfEfficiency.Utils
             width += 64;
 
             int x = bar.xPositionOnScreen + bar.width + 96;
-            if (x + width > Game1.viewport.Width)
+            if (x + width > viewport.Width)
             {
                 x = bar.xPositionOnScreen - width - 96;
             }
-            int y = (int)Cap(bar.yPositionOnScreen, 0, Game1.viewport.Height - height);
+            int y = (int)Cap(bar.yPositionOnScreen, 0, viewport.Height - height);
 
-            IClickableMenu.drawTextureBox(batch, Game1.menuTexture, new Rectangle(0, 256, 60, 60), x, y, width, height, Color.White);
+            IClickableMenu.drawTextureBox(batch, menuTexture, new Rectangle(0, 256, 60, 60), x, y, width, height, Color.White);
             fish.drawInMenu(batch, new Vector2(x + width / 2 - 32, y + 16), 1.0f, 1.0f, 0.9f, false);
 
-
-            Vector2 stringSize = font.MeasureString("X");
-            Vector2 addition = new Vector2(0, stringSize.Y);
-
+            
             Vector2 vec2 = new Vector2(x + 32, y + 96);
-            DrawString(batch, font, ref vec2, speciesText, Color.Black, scale, false);
-            DrawString(batch, font, ref vec2, sizeText, Color.Black, scale, false);
+            DrawString(batch, font, ref vec2, speciesText, Color.Black, scale);
+            DrawString(batch, font, ref vec2, sizeText, Color.Black, scale);
             DrawString(batch, font, ref vec2, qualityText1, Color.Black, scale, true);
             DrawString(batch, font, ref vec2, qualityText2, GetColorForQuality(fishQuality), scale);
             vec2.X = x + 32;
@@ -573,29 +558,27 @@ namespace JoysOfEfficiency.Utils
                 {
                     if (treasureAppearTimer > 0f)
                     {
-                        DrawString(batch, font, ref vec2, incomingText, Color.Red, scale, false);
+                        DrawString(batch, font, ref vec2, incomingText, Color.Red, scale);
                     }
                     else
                     {
-                        DrawString(batch, font, ref vec2, appearedText, Color.LightGoldenrodYellow, scale, false);
+                        DrawString(batch, font, ref vec2, appearedText, Color.LightGoldenrodYellow, scale);
                     }
                 }
                 else
                 {
-                    DrawString(batch, font, ref vec2, caughtText, Color.ForestGreen, scale, false);
+                    DrawString(batch, font, ref vec2, caughtText, Color.ForestGreen, scale);
                 }
             }
         }
 
         public static void TryToggleGate(Player player)
         {
-            GameLocation location = player.currentLocation;
-
             foreach (Fence fence in GetObjectsWithin<Fence>(2).Where(f => f.isGate.Value))
             {
                 Vector2 loc = fence.TileLocation;
 
-                bool? isUpDown = IsUpsideDown(location, fence);
+                bool? isUpDown = IsUpsideDown(fence);
                 if (isUpDown == null)
                 {
                     if (!fence.getBoundingBox(loc).Intersects(player.GetBoundingBox()))
@@ -611,17 +594,17 @@ namespace JoysOfEfficiency.Utils
                 if (flag && gatePosition == 0)
                 {
                     fence.gatePosition.Value = 88;
-                    Game1.playSound("doorClose");
+                    playSound("doorClose");
                 }
                 if (!flag && gatePosition >= 88)
                 {
                     fence.gatePosition.Value = 0;
-                    Game1.playSound("doorClose");
+                    playSound("doorClose");
                 }
             }
         }
 
-        private static bool CanFurnaceAcceptItem(SVObject furnace, Item item, Player player)
+        private static bool CanFurnaceAcceptItem(Item item, Player player)
         {
             if (player.getTallyOfObject(382, false) <= 0)
                 return false;
@@ -653,8 +636,8 @@ namespace JoysOfEfficiency.Utils
                 radius = 1;
             }
 
-            GameLocation location = Game1.player.currentLocation;
-            Vector2 ov = Game1.player.getTileLocation();
+            GameLocation location = player.currentLocation;
+            Vector2 ov = player.getTileLocation();
             List<T> list = new List<T>();
             for (int dx = -radius; dx <= radius; dx++)
             {
@@ -676,8 +659,8 @@ namespace JoysOfEfficiency.Utils
             {
                 return new Dictionary<Vector2, T>();
             }
-            GameLocation location = Game1.player.currentLocation;
-            Vector2 ov = Game1.player.getTileLocation();
+            GameLocation location = player.currentLocation;
+            Vector2 ov = player.getTileLocation();
             Dictionary<Vector2, T> list = new Dictionary<Vector2, T>();
 
             for (int dx = -radius; dx <= radius; dx++)
@@ -688,16 +671,14 @@ namespace JoysOfEfficiency.Utils
                     if (location.terrainFeatures.ContainsKey(loc) && location.terrainFeatures[loc] is T t)
                     {
                         list.Add(loc, t);
-                        continue;
                     }
                     else if (location.largeTerrainFeatures.Count > 0 && typeof(LargeTerrainFeature).IsAssignableFrom(typeof(T)))
                     {
                         foreach (LargeTerrainFeature feature in location.largeTerrainFeatures)
                         {
-                            if (feature != null && feature is T && feature.tilePosition.X == loc.X && feature.tilePosition.Y == loc.Y)
-                            {
-                                list.Add(loc, feature as T);
-                            }
+                            T obj = feature as T;
+                            if (obj != null && !list.ContainsKey(loc))
+                                list.Add(loc, obj);
                         }
                     }
                 }
@@ -705,7 +686,7 @@ namespace JoysOfEfficiency.Utils
             return list;
         }
 
-        private static Vector2 FindLadder(MineShaft shaft)
+        private static Vector2 FindLadder(GameLocation shaft)
         {
             for (int i = 0; i < shaft.Map.GetLayer("Buildings").LayerWidth; i++)
             {
@@ -725,80 +706,68 @@ namespace JoysOfEfficiency.Utils
         
         private static Vector2 GetLocationOf(GameLocation location, SVObject obj)
         {
-            IEnumerable<KeyValuePair<Vector2, SVObject>> pairs = location.Objects.Pairs.Where(kv => kv.Value == obj);
-            if (pairs.Count() == 0)
-            {
-                return new Vector2(-1, -1);
-            }
-            return pairs.First().Key;
+            List<KeyValuePair<Vector2, SVObject>> pairs = location.Objects.Pairs.Where(kv => kv.Value == obj).ToList();
+            return pairs.Any() ? pairs.First().Key : new Vector2(-1, -1);
         }
 
+/*
         private static Vector2 GetLocationOf(GameLocation location, TerrainFeature feature)
         {
-            IEnumerable<KeyValuePair<Vector2, TerrainFeature>> pairs = location.terrainFeatures.Pairs.Where(kv => kv.Value == feature);
-            if (pairs.Count() == 0)
-            {
-                return new Vector2(-1, -1);
-            }
-            return pairs.First().Key;
+            List<KeyValuePair<Vector2, TerrainFeature>> pairs = location.terrainFeatures.Pairs.Where(kv => kv.Value == feature).ToList();
+            return pairs.Any() ? pairs.First().Key : new Vector2(-1, -1);
         }
+*/
 
         public static bool CollectObj(GameLocation loc, SVObject obj)
         {
-            Player who = Game1.player;
+            Player who = player;
 
             Vector2 vector = GetLocationOf(loc, obj);
-            if(vector.X == -1 && vector.Y == -1)
-            {
+
+            if ((int) vector.X == -1 && (int) vector.Y == -1)
                 return false;
-            }
+            if (obj.questItem.Value)
+                return false;
 
             int quality = obj.Quality;
-            Random random = new Random((int)Game1.uniqueIDForThisGame / 2 + (int)Game1.stats.DaysPlayed + (int)vector.X + (int)vector.Y * 777);
+            Random random = new Random((int)uniqueIDForThisGame / 2 + (int)stats.DaysPlayed + (int)vector.X + (int)vector.Y * 777);
+
             if (who.professions.Contains(16) && obj.isForage(loc))
-            {
                 obj.Quality = 4;
-            }
+
             else if (obj.isForage(loc))
             {
                 if (random.NextDouble() < who.ForagingLevel / 30f)
-                {
                     obj.Quality = 2;
-                }
                 else if (random.NextDouble() < who.ForagingLevel / 15f)
-                {
                     obj.Quality = 1;
-                }
             }
-            if (obj.questItem.Value && obj.questId.Value != 0 && !who.hasQuest(obj.questId.Value))
-            {
-                return false;
-            }
+
             if (who.couldInventoryAcceptThisItem(obj))
             {
                 Monitor.Log($"picked up {obj.DisplayName} at [{vector.X},{vector.Y}]");
                 if (who.IsLocalPlayer)
                 {
                     loc.localSound("pickUpItem");
-                    DelayedAction.playSoundAfterDelay("coin", 300, null);
+                    DelayedAction.playSoundAfterDelay("coin", 300);
                 }
-                who.animateOnce(279 + who.FacingDirection);
+
+                if (!who.isRidingHorse() && !who.ridingMineElevator)
+                    who.animateOnce(279 + who.FacingDirection);
+
                 if (!loc.isFarmBuildingInterior())
                 {
                     if (obj.isForage(loc))
-                    {
                         who.gainExperience(2, 7);
-                    }
                 }
                 else
-                {
                     who.gainExperience(0, 5);
-                }
-                who.addItemToInventoryBool(obj.getOne(), false);
-                Game1.stats.ItemsForaged++;
+
+                who.addItemToInventoryBool(obj.getOne());
+                stats.ItemsForaged++;
                 if (who.professions.Contains(13) && random.NextDouble() < 0.2 && !obj.questItem.Value && who.couldInventoryAcceptThisItem(obj) && !loc.isFarmBuildingInterior())
                 {
-                    who.addItemToInventoryBool(obj.getOne(), false);
+                    who.addItemToInventoryBool(obj.getOne());
                     who.gainExperience(2, 7);
                 }
                 loc.Objects.Remove(vector);
@@ -843,52 +812,58 @@ namespace JoysOfEfficiency.Utils
             Crop crop = soil.crop;
             if (crop.dead.Value)
             {
-                if (junimoHarvester != null)
-                {
-                    return true;
-                }
                 return false;
             }
             if (crop.forageCrop.Value)
             {
                 SVObject o = null;
-                int experience2 = 3;
+                const int experience2 = 3;
                 int num = crop.whichForageCrop.Value;
                 if (num == 1)
                 {
-                    o = new SVObject(399, 1, false, -1, 0);
+                    o = new SVObject(399, 1);
                 }
-                if (Game1.player.professions.Contains(16))
+                if (player.professions.Contains(16))
                 {
-                    o.Quality = 4;
+                    if (o != null) o.Quality = 4;
                 }
-                else if (Game1.random.NextDouble() < Game1.player.ForagingLevel / 30f)
+                else if (random.NextDouble() < player.ForagingLevel / 30f)
                 {
-                    o.Quality = 2;
+                    if (o != null) o.Quality = 2;
                 }
-                else if (Game1.random.NextDouble() < Game1.player.ForagingLevel / 15f)
+                else if (random.NextDouble() < player.ForagingLevel / 15f)
                 {
-                    o.Quality = 1;
+                    if (o != null) o.Quality = 1;
                 }
-                Game1.stats.ItemsForaged += (uint)o.Stack;
+
+                if (o == null)
+                    return false;
+
+                stats.ItemsForaged += (uint) o.Stack;
                 if (junimoHarvester != null)
                 {
                     junimoHarvester.tryToAddItemToHut(o);
                     return true;
                 }
-                if (Game1.player.addItemToInventoryBool(o, false))
+
+                if (player.addItemToInventoryBool(o))
                 {
                     Vector2 initialTile2 = new Vector2(xTile, yTile);
-                    Game1.player.animateOnce(279 + Game1.player.FacingDirection);
-                    Game1.player.canMove = false;
-                    Game1.player.currentLocation.playSound("harvest");
-                    DelayedAction.playSoundAfterDelay("coin", 260, null);
+                    player.animateOnce(279 + player.FacingDirection);
+                    player.canMove = false;
+                    player.currentLocation.playSound("harvest");
+                    DelayedAction.playSoundAfterDelay("coin", 260);
                     if (crop.regrowAfterHarvest.Value == -1)
                     {
-                        multiplayer.broadcastSprites(Game1.currentLocation, new TemporaryAnimatedSprite(17, new Vector2(initialTile2.X * 64f, initialTile2.Y * 64f), Color.White, 7, Game1.random.NextDouble() < 0.5, 125f, 0, -1, -1f, -1, 0));
-                        multiplayer.broadcastSprites(Game1.currentLocation, new TemporaryAnimatedSprite(14, new Vector2(initialTile2.X * 64f, initialTile2.Y * 64f), Color.White, 7, Game1.random.NextDouble() < 0.5, 50f, 0, -1, -1f, -1, 0));
+                        multiplayer.broadcastSprites(currentLocation,
+                            new TemporaryAnimatedSprite(17, new Vector2(initialTile2.X * 64f, initialTile2.Y * 64f),
+                                Color.White, 7, random.NextDouble() < 0.5, 125f));
+                        multiplayer.broadcastSprites(currentLocation,
+                            new TemporaryAnimatedSprite(14, new Vector2(initialTile2.X * 64f, initialTile2.Y * 64f),
+                                Color.White, 7, random.NextDouble() < 0.5, 50f));
                     }
-                    Game1.player.gainExperience(2, experience2);
+
+                    player.gainExperience(2, experience2);
                     return true;
                 }
             }
@@ -901,7 +876,8 @@ namespace JoysOfEfficiency.Utils
                 {
                     return true;
                 }
-                Random r = new Random(xTile * 7 + yTile * 11 + (int)Game1.stats.DaysPlayed + (int)Game1.uniqueIDForThisGame);
+                Random r = new Random(xTile * 7 + yTile * 11 + (int)stats.DaysPlayed + (int)uniqueIDForThisGame);
+
                 switch (soil.fertilizer.Value)
                 {
                     case 368:
@@ -911,7 +887,8 @@ namespace JoysOfEfficiency.Utils
                         fertilizerQualityLevel = 2;
                         break;
                 }
-                double chanceForGoldQuality = 0.2 * (Game1.player.FarmingLevel / 10.0) + 0.2 * (double)fertilizerQualityLevel * (((double)Game1.player.FarmingLevel + 2.0) / 12.0) + 0.01;
+
+                double chanceForGoldQuality = 0.2 * (player.FarmingLevel / 10.0) + 0.2 * fertilizerQualityLevel * ((player.FarmingLevel + 2.0) / 12.0) + 0.01;
                 double chanceForSilverQuality = Math.Min(0.75, chanceForGoldQuality * 2.0);
                 if (r.NextDouble() < chanceForGoldQuality)
                 {
@@ -923,7 +900,7 @@ namespace JoysOfEfficiency.Utils
                 }
                 if (crop.minHarvest.Value > 1 || crop.maxHarvest.Value > 1)
                 {
-                    numToHarvest = r.Next(crop.minHarvest.Value, Math.Min(crop.minHarvest.Value + 1, crop.maxHarvest.Value + 1 + Game1.player.FarmingLevel / crop.maxHarvestIncreasePerFarmingLevel.Value));
+                    numToHarvest = r.Next(crop.minHarvest.Value, Math.Min(crop.minHarvest.Value + 1, crop.maxHarvest.Value + 1 + player.FarmingLevel / crop.maxHarvestIncreasePerFarmingLevel.Value));
                 }
                 if (crop.chanceForExtraCrops.Value > 0.0)
                 {
@@ -932,11 +909,11 @@ namespace JoysOfEfficiency.Utils
                         numToHarvest++;
                     }
                 }
-                if ((int)crop.harvestMethod.Value == 1)
+                if (crop.harvestMethod.Value == 1)
                 {
                     for (int j = 0; j < numToHarvest; j++)
                     {
-                        Game1.createObjectDebris(crop.indexOfHarvest.Value, xTile, yTile, -1, cropQuality, 1f, null);
+                        createObjectDebris(crop.indexOfHarvest.Value, xTile, yTile, -1, cropQuality);
                     }
                     if (crop.regrowAfterHarvest.Value == -1)
                     {
@@ -945,16 +922,17 @@ namespace JoysOfEfficiency.Utils
                     crop.dayOfCurrentPhase.Value = crop.regrowAfterHarvest.Value;
                     crop.fullyGrown.Value = true;
                 }
-                else if (Game1.player.addItemToInventoryBool((crop.programColored.Value) ? new ColoredObject(crop.indexOfHarvest.Value, 1, crop.tintColor.Value)
+                else if (player.addItemToInventoryBool((crop.programColored.Value) ? new ColoredObject(crop.indexOfHarvest.Value, 1, crop.tintColor.Value)
                 {
                     Quality = cropQuality
-                } : new SVObject(crop.indexOfHarvest.Value, 1, false, -1, cropQuality), false))
+                } 
+                : new SVObject(crop.indexOfHarvest.Value, 1, false, -1, cropQuality)))
                 {
                     Vector2 initialTile = new Vector2(xTile, yTile);
                     if (junimoHarvester == null)
                     {
-                        Game1.player.animateOnce(279 + Game1.player.FacingDirection);
-                        Game1.player.canMove = false;
+                        player.animateOnce(279 + player.FacingDirection);
+                        player.canMove = false;
                     }
                     else
                     {
@@ -963,12 +941,12 @@ namespace JoysOfEfficiency.Utils
                             Quality = cropQuality
                         } : new SVObject(crop.indexOfHarvest.Value, 1, false, -1, cropQuality));
                     }
-                    if (r.NextDouble() < (double)((float)Game1.player.LuckLevel / 1500f) + Game1.dailyLuck / 1200.0 + 9.9999997473787516E-05)
+                    if (r.NextDouble() < player.LuckLevel / 1500f + dailyLuck / 1200.0 + 9.9999997473787516E-05)
                     {
                         numToHarvest *= 2;
                         if (junimoHarvester == null)
                         {
-                            Game1.player.currentLocation.playSound("dwoop");
+                            player.currentLocation.playSound("dwoop");
                         }
                         else if (Utility.isOnScreen(junimoHarvester.getTileLocationPoint(), 64, junimoHarvester.currentLocation))
                         {
@@ -979,11 +957,11 @@ namespace JoysOfEfficiency.Utils
                     {
                         if (junimoHarvester == null)
                         {
-                            Game1.player.currentLocation.playSound("harvest");
+                            player.currentLocation.playSound("harvest");
                         }
                         if (junimoHarvester == null)
                         {
-                            DelayedAction.playSoundAfterDelay("coin", 260, Game1.player.currentLocation);
+                            DelayedAction.playSoundAfterDelay("coin", 260, player.currentLocation);
                         }
                         else if (Utility.isOnScreen(junimoHarvester.getTileLocationPoint(), 64, junimoHarvester.currentLocation))
                         {
@@ -991,8 +969,8 @@ namespace JoysOfEfficiency.Utils
                         }
                         if (crop.regrowAfterHarvest.Value == -1)
                         {
-                            multiplayer.broadcastSprites(Game1.currentLocation, new TemporaryAnimatedSprite(17, new Vector2(initialTile.X * 64f, initialTile.Y * 64f), Color.White, 7, Game1.random.NextDouble() < 0.5, 125f, 0, -1, -1f, -1, 0));
-                            multiplayer.broadcastSprites(Game1.currentLocation, new TemporaryAnimatedSprite(14, new Vector2(initialTile.X * 64f, initialTile.Y * 64f), Color.White, 7, Game1.random.NextDouble() < 0.5, 50f, 0, -1, -1f, -1, 0));
+                            multiplayer.broadcastSprites(currentLocation, new TemporaryAnimatedSprite(17, new Vector2(initialTile.X * 64f, initialTile.Y * 64f), Color.White, 7, random.NextDouble() < 0.5, 125f));
+                            multiplayer.broadcastSprites(currentLocation, new TemporaryAnimatedSprite(14, new Vector2(initialTile.X * 64f, initialTile.Y * 64f), Color.White, 7, random.NextDouble() < 0.5, 50f));
                         }
                     }
                     if (crop.indexOfHarvest.Value == 421)
@@ -1002,13 +980,13 @@ namespace JoysOfEfficiency.Utils
                     }
                     for (int i = 0; i < numToHarvest - 1; i++)
                     {
-                        Game1.createObjectDebris(crop.indexOfHarvest.Value, xTile, yTile, -1, 0, 1f, null);
+                        createObjectDebris(crop.indexOfHarvest.Value, xTile, yTile);
                     }
-                    int price = Convert.ToInt32(Game1.objectInformation[crop.indexOfHarvest.Value].Split('/')[1]);
-                    float experience = (float)(16.0 * Math.Log(0.018 * (double)price + 1.0, 2.7182818284590451));
+                    int price = Convert.ToInt32(objectInformation[crop.indexOfHarvest.Value].Split('/')[1]);
+                    float experience = (float)(16.0 * Math.Log(0.018 * price + 1.0, 2.7182818284590451));
                     if (junimoHarvester == null)
                     {
-                        Game1.player.gainExperience(0, (int)Math.Round((double)experience));
+                        player.gainExperience(0, (int)Math.Round(experience));
                     }
                     if (crop.regrowAfterHarvest.Value == -1)
                     {
@@ -1026,14 +1004,14 @@ namespace JoysOfEfficiency.Utils
 
         private static Vector2 GetCropLocation(Crop crop)
         {
-            foreach(KeyValuePair<Vector2, TerrainFeature> kv in Game1.currentLocation.terrainFeatures.Pairs)
+            foreach(KeyValuePair<Vector2, TerrainFeature> kv in currentLocation.terrainFeatures.Pairs)
             {
-                if(kv.Value is HoeDirt dirt)
+                if (!(kv.Value is HoeDirt dirt))
+                    continue;
+
+                if(dirt.crop != null && !dirt.crop.dead.Value && dirt.crop == crop)
                 {
-                    if(dirt.crop != null && !dirt.crop.dead.Value && dirt.crop == crop)
-                    {
-                        return kv.Key;
-                    }
+                    return kv.Key;
                 }
             }
             return new Vector2(-1, -1);
@@ -1042,12 +1020,9 @@ namespace JoysOfEfficiency.Utils
         /// <summary>
         /// Is the dirt's crop is a flower and producing nectar
         /// </summary>
-        /// <param name="dirt">HoeDirt to evaluate</param>
-        /// <returns></returns>
-        private static bool IsProducingNectar(Vector2 location)
-        {
-            return flowerLocationProducingNectar.Contains(location);
-        }
+        /// <param name="location">HoeDirt location to evaluate</param>
+        /// <returns>Result</returns>
+        private static bool IsProducingNectar(Vector2 location) => FlowerLocationProducingNectar.Contains(location);
 
         private static bool IsBlackListed(Crop crop)
         {
@@ -1096,29 +1071,29 @@ namespace JoysOfEfficiency.Utils
             }
         }
 
-        private static bool? IsUpsideDown(GameLocation location, Fence fence)
+        private static bool? IsUpsideDown(Fence fence)
         {
             int num2 = 0;
             Vector2 tileLocation = fence.TileLocation;
             int whichType = fence.whichType.Value;
             tileLocation.X += 1f;
-            if (Game1.currentLocation.objects.ContainsKey(tileLocation) && Game1.currentLocation.objects[tileLocation].GetType() == typeof(Fence) && ((Fence)Game1.currentLocation.objects[tileLocation]).countsForDrawing(whichType))
+            if (currentLocation.objects.ContainsKey(tileLocation) && currentLocation.objects[tileLocation].GetType() == typeof(Fence) && ((Fence)currentLocation.objects[tileLocation]).countsForDrawing(whichType))
             {
                 num2 += 100;
             }
             tileLocation.X -= 2f;
-            if (Game1.currentLocation.objects.ContainsKey(tileLocation) && Game1.currentLocation.objects[tileLocation].GetType() == typeof(Fence) && ((Fence)Game1.currentLocation.objects[tileLocation]).countsForDrawing(whichType))
+            if (currentLocation.objects.ContainsKey(tileLocation) && currentLocation.objects[tileLocation].GetType() == typeof(Fence) && ((Fence)currentLocation.objects[tileLocation]).countsForDrawing(whichType))
             {
                 num2 += 10;
             }
             tileLocation.X += 1f;
             tileLocation.Y += 1f;
-            if (Game1.currentLocation.objects.ContainsKey(tileLocation) && Game1.currentLocation.objects[tileLocation].GetType() == typeof(Fence) && ((Fence)Game1.currentLocation.objects[tileLocation]).countsForDrawing(whichType))
+            if (currentLocation.objects.ContainsKey(tileLocation) && currentLocation.objects[tileLocation].GetType() == typeof(Fence) && ((Fence)currentLocation.objects[tileLocation]).countsForDrawing(whichType))
             {
                 num2 += 500;
             }
             tileLocation.Y -= 2f;
-            if (Game1.currentLocation.objects.ContainsKey(tileLocation) && Game1.currentLocation.objects[tileLocation].GetType() == typeof(Fence) && ((Fence)Game1.currentLocation.objects[tileLocation]).countsForDrawing(whichType))
+            if (currentLocation.objects.ContainsKey(tileLocation) && currentLocation.objects[tileLocation].GetType() == typeof(Fence) && ((Fence)currentLocation.objects[tileLocation]).countsForDrawing(whichType))
             {
                 num2 += 1000;
             }
@@ -1171,7 +1146,7 @@ namespace JoysOfEfficiency.Utils
         }
         public static void TryToEatIfNeeded(Player player)
         {
-            if (player.isEating || Game1.activeClickableMenu != null)
+            if (player.isEating || activeClickableMenu != null)
             {
                 return;
             }
@@ -1246,28 +1221,33 @@ namespace JoysOfEfficiency.Utils
             float treasureApeearTimer = reflection.GetField<float>(bar, "treasureAppearTimer").GetValue();
             float bobberBarSpeed = bobberSpeed.GetValue();
 
-            float top = barPos, bottom = barPos + barHeight;
+            float top = barPos;
 
             if (treasure && treasureApeearTimer <= 0 && !treasureCaught)
             {
-                if (!catchingTreasure && distanceFromCatching > 0.7f)
+                if (!_catchingTreasure && distanceFromCatching > 0.7f)
                 {
-                    catchingTreasure = true;
+                    _catchingTreasure = true;
                 }
-                if (catchingTreasure && distanceFromCatching < 0.3f)
+                if (_catchingTreasure && distanceFromCatching < 0.3f)
                 {
-                    catchingTreasure = false;
+                    _catchingTreasure = false;
                 }
-                if (catchingTreasure)
+                if (_catchingTreasure)
                 {
                     fishPos = treasurePos;
                 }
             }
 
+            if (fishPos > (barPos + barHeight / 2))
+            {
+                return;
+            }
+
             float strength = (fishPos - (barPos + barHeight / 2)) / 16f;
             float distance = fishPos - top;
 
-            float threshold = Cap(ModEntry.Conf.CPUThresholdFishing, 0, 0.5f);
+            float threshold = Cap(ModEntry.Conf.CpuThresholdFishing, 0, 0.5f);
             if (distance < threshold * barHeight || distance > (1 - threshold) * barHeight)
             {
                 bobberBarSpeed = strength;
@@ -1283,7 +1263,7 @@ namespace JoysOfEfficiency.Utils
 
         public static string Format(string format, params object[] args)
         {
-            return string.Format(format, args);
+            return String.Format(format, args);
         }
 
         public static string GetRealLocation(string key)
@@ -1328,7 +1308,7 @@ namespace JoysOfEfficiency.Utils
 
         public static void LetAnimalsInHome()
         {
-            Farm farm = Game1.getFarm();
+            Farm farm = getFarm();
             foreach (SerializableDictionary<long, FarmAnimal> dic in farm.animals.ToList())
             {
                 foreach (KeyValuePair<long, FarmAnimal> kv in dic)
@@ -1339,14 +1319,14 @@ namespace JoysOfEfficiency.Utils
             }
         }
 
-        public static void ShowHUDMessage(string message, int duration = 3500)
+        public static void ShowHudMessage(string message, int duration = 3500)
         {
             HUDMessage hudMessage = new HUDMessage(message, 3)
             {
                 noIcon = true,
                 timeLeft = duration
             };
-            Game1.addHUDMessage(hudMessage);
+            addHUDMessage(hudMessage);
         }
 
         public static Rectangle Expand(Rectangle rect, int radius)
@@ -1370,28 +1350,28 @@ namespace JoysOfEfficiency.Utils
             {
                 y = 0;
             }
-            int rightX = (int)stringSize.X + Game1.tileSize / 2 + 8;
+            int rightX = (int)stringSize.X + tileSize / 2 + 8;
             if (item != null)
             {
-                rightX += Game1.tileSize;
+                rightX += tileSize;
             }
-            if (x + rightX > Game1.viewport.Width)
+            if (x + rightX > viewport.Width)
             {
-                x = Game1.viewport.Width - rightX;
+                x = viewport.Width - rightX;
             }
             int bottomY = (int)stringSize.Y + 32;
             if (item != null)
             {
-                bottomY = (int)(Game1.tileSize * 1.2) + 32;
+                bottomY = (int)(tileSize * 1.2) + 32;
             }
-            if (bottomY + y > Game1.viewport.Height)
+            if (bottomY + y > viewport.Height)
             {
-                y = Game1.viewport.Height - bottomY;
+                y = viewport.Height - bottomY;
             }
-            IClickableMenu.drawTextureBox(batch, Game1.menuTexture, new Rectangle(0, 256, 60, 60), x, y, rightX, bottomY, Color.White, 1f, true);
-            if (!string.IsNullOrEmpty(text))
+            IClickableMenu.drawTextureBox(batch, menuTexture, new Rectangle(0, 256, 60, 60), x, y, rightX, bottomY, Color.White);
+            if (!IsNullOrEmpty(text))
             {
-                Vector2 vector2 = new Vector2(x + Game1.tileSize / 4, y + bottomY / 2 - stringSize.Y / 2);
+                Vector2 vector2 = new Vector2(x + tileSize / 4, y + bottomY / 2 - stringSize.Y / 2);
                 Utility.drawTextWithShadow(batch, text, font, vector2, Color.Black);
             }
             item?.drawInMenu(batch, new Vector2(x + (int)stringSize.X + 24, y + 16), 1.0f, 1.0f, 0.9f, false);
@@ -1399,7 +1379,7 @@ namespace JoysOfEfficiency.Utils
 
         public static void DrawSimpleTextbox(SpriteBatch batch, string text, SpriteFont font, Item item = null)
         {
-            DrawSimpleTextbox(batch, text, Game1.getMouseX() + Game1.tileSize / 2, Game1.getMouseY() + Game1.tileSize / 2 + 16, font, item);
+            DrawSimpleTextbox(batch, text, getMouseX() + tileSize / 2, getMouseY() + tileSize / 2 + 16, font, item);
         }
 
         public static string GetKeyForQuality(int fishQuality)
@@ -1466,7 +1446,9 @@ namespace JoysOfEfficiency.Utils
             }
             catch
             {
+                // ignored
             }
+
             return "";
         }
     }

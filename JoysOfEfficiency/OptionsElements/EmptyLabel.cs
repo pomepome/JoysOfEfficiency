@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace JoysOfEfficiency.OptionsElements
 {
-    public class EmptyLabel : LabelComponent
+    internal class EmptyLabel : LabelComponent
     {
         public EmptyLabel() : base(" ") { }
     }

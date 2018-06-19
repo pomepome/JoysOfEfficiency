@@ -7,20 +7,20 @@ using System.Threading.Tasks;
 
 namespace JoysOfEfficiency.OptionsElements
 {
-    public class MenuTab
+    internal class MenuTab
     {
-        public int Count { get { return optionsElements.Count; } }
+        public int Count { get { return _optionsElements.Count; } }
 
-        private readonly List<OptionsElement> optionsElements = new List<OptionsElement>();
+        private readonly List<OptionsElement> _optionsElements = new List<OptionsElement>();
 
         public void AddOptionsElement(OptionsElement element)
         {
-            optionsElements.Add(element);
+            _optionsElements.Add(element);
         }
 
         public List<OptionsElement> GetElements()
         {
-            return new List<OptionsElement>(optionsElements);
+            return new List<OptionsElement>(_optionsElements);
         }
     }
 }
