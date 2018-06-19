@@ -71,3 +71,6 @@ This is a changelog from 1.0.22
 
 ## 1.0.37
 - Added CasksAnywhere support.
+
+## 1.0.38
+- Pickup motion won't be played when riding.

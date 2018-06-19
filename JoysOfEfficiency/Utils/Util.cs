@@ -542,7 +542,9 @@ namespace JoysOfEfficiency.Utils
                     Game1.playSound("pickUpItem");
                     DelayedAction.playSoundAfterDelay("coin", 300);
                 }
-                who.animateOnce(279 + who.FacingDirection);
+                if(!who.isRidingHorse() && !who.ridingMineElevator)
+                    who.animateOnce(279 + who.FacingDirection);
+
                 if (!loc.isFarmBuildingInterior())
                 {
                     if (obj.isForage(loc))
