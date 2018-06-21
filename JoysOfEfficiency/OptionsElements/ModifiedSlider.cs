@@ -3,10 +3,6 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
 using StardewValley.Menus;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace JoysOfEfficiency.OptionsElements
 {
@@ -46,7 +42,9 @@ namespace JoysOfEfficiency.OptionsElements
             base.leftClickHeld(x, y);
             int oldValue = _value;
             _value = x >= bounds.X
-                ? (x <= bounds.Right - 10 * Game1.pixelZoom ? (int)((x - bounds.X) / (this.bounds.Width - 10d * Game1.pixelZoom) * this._maxValue) : this._maxValue)
+                ? (x <= bounds.Right - 10 * Game1.pixelZoom
+                    ? (int) ((x - bounds.X) / (bounds.Width - 10d * Game1.pixelZoom) * _maxValue)
+                    : _maxValue)
                 : 0;
             if (_value != oldValue)
             {
@@ -70,7 +68,10 @@ namespace JoysOfEfficiency.OptionsElements
 
         public override void draw(SpriteBatch spriteBatch, int slotX, int slotY)
         {
-            label = $"{_label}: {_format(whichOption, _value + _minValue)}";
+            label = _label.Contains("{0}")
+                ? string.Format(_label, _format(whichOption, _value + _minValue))
+                : $"{_label}: {_format(whichOption, _value + _minValue)}";
+
             greyedOut = _isDisabled();
 
             base.draw(spriteBatch, slotX, slotY - ((int)Game1.dialogueFont.MeasureString(label).Y - bounds.Height) / 2);

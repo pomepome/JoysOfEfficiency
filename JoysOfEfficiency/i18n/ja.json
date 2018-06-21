@@ -52,7 +52,7 @@
   "options.AutoEat": "ピンチの時に自動で食べる",
   "options.StaminaToEatRatio": "スタミナ閾値",
   "options.HealthToEatRatio": "スタミナ閾値",
-  "options.AutoHarvest": "`自動収穫",
+  "options.AutoHarvest": "自動収穫",
   "options.AutoHarvestRadius": "収穫する範囲",
   "options.AutoDestroyDeadCrops": "枯れた作物を破壊する",
   "options.AutoRefillWateringCan": "じょうろに自動で水をいれる",
@@ -69,5 +69,7 @@
   "options.AutoPetNearbyPets": "ペットをなでる",
   "options.ProtectNectarProducingFlower": "はちみつを生産している花を保護",
   "options.FindHoeFromInventory": "クワをインベントリから探す",
-  "options.KeyToggleBlackList": "ブラックリストの切り替え"
+  "options.KeyToggleBlackList": "ブラックリストの切り替え",
+  "options.SaveSkullCavernLevel": "ドクロ洞窟の進捗を保存",
+  "options.CavernFloorIntervalToSave": "保存するフロア間隔"
 }

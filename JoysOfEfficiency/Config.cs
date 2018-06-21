@@ -1,7 +1,6 @@
 ﻿using Microsoft.Xna.Framework.Input;
-using StardewModdingAPI;
-using System;
 using System.Collections.Generic;
+
 namespace JoysOfEfficiency
 {
     internal class Config

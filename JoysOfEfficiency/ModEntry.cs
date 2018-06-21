@@ -39,15 +39,19 @@ namespace JoysOfEfficiency
             Util.Monitor = Monitor;
             Util.ModInstance = this;
             Conf = helper.ReadConfig<Config>();
+
+            ControlEvents.KeyPressed += OnKeyPressed;
+
             GameEvents.UpdateTick += OnGameTick;
             GameEvents.EighthUpdateTick += OnGameUpdate;
-            ControlEvents.KeyPressed += OnKeyPressed;
-            
-            TimeEvents.AfterDayStarted += OnPostSave;
-            SaveEvents.BeforeSave += OnBeforeSave;
-            
+
             GraphicsEvents.OnPreRenderHudEvent += OnPreRenderHud;
             GraphicsEvents.OnPostRenderHudEvent += OnPostRenderHud;
+            
+            SaveEvents.BeforeSave += OnBeforeSave;
+
+            TimeEvents.AfterDayStarted += OnPostSave;
+
 
             Conf.CpuThresholdFishing = Util.Cap(Conf.CpuThresholdFishing, 0, 0.5f);
             Conf.HealthToEatRatio = Util.Cap(Conf.HealthToEatRatio, 0.3f, 0.8f);
@@ -77,7 +81,8 @@ namespace JoysOfEfficiency
 
         private void OnGameTick(object senderm, EventArgs args)
         {
-            if(!Context.IsWorldReady)
+            _hoverText = null;
+            if (!Context.IsWorldReady)
             {
                 return;
             }
@@ -86,37 +91,60 @@ namespace JoysOfEfficiency
             {
                 Util.TryToggleGate(player);
             }
+
             if (Conf.GiftInformation)
             {
-                _hoverText = null;
-                if (player.CurrentItem != null && player.CurrentItem.canBeGivenAsGift())
+                if (player.CurrentItem == null || !player.CurrentItem.canBeGivenAsGift())
                 {
-                    List<NPC> npcList = player.currentLocation.characters.Where(a => a.isVillager()).ToList();
-                    foreach (NPC npc in npcList)
-                    {
-                        RectangleE npcRect = new RectangleE(npc.position.X, npc.position.Y - npc.Sprite.getHeight() - Game1.tileSize / 1.5f, npc.Sprite.getWidth() * 3 + npc.Sprite.getWidth() / 1.5f, (npc.Sprite.getHeight() * 3.5f));
+                    return;
+                }
 
-                        if (npcRect.IsInternalPoint(Game1.getMouseX() + Game1.viewport.X, Game1.getMouseY() + Game1.viewport.Y))
-                        {
-                            //Mouse hovered on the NPC
-                            StringBuilder key = new StringBuilder("taste.");
-                            switch (npc.getGiftTasteForThisItem(player.CurrentItem))
-                            {
-                                case 0: key.Append("love."); break;
-                                case 2: key.Append("like."); break;
-                                case 4: key.Append("dislike."); break;
-                                case 6: key.Append("hate."); break;
-                                default: key.Append("neutral."); break;
-                            }
-                            switch (npc.Gender)
-                            {
-                                case 0: key.Append("male"); break;
-                                default: key.Append("female"); break;
-                            }
-                            Translation translation = Helper.Translation.Get(key.ToString());
-                            _hoverText = translation?.ToString();
-                        }
+                List<NPC> npcList = player.currentLocation.characters.Where(a => a != null && a.isVillager()).ToList();
+                foreach (NPC npc in npcList)
+                {
+                    RectangleE npcRect = new RectangleE(npc.position.X,
+                        npc.position.Y - npc.Sprite.getHeight() - Game1.tileSize / 1.5f,
+                        npc.Sprite.getWidth() * 3 + npc.Sprite.getWidth() / 1.5f, (npc.Sprite.getHeight() * 3.5f));
+
+                    if (!npcRect.IsInternalPoint(Game1.getMouseX() + Game1.viewport.X,
+                        Game1.getMouseY() + Game1.viewport.Y))
+                    {
+                        continue;
                     }
+
+                    //Mouse hovered on the NPC
+                    StringBuilder key = new StringBuilder("taste.");
+                    switch (npc.getGiftTasteForThisItem(player.CurrentItem))
+                    {
+                        case 0:
+                            key.Append("love.");
+                            break;
+                        case 2:
+                            key.Append("like.");
+                            break;
+                        case 4:
+                            key.Append("dislike.");
+                            break;
+                        case 6:
+                            key.Append("hate.");
+                            break;
+                        default:
+                            key.Append("neutral.");
+                            break;
+                    }
+
+                    switch (npc.Gender)
+                    {
+                        case 0:
+                            key.Append("male");
+                            break;
+                        default:
+                            key.Append("female");
+                            break;
+                    }
+
+                    Translation translation = Helper.Translation.Get(key.ToString());
+                    _hoverText = translation?.ToString();
                 }
             }
         }
@@ -262,12 +290,7 @@ namespace JoysOfEfficiency
             }
             if (args.KeyPressed == Keys.H)
             {
-                Player player = Game1.player;
                 Util.ShowHudMessage($"Hay:{Game1.getFarm().piecesOfHay}");
-                if(player.CurrentItem != null)
-                {
-                    Util.ShowHudMessage(player.CurrentItem.ParentSheetIndex+"");
-                }
             }
             if (!Context.IsPlayerFree || Game1.activeClickableMenu != null)
             {
@@ -277,7 +300,7 @@ namespace JoysOfEfficiency
             {
                 //Open Up Menu
                 Game1.playSound("bigSelect");
-                Game1.activeClickableMenu = new JoeMenu(800, 548, this);
+                Game1.activeClickableMenu = new JoeMenu(900, 548, this);
             }
             else if (args.KeyPressed == Conf.KeyToggleBlackList)
             {
@@ -305,7 +328,6 @@ namespace JoysOfEfficiency
                 {
                     Util.DrawFishingInfoBox(Game1.spriteBatch, bar, Game1.dialogueFont);
                 }
-
                 if (Conf.AutoFishing)
                 {
                     Util.AutoFishing(bar);
@@ -392,6 +414,7 @@ namespace JoysOfEfficiency
                 }
             }
         }
+
         public void WriteConfig()
         {
             Helper.WriteConfig(Conf);

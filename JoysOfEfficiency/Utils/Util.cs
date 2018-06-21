@@ -12,7 +12,9 @@ using StardewValley.TerrainFeatures;
 using StardewValley.Tools;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using Newtonsoft.Json;
 using static System.String;
 using static StardewValley.Game1;
 
@@ -73,68 +75,66 @@ namespace JoysOfEfficiency.Utils
             foreach (SVObject obj in GetObjectsWithin<SVObject>(ModEntry.Conf.MachineRadius))
             {
                 Vector2 loc = GetLocationOf(currentLocation, obj);
-                if (IsObjectMachine(obj) && obj.heldObject.Value == null)
+                if (!IsObjectMachine(obj) || obj.heldObject.Value != null)
+                    continue;
+
+                bool flag = false;
+                bool accepted = obj.Name == "Furnace" ? CanFurnaceAcceptItem(item, player) : Utility.isThereAnObjectHereWhichAcceptsThisItem(currentLocation, item, (int)loc.X * tileSize, (int)loc.Y * tileSize);
+                if (obj is Cask)
                 {
-                    bool flag = false;
-                    bool accepted = obj.Name == "Furnace" ? CanFurnaceAcceptItem(item, player) : Utility.isThereAnObjectHereWhichAcceptsThisItem(currentLocation, item, (int)loc.X * tileSize, (int)loc.Y * tileSize);
-                    if (obj is Cask)
+                    if(ModEntry.IsCoGOn)
                     {
-                        if(ModEntry.IsCoGOn)
+                        if(obj.performObjectDropInAction(item, true, player))
                         {
-                            if(obj.performObjectDropInAction(item, true, player))
-                            {
-                                obj.heldObject.Value = null;
-                                flag = true;
-                            }
-                        }
-                        else if(currentLocation is Cellar && accepted)
-                        {
+                            obj.heldObject.Value = null;
                             flag = true;
                         }
                     }
-                    else if (accepted)
+                    else if(currentLocation is Cellar && accepted)
                     {
                         flag = true;
                     }
-                    if (flag)
-                    {
-                        obj.performObjectDropInAction(item, false, player);
-                        if (obj.Name != "Furnace" || item.getStack() == 0)
-                        {
-                            player.reduceActiveItemByOne();
-                        }
-                    }
+                }
+                else if (accepted)
+                {
+                    flag = true;
+                }
+                if (!flag)
+                    continue;
+
+                obj.performObjectDropInAction(item, false, player);
+                if (obj.Name != "Furnace" || item.getStack() == 0)
+                {
+                    player.reduceActiveItemByOne();
                 }
             }
         }
-
         public static void PullMachineResult()
         {
             Player player = Game1.player;
-            foreach(SVObject obj in GetObjectsWithin<SVObject>(ModEntry.Conf.MachineRadius).Where(o=>IsObjectMachine(o)))
+            foreach(SVObject obj in GetObjectsWithin<SVObject>(ModEntry.Conf.MachineRadius).Where(IsObjectMachine))
             {
-                if(obj.readyForHarvest.Value && obj.heldObject.Value != null)
-                {
-                    Item item = obj.heldObject.Value;
-                    if(player.couldInventoryAcceptThisItem(item))
-                    {
-                        obj.checkForAction(player);
-                    }
-                }
+                if (!obj.readyForHarvest.Value || obj.heldObject.Value == null)
+                    continue;
+
+                Item item = obj.heldObject.Value;
+                if (player.couldInventoryAcceptThisItem(item))
+                    obj.checkForAction(player);
             }
         }
 
         public static void ShakeNearbyFruitedBush()
         {
-            foreach (KeyValuePair<Vector2, Bush> bushes in GetFeaturesWithin<Bush>(ModEntry.Conf.AutoHarvestRadius))
+            int radius = ModEntry.Conf.AutoShakeRadius;
+            foreach (Bush bush in currentLocation.largeTerrainFeatures.OfType<Bush>())
             {
-                Vector2 loc = bushes.Key;
-                Bush bush = bushes.Value;
+                Vector2 loc = bush.tilePosition.Value;
+                Vector2 diff = loc - player.getTileLocation();
+                if (Math.Abs(diff.X) > radius || Math.Abs(diff.Y) > radius)
+                    continue;
 
-                if(!bush.townBush.Value && bush.tileSheetOffset.Value == 1 && bush.inBloom(currentSeason, dayOfMonth))
-                {
+                if (!bush.townBush.Value && bush.tileSheetOffset.Value == 1 && bush.inBloom(currentSeason, dayOfMonth))
                     bush.performUseAction(loc, currentLocation);
-                }
             }
         }
 
@@ -144,19 +144,48 @@ namespace JoysOfEfficiency.Utils
             {
                 Vector2 loc = kv.Key;
                 TerrainFeature feature = kv.Value;
-                if (feature is Tree tree)
+                switch (feature)
                 {
-                    if (tree.hasSeed.Value && !tree.stump.Value)
-                    {
-                        Helper.Reflection.GetMethod(tree, "shake").Invoke(loc, false);
-                    }
-                }
-                if (feature is FruitTree ftree)
-                {
-                    if (ftree.growthStage.Value >= 4 && ftree.fruitsOnTree.Value > 0 && !ftree.stump.Value)
-                    {
-                        ftree.shake(loc, false);
-                    }
+                    case Tree tree:
+                        if (tree.hasSeed.Value && !tree.stump.Value)
+                        {
+                            if (!IsMultiplayer && player.ForagingLevel < 1)
+                            {
+                                break;
+                            }
+                            int num2;
+                            switch (tree.treeType.Value)
+                            {
+                                case 3:
+                                    num2 = 311;
+                                    break;
+                                case 1:
+                                    num2 = 309;
+                                    break;
+                                case 2:
+                                    num2 = 310;
+                                    break;
+                                case 6:
+                                    num2 = 88;
+                                    break;
+                                default:
+                                    num2 = -1;
+                                    break;
+                            }
+                            if (currentSeason.Equals("fall") && tree.treeType.Value == 2 && dayOfMonth >= 14)
+                            {
+                                num2 = 408;
+                            }
+                            if(num2 != -1)
+                                Helper.Reflection.GetMethod(tree, "shake").Invoke(loc, false);
+                        }
+                        break;
+                    case FruitTree ftree:
+                        if (ftree.growthStage.Value >= 4 && ftree.fruitsOnTree.Value > 0 && !ftree.stump.Value)
+                        {
+                            ftree.shake(loc, false);
+                        }
+                        break;
                 }
             }
         }
@@ -178,13 +207,13 @@ namespace JoysOfEfficiency.Utils
                         int x = player.getTileX() + i;
                         int y = player.getTileY() + j;
                         Vector2 loc = new Vector2(x, y);
-                        if (location.Objects.ContainsKey(loc) && location.Objects[loc].ParentSheetIndex == 590 && !location.isTileHoeDirt(loc))
-                        {
-                            location.digUpArtifactSpot(x, y, player);
-                            location.Objects.Remove(loc);
-                            location.terrainFeatures.Add(loc, new HoeDirt());
-                            flag = true;
-                        }
+                        if (!(location.Objects.ContainsKey(loc) && location.Objects[loc].ParentSheetIndex == 590 && !location.isTileHoeDirt(loc)))
+                            continue;
+
+                        location.digUpArtifactSpot(x, y, player);
+                        location.Objects.Remove(loc);
+                        location.terrainFeatures.Add(loc, new HoeDirt());
+                        flag = true;
                     }
                 }
                 if (flag)
@@ -232,17 +261,15 @@ namespace JoysOfEfficiency.Utils
         public static void DrawCursor()
         {
             if (!options.hardwareCursor)
-            {
-                spriteBatch.Draw(mouseCursors, new Vector2(getOldMouseX(), getOldMouseY()), getSourceRectForStandardTileSheet(mouseCursors, options.gamepadControls ? 44 : 0, 16, 16), Color.White, 0f, Vector2.Zero, pixelZoom + dialogueButtonScale / 150f, SpriteEffects.None, 1f);
-            }
+                spriteBatch.Draw(mouseCursors, new Vector2(getOldMouseX(), getOldMouseY()),
+                    getSourceRectForStandardTileSheet(mouseCursors, options.gamepadControls ? 44 : 0, 16, 16),
+                    Color.White, 0f, Vector2.Zero, pixelZoom + dialogueButtonScale / 150f, SpriteEffects.None, 1f);
         }
 
         public static int GetMaxCan(WateringCan can)
         {
-            if(can == null)
-            {
+            if (can == null)
                 return -1;
-            }
             switch (can.UpgradeLevel)
             {
                 case 0:
@@ -260,8 +287,12 @@ namespace JoysOfEfficiency.Utils
                 case 4:
                     can.waterCanMax = 100;
                     break;
+                default:
+                    return -1;
             }
+
             return can.waterCanMax;
+
         }
 
         public static void HarvestNearCrops(Player player)
@@ -360,37 +391,28 @@ namespace JoysOfEfficiency.Utils
         {
             GameLocation location = currentLocation;
             Vector2 tile = currentCursorTile;
-            if (location.terrainFeatures.TryGetValue(tile, out TerrainFeature terrain))
-            {
-                if (terrain is HoeDirt dirt)
-                {
-                    if (dirt.crop == null)
-                    {
-                        ShowHudMessage("There is no crop under the cursor");
-                    }
-                    else
-                    {
-                        string name;
-                        if (dirt.crop.forageCrop.Value)
-                        {
-                            name = new SVObject(dirt.crop.whichForageCrop.Value, 1).Name;
-                        }
-                        else
-                        {
-                            name = new SVObject(dirt.crop.indexOfHarvest.Value, 1).Name;
-                        }
-                        if (name == "")
-                        {
-                            return;
-                        }
+            if (!location.terrainFeatures.TryGetValue(tile, out TerrainFeature terrain))
+                return;
+            if (!(terrain is HoeDirt dirt))
+                return;
 
-                        string text = ToggleBlackList(dirt.crop)
-                            ? $"{name} has been added to AutoHarvest exception"
-                            : $"{name} has been removed from AutoHarvest exception";
-                        ShowHudMessage(text, 1000);
-                        Monitor.Log(text);
-                    }
+            if (dirt.crop == null)
+            {
+                ShowHudMessage("There is no crop under the cursor");
+            }
+            else
+            {
+                string name = dirt.crop.forageCrop.Value ? new SVObject(dirt.crop.whichForageCrop.Value, 1).Name : new SVObject(dirt.crop.indexOfHarvest.Value, 1).Name;
+                if (name == "")
+                {
+                    return;
                 }
+
+                string text = ToggleBlackList(dirt.crop)
+                    ? $"{name} has been added to AutoHarvest exception"
+                    : $"{name} has been removed from AutoHarvest exception";
+                ShowHudMessage(text, 1000);
+                Monitor.Log(text);
             }
         }
 
@@ -416,7 +438,7 @@ namespace JoysOfEfficiency.Utils
             if (_lastKilledMonster != null)
             {
                 int kills = stats.getMonstersKilled(_lastKilledMonster);
-                tallyStr = String.Format(translation.Get("monsters.tally"), _lastKilledMonster, kills);
+                tallyStr = Format(translation.Get("monsters.tally"), _lastKilledMonster, kills);
             }
 
             string stonesStr;
@@ -427,14 +449,7 @@ namespace JoysOfEfficiency.Utils
             else
             {
                 bool single = stonesLeft == 1;
-                if (single)
-                {
-                    stonesStr = translation.Get("stones.one");
-                }
-                else
-                {
-                    stonesStr = string.Format(translation.Get("stones.many"), stonesLeft);
-                }
+                stonesStr = single ? translation.Get("stones.one") : Format(translation.Get("stones.many"), stonesLeft);
             }
             if (ladder)
             {
@@ -671,15 +686,6 @@ namespace JoysOfEfficiency.Utils
                     if (location.terrainFeatures.ContainsKey(loc) && location.terrainFeatures[loc] is T t)
                     {
                         list.Add(loc, t);
-                    }
-                    else if (location.largeTerrainFeatures.Count > 0 && typeof(LargeTerrainFeature).IsAssignableFrom(typeof(T)))
-                    {
-                        foreach (LargeTerrainFeature feature in location.largeTerrainFeatures)
-                        {
-                            T obj = feature as T;
-                            if (obj != null && !list.ContainsKey(loc))
-                                list.Add(loc, obj);
-                        }
                     }
                 }
             }
@@ -1187,23 +1193,21 @@ namespace JoysOfEfficiency.Utils
         public static T FindToolFromInventory<T>(bool fromEntireInventory) where T : Tool
         {
             Player player = Game1.player;
-            T find = null;
-            if (player.CurrentTool is T)
+            if (player.CurrentTool is T t)
             {
-                return player.CurrentTool as T;
+                return t;
             }
-            if (fromEntireInventory)
+            if (!fromEntireInventory)
+                return null;
+
+            foreach (Item item in player.Items)
             {
-                foreach (Item item in player.Items)
+                if (item is T t2)
                 {
-                    if (item is T t)
-                    {
-                        find = t;
-                        break;
-                    }
+                    return t2;
                 }
             }
-            return find;
+            return null;
         }
         public static void AutoFishing(BobberBar bar)
         {
@@ -1261,25 +1265,6 @@ namespace JoysOfEfficiency.Utils
             return f < min ? min : (f > max ? max : f);
         }
 
-        public static string Format(string format, params object[] args)
-        {
-            return String.Format(format, args);
-        }
-
-        public static string GetRealLocation(string key)
-        {
-            string ret = "";
-            for(int i = 0; i < key.Length;i++)
-            {
-                if(key[i] >= '0' && key[i] <= '9')
-                {
-                    break;
-                }
-                ret += key[i];
-            }
-            return ret;
-        }
-
         public static List<FarmAnimal> GetAnimalsList(Player player)
         {
             List<FarmAnimal> list = new List<FarmAnimal>();
@@ -1332,11 +1317,6 @@ namespace JoysOfEfficiency.Utils
         public static Rectangle Expand(Rectangle rect, int radius)
         {
             return new Rectangle(rect.Left - radius, rect.Top - radius, 2 * radius, 2 * radius);
-        }
-
-        public static RectangleE ExpandE(Rectangle rect, int radius)
-        {
-            return new RectangleE(rect.Left - radius, rect.Top - radius, 2 * radius, 2 * radius);
         }
 
         public static void DrawSimpleTextbox(SpriteBatch batch, string text, int x, int y, SpriteFont font, Item item = null)
@@ -1404,20 +1384,6 @@ namespace JoysOfEfficiency.Utils
             return Color.WhiteSmoke;
         }
 
-        public static float Round(float val, int exponent)
-        {
-            return (float)Math.Round(val, exponent, MidpointRounding.AwayFromZero);
-        }
-        public static float Floor(float val, int exponent)
-        {
-            int e = 1;
-            for (int i = 0; i < exponent; i++)
-            {
-                e *= 10;
-            }
-            return (float)Math.Floor(val * e) / e;
-        }
-
         public static void DrawString(SpriteBatch batch, SpriteFont font, ref Vector2 location, string text, Color color, float scale, bool next = false)
         {
             Vector2 stringSize = font.MeasureString(text) * scale;
@@ -1441,7 +1407,7 @@ namespace JoysOfEfficiency.Utils
         {
             try
             {
-                string ret = string.Format(str, args);
+                string ret = Format(str, args);
                 return ret;
             }
             catch

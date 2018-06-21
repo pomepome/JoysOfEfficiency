@@ -74,3 +74,7 @@ This is a changelog from 1.1.14-beta
 
 ## 1.1.31-beta
 - Pickup motion won't be played when riding.
+
+## 1.1.32-beta
+- Fixed Auto shake did not apply to bushes.
+- Fixed NullReferenceException when GiftInformation

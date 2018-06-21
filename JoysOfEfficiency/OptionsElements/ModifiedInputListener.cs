@@ -14,15 +14,15 @@ namespace JoysOfEfficiency.OptionsElements
         private bool _conflicting = false;
         private Keys _button;
 
-        private Action<int, ModifiedInputListener> _onStartListening;
-        private Action<int, Keys> _onButtonPressed;
+        private readonly Action<int, ModifiedInputListener> _onStartListening;
+        private readonly Action<int, Keys> _onButtonPressed;
         private Func<int, bool> _isDisabled;
         private Rectangle _buttonRect;
 
         private static readonly SpriteFont Font = Game1.dialogueFont;
 
-        ITranslationHelper _translation;
-        IClickableMenu _menu;
+        private readonly ITranslationHelper _translation;
+        private readonly IClickableMenu _menu;
 
         public ModifiedInputListener(IClickableMenu parent ,string label, int which, Keys initial, ITranslationHelper translationHelper, Action<int, Keys> onButtonPressed, Action<int, ModifiedInputListener> onStartListening = null, Func<int, bool> isDisabled = null) : base(label, -1, -1, 9 * Game1.pixelZoom, 9 * Game1.pixelZoom, 0)
         {
