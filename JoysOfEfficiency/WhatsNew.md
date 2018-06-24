@@ -78,3 +78,6 @@ This is a changelog from 1.1.14-beta
 ## 1.1.32-beta
 - Fixed Auto shake did not apply to bushes.
 - Fixed NullReferenceException when GiftInformation
+
+## 1.1.33-beta
+- Changed auto eat threshold floors to be 0.1

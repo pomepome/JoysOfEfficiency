@@ -54,8 +54,8 @@ namespace JoysOfEfficiency
 
 
             Conf.CpuThresholdFishing = Util.Cap(Conf.CpuThresholdFishing, 0, 0.5f);
-            Conf.HealthToEatRatio = Util.Cap(Conf.HealthToEatRatio, 0.3f, 0.8f);
-            Conf.StaminaToEatRatio = Util.Cap(Conf.StaminaToEatRatio, 0.3f, 0.8f);
+            Conf.HealthToEatRatio = Util.Cap(Conf.HealthToEatRatio, 0.1f, 0.8f);
+            Conf.StaminaToEatRatio = Util.Cap(Conf.StaminaToEatRatio, 0.1f, 0.8f);
             Conf.AutoCollectRadius = (int)Util.Cap(Conf.AutoCollectRadius, 1, 3);
             Conf.AutoHarvestRadius = (int)Util.Cap(Conf.AutoHarvestRadius, 1, 3);
             Conf.AutoPetRadius = (int)Util.Cap(Conf.AutoPetRadius, 1, 3);
@@ -291,6 +291,31 @@ namespace JoysOfEfficiency
             if (args.KeyPressed == Keys.H)
             {
                 Util.ShowHudMessage($"Hay:{Game1.getFarm().piecesOfHay}");
+
+                if (Game1.player.CurrentItem != null)
+                {
+                    Util.ShowHudMessage($"{Game1.player.CurrentItem.ParentSheetIndex}");
+                }
+
+                foreach (Debris debris in Game1.currentLocation.debris)
+                {
+                    Monitor.Log($"Debris type:{debris.debrisType.Value.ToString()}");
+                    Monitor.Log($"Item:{debris.item != null}");
+                    if (debris.item == null)
+                    {
+                        for (int i = debris.Chunks.Count - 1; i >= 0; i--)
+                        {
+                            Monitor.Log($"ChunkType:{debris.Chunks[i].debrisType}");
+                            Monitor.Log($"Can accept this item:{Game1.player.couldInventoryAcceptThisObject(debris.Chunks[i].debrisType, 1, debris.itemQuality)}");
+                            Monitor.Log($"Max stack size:{new StardewValley.Object(debris.Chunks[i].debrisType, 1).maximumStackSize()}");
+                        }
+                    }
+                }
+
+                foreach (Item item in Game1.player.Items)
+                {
+                    Monitor.Log($"Index:{item.ParentSheetIndex}");
+                }
             }
             if (!Context.IsPlayerFree || Game1.activeClickableMenu != null)
             {
