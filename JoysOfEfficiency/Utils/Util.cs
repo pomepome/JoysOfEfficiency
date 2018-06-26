@@ -825,13 +825,6 @@ namespace JoysOfEfficiency.Utils
             int clearWaterDistance = Helper.Reflection.GetField<int>(rod, "clearWaterDistance").GetValue();
             Dictionary<int, double> dict = GetFishes(currentLocation, rod.attachments[0]?.ParentSheetIndex ?? -1, clearWaterDistance + (flag ? 1 : 0), player);
             DrawProbBox(dict);
-            foreach (KeyValuePair<int, double> kv in dict)
-            {
-                int index = kv.Key;
-                double prob = kv.Value;
-                SVObject fish = new SVObject(index, 1);
-                Monitor.Log($"Fish:{fish.DisplayName} Prob:{prob}");
-            }
         }
 
         private static void DrawProbBox(Dictionary<int, double> probs)
@@ -847,7 +840,6 @@ namespace JoysOfEfficiency.Utils
                 foreach (KeyValuePair<int, double> kv in probs)
                 {
                     string text = $"{kv.Value * 100:f1}%";
-                    Vector2 textSize = font.MeasureString(text);
                     SVObject fish = new SVObject(kv.Key, 1);
                     
                     fish.drawInMenu(b, new Vector2(x + 8, y), 1.0f);
@@ -1033,7 +1025,6 @@ namespace JoysOfEfficiency.Utils
 
         private static Dictionary<int, double> GetFishesMine(MineShaft shaft, int bait, int waterDepth, Player who)
         {
-            Dictionary<int, double> dict = new Dictionary<int, double>();
             double num2 = 1.0;
             num2 += 0.4 * who.FishingLevel;
             num2 += waterDepth * 0.1;
