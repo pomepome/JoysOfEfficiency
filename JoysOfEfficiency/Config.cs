@@ -42,5 +42,8 @@ namespace JoysOfEfficiency
         public bool ProtectNectarProducingFlower { get; set; } = true;
         public List<int> HarvestException { get; set; } = new List<int>();
         public Keys KeyToggleBlackList { get; set; } = Keys.F2;
+        public bool FishingProbabilitiesInfo { get; set; } = false;
+        public int ProbBoxX { get; set; } = 100;
+        public int ProbBoxY { get; set; } = 500;
     }
 }

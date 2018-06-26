@@ -94,7 +94,7 @@ namespace JoysOfEfficiency
 
             if (Conf.GiftInformation)
             {
-                if (player.CurrentItem == null || !player.CurrentItem.canBeGivenAsGift())
+                if (player.CurrentItem == null || !player.CurrentItem.canBeGivenAsGift() || player.currentLocation == null || player.currentLocation.characters.Count == 0)
                 {
                     return;
                 }
@@ -159,6 +159,7 @@ namespace JoysOfEfficiency
             {
                 return;
             }
+
             if (!Context.IsWorldReady || !Context.IsPlayerFree)
             {
                 return;
@@ -171,6 +172,7 @@ namespace JoysOfEfficiency
                 if (player.CurrentTool is FishingRod rod && Game1.activeClickableMenu == null)
                 {
                     IReflectedField<int> whichFish = reflection.GetField<int>(rod, "whichFish");
+
                     if (rod.isNibbling && rod.isFishing && whichFish.GetValue() == -1 && !rod.isReeling && !rod.hit && !rod.isTimingCast && !rod.pullingOutOfWater && !rod.fishCaught)
                     {
                         if (Conf.AutoReelRod)
@@ -296,26 +298,6 @@ namespace JoysOfEfficiency
                 {
                     Util.ShowHudMessage($"{Game1.player.CurrentItem.ParentSheetIndex}");
                 }
-
-                foreach (Debris debris in Game1.currentLocation.debris)
-                {
-                    Monitor.Log($"Debris type:{debris.debrisType.Value.ToString()}");
-                    Monitor.Log($"Item:{debris.item != null}");
-                    if (debris.item == null)
-                    {
-                        for (int i = debris.Chunks.Count - 1; i >= 0; i--)
-                        {
-                            Monitor.Log($"ChunkType:{debris.Chunks[i].debrisType}");
-                            Monitor.Log($"Can accept this item:{Game1.player.couldInventoryAcceptThisObject(debris.Chunks[i].debrisType, 1, debris.itemQuality)}");
-                            Monitor.Log($"Max stack size:{new StardewValley.Object(debris.Chunks[i].debrisType, 1).maximumStackSize()}");
-                        }
-                    }
-                }
-
-                foreach (Item item in Game1.player.Items)
-                {
-                    Monitor.Log($"Index:{item.ParentSheetIndex}");
-                }
             }
             if (!Context.IsPlayerFree || Game1.activeClickableMenu != null)
             {
@@ -357,6 +339,10 @@ namespace JoysOfEfficiency
                 {
                     Util.AutoFishing(bar);
                 }
+            }
+            if (Conf.FishingProbabilitiesInfo && Game1.player.CurrentTool is FishingRod rod && rod.isFishing)
+            {
+                Util.PrintFishingInfo(rod);
             }
         }
 

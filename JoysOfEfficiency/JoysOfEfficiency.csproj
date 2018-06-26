@@ -69,6 +69,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />
+    <Compile Include="CustomSorter.cs" />
     <Compile Include="JOEMenu.cs" />
     <Compile Include="MineIcons.cs" />
     <Compile Include="ModCheckers\ModChecker.cs" />

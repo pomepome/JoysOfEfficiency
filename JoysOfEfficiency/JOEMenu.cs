@@ -145,6 +145,10 @@ namespace JoysOfEfficiency
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoPullMachineResult", 23, ModEntry.Conf.AutoPullMachineResult, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedSlider("MachineRadius", 10, ModEntry.Conf.MachineRadius, 1, 3, OnSliderValueChanged, (() => !(ModEntry.Conf.AutoPullMachineResult || ModEntry.Conf.AutoDepositIngredient) || ModEntry.Conf.BalancedMode)));
 
+                tab.AddOptionsElement(new EmptyLabel());
+                tab.AddOptionsElement(new LabelComponent("Fishing Probabilities Information"));
+                tab.AddOptionsElement(new ModifiedCheckBox("FishingProbabilitiesInfo", 26, ModEntry.Conf.FishingProbabilitiesInfo, OnCheckboxValueChanged));
+
                 _tabs.Add(tab);
             }
             {
@@ -208,6 +212,7 @@ namespace JoysOfEfficiency
                 case 23: ModEntry.Conf.AutoPullMachineResult = value; break;
                 case 24: ModEntry.Conf.AutoPetNearbyPets = value; break;
                 case 25: ModEntry.Conf.ProtectNectarProducingFlower = value; break;
+                case 26: ModEntry.Conf.FishingProbabilitiesInfo = value; break;
                 default: return;
             }
             _mod.WriteConfig();

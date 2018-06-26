@@ -80,4 +80,7 @@ This is a changelog from 1.1.14-beta
 - Fixed NullReferenceException when GiftInformation
 
 ## 1.1.33-beta
-- Changed auto eat threshold floors to be 0.1
+- Changed auto eat threshold floors to 0.1 .
+
+## 1.1.34-beta
+- Added FishingProbabilitiesInfo feature.
