@@ -84,3 +84,6 @@ This is a changelog from 1.1.14-beta
 
 ## 1.1.34-beta
 - Added FishingProbabilitiesInfo feature.
+
+## 1.1.35-beta
+- Improved FishingProbabilitiesInfo in Mine.

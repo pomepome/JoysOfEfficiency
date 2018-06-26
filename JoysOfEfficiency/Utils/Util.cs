@@ -901,6 +901,7 @@ namespace JoysOfEfficiency.Utils
 
         private static Dictionary<int, double> GetFishes(GameLocation location, int bait, int waterDepth, Player who)
         {
+            double sum = 0;
             Dictionary<int, double> dict;
             switch (location)
             {
@@ -909,7 +910,12 @@ namespace JoysOfEfficiency.Utils
                     break;
                 case MineShaft shaft:
                     dict = GetFishesMine(shaft, bait, waterDepth, who);
-                    break;
+                    sum = dict.Sum(kv => kv.Value);
+                    if (1 - sum >= 0.001f)
+                    {
+                        dict.Add(168, 1 - sum);
+                    }
+                    return dict;
                 default:
                     dict = GetFishes(waterDepth, who);
                     break;
@@ -921,7 +927,7 @@ namespace JoysOfEfficiency.Utils
             Dictionary<int, double> dict2 =
                 GetFinalProbabilities(array.ToDictionary(x=>x.Key, x=>x.Value)).OrderByDescending(kv => kv.Value)
                     .Where(kv=>!IsGarbage(kv.Key)).ToDictionary(x => x.Key, x => x.Value);
-            double sum = dict2.Sum(kv => kv.Value);
+            sum = dict2.Sum(kv => kv.Value);
             if (1 - sum >= 0.001f)
             {
                 dict2.Add(168, 1 - sum);
@@ -1025,24 +1031,42 @@ namespace JoysOfEfficiency.Utils
 
         private static Dictionary<int, double> GetFishesMine(MineShaft shaft, int bait, int waterDepth, Player who)
         {
+            Dictionary<int, double> dict = new Dictionary<int, double>();
             double num2 = 1.0;
             num2 += 0.4 * who.FishingLevel;
             num2 += waterDepth * 0.1;
-            switch (shaft.getMineArea())
+            double p = 0;
+            int level = shaft.getMineArea();
+            switch (level)
             {
                 case 0:
                 case 10:
                     num2 += (bait == 689) ? 3 : 0;
-                    return new Dictionary<int, double> { { 158, 0.02 + 0.01 * num2 } };
+                    p = 0.02 + 0.01 * num2;
+                    dict.Add(158, p);
+                    break;
                 case 40:
                     num2 += (bait == 682) ? 3 : 0;
-                    return new Dictionary<int, double> { { 161, 0.015 + 0.009 * num2 } };
+                    p = 0.015 + 0.009 * num2;
+                    dict.Add(161, p);
+                    break;
                 case 80:
                     num2 += (bait == 684) ? 3 : 0;
-                    return new Dictionary<int, double> { { 162, 0.01 + 0.008 * num2 } };
-                default:
-                    return GetFishes(waterDepth, who, "UndergroundMine");
+                    p = 0.01 + 0.008 * num2;
+                    dict.Add(162,  p);
+                    break;
             }
+
+            if (level == 10 || level == 40)
+            {
+                return ConcatDictionary(dict,
+                    MagnifyProbabilities(
+                        GetFishes(waterDepth, who, "UndergroundMine")
+                            .Where(kv => !IsGarbage(kv.Key)).ToDictionary(x => x.Key, x => x.Value),
+                        1 - p));
+            }
+
+            return dict;
         }
 
         private static Dictionary<int, double> GetFishesFarm(int waterDepth, Player who)
