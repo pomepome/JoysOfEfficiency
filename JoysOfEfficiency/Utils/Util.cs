@@ -12,6 +12,8 @@ using StardewValley.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using xTile.Dimensions;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace JoysOfEfficiency.Utils
 {
@@ -23,12 +25,12 @@ namespace JoysOfEfficiency.Utils
         internal static IMonitor Monitor;
         internal static ModEntry ModInstance;
         
-        private static bool catchingTreasure = false;
+        private static bool catchingTreasure;
 
-        private static MineIcons icons = new MineIcons();
+        private static readonly MineIcons icons = new MineIcons();
 
         private static List<Monster> lastMonsters = new List<Monster>();
-        private static List<Vector2> flowerLocationProducingNectar = new List<Vector2>();
+        private static readonly List<Vector2> flowerLocationProducingNectar = new List<Vector2>();
         private static string lastKilledMonster;
 
         public static void PetNearbyPets()
@@ -50,13 +52,11 @@ namespace JoysOfEfficiency.Utils
 
         public static void TryToggleGate(Player player)
         {
-            GameLocation location = player.currentLocation;
-
             foreach (Fence fence in GetObjectsWithin<Fence>(2).Where(f => f.isGate))
             {
                 Vector2 loc = fence.TileLocation;
 
-                bool? isUpDown = IsUpsideDown(location, fence);
+                bool? isUpDown = IsUpsideDown(fence);
                 if (isUpDown == null)
                 {
                     if (!player.GetBoundingBox().Intersects(fence.getBoundingBox(loc)))
@@ -96,7 +96,7 @@ namespace JoysOfEfficiency.Utils
                 if (IsObjectMachine(obj) && obj.heldObject == null)
                 {
                     bool flag = false;
-                    bool accepted = obj.Name == "Furnace" ? CanFurnaceAcceptItem(obj, item, player) : Utility.isThereAnObjectHereWhichAcceptsThisItem(Game1.currentLocation, item, (int)loc.X * Game1.tileSize, (int)loc.Y * Game1.tileSize);
+                    bool accepted = obj.Name == "Furnace" ? CanFurnaceAcceptItem(item, player) : Utility.isThereAnObjectHereWhichAcceptsThisItem(Game1.currentLocation, item, (int)loc.X * Game1.tileSize, (int)loc.Y * Game1.tileSize);
                     if (obj is Cask cask)
                     {
                         if (ModEntry.IsCasksAnywhereOn)
@@ -180,7 +180,6 @@ namespace JoysOfEfficiency.Utils
 
         public static void CollectNearbyCollectibles()
         {
-            Player player = Game1.player;
             foreach (SVObject obj in GetObjectsWithin<SVObject>(ModEntry.Conf.AutoCollectRadius).Where(obj=>obj.IsSpawnedObject))
             {
                 CollectObj(Game1.currentLocation, obj);
@@ -197,7 +196,6 @@ namespace JoysOfEfficiency.Utils
                 bool watered = false;
                 foreach (KeyValuePair<Vector2, HoeDirt> kv in GetFeaturesWithin<HoeDirt>(ModEntry.Conf.AutoWaterRadius))
                 {
-                    Vector2 location = kv.Key;
                     HoeDirt dirt = kv.Value;
                     float consume = 2 * (1.0f / (can.UpgradeLevel / 2.0f + 1));
                     if (dirt.crop != null && !dirt.crop.dead && dirt.state == 0 && player.Stamina >= consume && can.WaterLeft > 0)
@@ -218,7 +216,6 @@ namespace JoysOfEfficiency.Utils
 
         public static void DestroyNearDeadCrops(Player player)
         {
-            GameLocation location = player.currentLocation;
             foreach (KeyValuePair<Vector2, HoeDirt> kv in GetFeaturesWithin<HoeDirt>(1))
             {
                 Vector2 loc = kv.Key;
@@ -233,7 +230,6 @@ namespace JoysOfEfficiency.Utils
         public static void HarvestNearCrops(Player player)
         {
             UpdateNectarInfo();
-            GameLocation location = player.currentLocation;
             foreach (KeyValuePair<Vector2, HoeDirt> kv in GetFeaturesWithin<HoeDirt>(ModEntry.Conf.AutoHarvestRadius))
             {
                 Vector2 loc = kv.Key;
@@ -268,7 +264,7 @@ namespace JoysOfEfficiency.Utils
             {
                 Vector2 houseLoc = kv.Key;
                 Vector2 flowerLoc = GetCropLocation(Utility.findCloseFlower(houseLoc));
-                if (flowerLoc.X != -1 && flowerLoc.Y != -1 && !flowerLocationProducingNectar.Contains(flowerLoc))
+                if ((int)flowerLoc.X != -1 && (int)flowerLoc.Y != -1 && !flowerLocationProducingNectar.Contains(flowerLoc))
                 {
                     flowerLocationProducingNectar.Add(flowerLoc);
                 }
@@ -401,22 +397,14 @@ namespace JoysOfEfficiency.Utils
 
         public static Vector2 GetLocationOf(GameLocation location, SVObject obj)
         {
-            IEnumerable<KeyValuePair<Vector2, SVObject>> pairs = location.Objects.Where(kv => kv.Value == obj);
-            if (pairs.Count() == 0)
-            {
-                return new Vector2(-1, -1);
-            }
-            return pairs.First().Key;
+            List<KeyValuePair<Vector2, SVObject>> pairs = location.Objects.Where(kv => kv.Value == obj).ToList();
+            return !pairs.Any() ? new Vector2(-1, -1) : pairs.First().Key;
         }
 
         public static Vector2 GetLocationOf(GameLocation location, TerrainFeature feature)
         {
-            IEnumerable<KeyValuePair<Vector2, TerrainFeature>> pairs = location.terrainFeatures.Where(kv => kv.Value == feature);
-            if (pairs.Count() == 0)
-            {
-                return new Vector2(-1, -1);
-            }
-            return pairs.First().Key;
+            List<KeyValuePair<Vector2, TerrainFeature>> pairs = location.terrainFeatures.Where(kv => kv.Value == feature).ToList();
+            return !pairs.Any() ? new Vector2(-1, -1) : pairs.First().Key;
         }
 
         /// <summary>
@@ -427,66 +415,6 @@ namespace JoysOfEfficiency.Utils
         private static bool IsProducingNectar(Vector2 dirt)
         {
             return flowerLocationProducingNectar.Contains(dirt);
-        }
-
-        public static bool HarvestCrubPot(Player who, CrabPot obj, bool justCheckingForActivity = false)
-        {
-            IReflectionHelper reflection = Helper.Reflection;
-            IReflectedField<bool> lidFlapping = reflection.GetField<bool>(obj, "lidFlapping");
-            IReflectedField<float> lidFlapTimer = reflection.GetField<float>(obj, "lidFlapTimer");
-            IReflectedField<Vector2> shake = reflection.GetField<Vector2>(obj, "shake");
-            IReflectedField<float> shakeTimer = reflection.GetField<float>(obj, "shakeTimer");
-            if (obj.tileIndexToShow == 714)
-            {
-                if (obj.heldObject == null)
-                {
-                    return false;
-                }
-                if (justCheckingForActivity)
-                {
-                    return true;
-                }
-                if (who.IsMainPlayer && !who.addItemToInventoryBool(obj.heldObject, false))
-                {
-                    Game1.addHUDMessage(new HUDMessage(Game1.content.LoadString("Strings\\StringsFromCSFiles:Crop.cs.588"), Color.Red, 3500f));
-                    return false;
-                }
-                Dictionary<int, string> dictionary = Game1.content.Load<Dictionary<int, string>>("Data\\Fish");
-                if (dictionary.ContainsKey(obj.heldObject.parentSheetIndex))
-                {
-                    string[] array = dictionary[obj.heldObject.parentSheetIndex].Split('/');
-                    int minValue = (array.Length <= 5) ? 1 : Convert.ToInt32(array[5]);
-                    int num = (array.Length > 5) ? Convert.ToInt32(array[6]) : 10;
-                    who.caughtFish(obj.heldObject.parentSheetIndex, Game1.random.Next(minValue, num + 1));
-                }
-                obj.readyForHarvest = false;
-                obj.heldObject = null;
-                obj.tileIndexToShow = 710;
-                lidFlapping.SetValue(true);
-                lidFlapTimer.SetValue(60f);
-                obj.bait = null;
-                who.animateOnce(279 + who.FacingDirection);
-                Game1.playSound("fishingRodBend");
-                DelayedAction.playSoundAfterDelay("coin", 500);
-                who.gainExperience(1, 5);
-                shake.SetValue(Vector2.Zero);
-                shakeTimer.SetValue(0f);
-                return true;
-            }
-            if (obj.bait == null)
-            {
-                if (justCheckingForActivity)
-                {
-                    return true;
-                }
-                if (Game1.player.addItemToInventoryBool(obj.getOne(), false))
-                {
-                    Game1.playSound("coin");
-                    Game1.currentLocation.objects.Remove(obj.tileLocation);
-                    return true;
-                }
-            }
-            return false;
         }
 
         public static Vector2 FindLadder(MineShaft shaft)
@@ -507,14 +435,301 @@ namespace JoysOfEfficiency.Utils
             return Vector2.Zero;
         }
 
-        
-        private static bool CollectObj(GameLocation loc, SVObject obj)
+        public static void PrintFishingInfo(FishingRod rod)
+        {
+            GameLocation location = Game1.currentLocation;
+            bool flag = false;
+            if (location.fishSplashPoint != null)
+            {
+                Vector2 bobber = Helper.Reflection.GetField<Vector2>(rod, "bobber").GetValue();
+                Rectangle rectangle = new Rectangle(location.fishSplashPoint.X * 64, location.fishSplashPoint.Y * 64, 64, 64);
+                Rectangle value = new Rectangle((int)bobber.X - 80, (int)bobber.Y - 80, 64, 64);
+                flag = rectangle.Intersects(value);
+            }
+            int clearWaterDistance = Helper.Reflection.GetField<int>(rod, "clearWaterDistance").GetValue();
+            Dictionary<int, double> dict = GetFishes(Game1.currentLocation, rod.attachments[0]?.ParentSheetIndex ?? -1, clearWaterDistance + (flag ? 1 : 0), Game1.player);
+            DrawProbBox(dict);
+        }
+
+        private static void DrawProbBox(Dictionary<int, double> probs)
+        {
+            SpriteBatch b = Game1.spriteBatch;
+            Size size = GetProbBoxSize(probs);
+            IClickableMenu.drawTextureBox(Game1.spriteBatch, ModEntry.Conf.ProbBoxX, ModEntry.Conf.ProbBoxY, size.Width, size.Height, Color.White);
+            int square = (int)(Game1.tileSize / 1.5);
+            int x = ModEntry.Conf.ProbBoxX + 8;
+            int y = ModEntry.Conf.ProbBoxY + 16;
+            SpriteFont font = Game1.dialogueFont;
+            {
+                foreach (KeyValuePair<int, double> kv in probs)
+                {
+                    string text = $"{kv.Value * 100:f1}%";
+                    SVObject fish = new SVObject(kv.Key, 1);
+
+                    fish.drawInMenu(b, new Vector2(x + 8, y), 1.0f);
+                    Utility.drawTextWithShadow(b, text, font, new Vector2(x + 32 + square, y + 16), Color.Black);
+
+                    y += square + 16;
+                }
+            }
+        }
+
+        private static Size GetProbBoxSize(Dictionary<int, double> probs)
+        {
+            int width = 16, height = 48;
+            int square = (int)(Game1.tileSize / 1.5);
+            SpriteFont font = Game1.dialogueFont;
+            {
+                foreach (KeyValuePair<int, double> kv in probs)
+                {
+                    string text = $"{kv.Value * 100:f1}%";
+                    Vector2 textSize = font.MeasureString(text);
+                    int w = square + (int)textSize.X + 64;
+                    if (w > width)
+                    {
+                        width = w;
+                    }
+                    height += square + 16;
+                }
+            }
+            return new Size(width, height);
+        }
+
+        private static Dictionary<int, double> GetFinalProbabilities(Dictionary<int, double> dict)
+        {
+            Dictionary<int, double> result = new Dictionary<int, double>();
+            double ratio = 1.0;
+            foreach (KeyValuePair<int, double> kv in dict)
+            {
+                double d = kv.Value * ratio;
+                result.Add(kv.Key, d);
+                ratio = ratio * (1 - kv.Value);
+            }
+
+            return result;
+        }
+
+        private static Dictionary<int, double> MagnifyProbabilities(Dictionary<int, double> dict, double ratio)
+        {
+            Dictionary<int, double> result = new Dictionary<int, double>();
+            foreach (KeyValuePair<int, double> kv in dict)
+                result.Add(kv.Key, kv.Value * ratio);
+
+            return result;
+        }
+
+        private static Dictionary<K, V> ConcatDictionary<K, V>(Dictionary<K, V> a, Dictionary<K, V> b)
+        {
+            return a.Concat(b).ToDictionary(x => x.Key, x => x.Value);
+        }
+
+        private static Dictionary<int, double> GetFishes(GameLocation location, int bait, int waterDepth, Player who)
+        {
+            double sum = 0;
+            Dictionary<int, double> dict;
+            switch (location)
+            {
+                case Farm _:
+                    dict = GetFishesFarm(waterDepth, who);
+                    break;
+                case MineShaft shaft:
+                    dict = GetFishesMine(shaft, bait, waterDepth, who);
+                    sum = dict.Sum(kv => kv.Value);
+                    if (1 - sum >= 0.001f)
+                    {
+                        dict.Add(168, 1 - sum);
+                    }
+                    return dict;
+                default:
+                    dict = GetFishes(waterDepth, who);
+                    break;
+            }
+
+            KeyValuePair<int, double>[] array = dict.ToArray();
+            Array.Sort(array, new CustomSorter());
+
+            Dictionary<int, double> dict2 =
+                GetFinalProbabilities(array.ToDictionary(x => x.Key, x => x.Value)).OrderByDescending(kv => kv.Value)
+                    .Where(kv => !IsGarbage(kv.Key)).ToDictionary(x => x.Key, x => x.Value);
+            sum = dict2.Sum(kv => kv.Value);
+            if (1 - sum >= 0.001f)
+            {
+                dict2.Add(168, 1 - sum);
+            }
+            return dict2;
+        }
+
+        private static bool IsGarbage(int index)
+        {
+            if (index >= 167 && index <= 172)
+            {
+                return true;
+            }
+            switch (index)
+            {
+                case 152:
+                case 153:
+                case 157: return true;
+            }
+            return false;
+        }
+
+        private static Dictionary<int, double> GetFishes(int waterDepth, Player who, string locationName = null)
+        {
+            Dictionary<int, double> dict = new Dictionary<int, double>();
+
+            Dictionary<string, string> dictionary = Game1.content.Load<Dictionary<string, string>>("Data\\Locations");
+            string key = locationName ?? Game1.currentLocation.Name;
+            if (key.Equals("WitchSwamp") && !who.mailReceived.Contains("henchmanGone") && !who.hasItemInInventory(308, 1))
+            {
+                return new Dictionary<int, double>
+                {
+                    {308,0.25}
+                };
+            }
+            if (dictionary.ContainsKey(key))
+            {
+                string[] array = dictionary[key].Split('/')[4 + Utility.getSeasonNumber(Game1.currentSeason)].Split(' ');
+                Dictionary<string, string> dictionary2 = new Dictionary<string, string>();
+                if (array.Length > 1)
+                {
+                    for (int i = 0; i < array.Length; i += 2)
+                    {
+                        dictionary2.Add(array[i], array[i + 1]);
+                    }
+                }
+                string[] array2 = dictionary2.Keys.ToArray();
+                Dictionary<int, string> dictionary3 = Game1.content.Load<Dictionary<int, string>>("Data\\Fish");
+                Utility.Shuffle(Game1.random, array2);
+                foreach (string t in array2)
+                {
+                    bool flag2 = true;
+                    string[] array3 = dictionary3[Convert.ToInt32(t)].Split('/');
+                    string[] array4 = array3[5].Split(' ');
+                    int num2 = Convert.ToInt32(dictionary2[t]);
+                    if (num2 == -1 || Game1.currentLocation.getFishingLocation(who.getTileLocation()) == num2)
+                    {
+                        int num3 = 0;
+                        while (num3 < array4.Length)
+                        {
+                            if (Game1.timeOfDay < Convert.ToInt32(array4[num3]) || Game1.timeOfDay >= Convert.ToInt32(array4[num3 + 1]))
+                            {
+                                num3 += 2;
+                                continue;
+                            }
+                            flag2 = false;
+                            break;
+                        }
+                    }
+                    if (!array3[7].Equals("both"))
+                    {
+                        if (array3[7].Equals("rainy") && !Game1.isRaining)
+                        {
+                            flag2 = true;
+                        }
+                        else if (array3[7].Equals("sunny") && Game1.isRaining)
+                        {
+                            flag2 = true;
+                        }
+                    }
+                    if (who.FishingLevel < Convert.ToInt32(array3[12]))
+                    {
+                        flag2 = true;
+                    }
+
+                    if (flag2)
+                        continue;
+
+                    double num4 = Convert.ToDouble(array3[10]);
+                    double num5 = Convert.ToDouble(array3[11]) * num4;
+                    num4 -= Math.Max(0, Convert.ToInt32(array3[9]) - waterDepth) * num5;
+                    num4 += who.FishingLevel / 50f;
+                    num4 = Math.Min(num4, 0.89999997615814209);
+                    int num = Convert.ToInt32(t);
+
+                    dict.Add(num, num4);
+                }
+            }
+            return dict;
+        }
+
+        private static Dictionary<int, double> GetFishesMine(MineShaft shaft, int bait, int waterDepth, Player who)
+        {
+            Dictionary<int, double> dict = new Dictionary<int, double>();
+            double num2 = 1.0;
+            num2 += 0.4 * who.FishingLevel;
+            num2 += waterDepth * 0.1;
+            double p = 0;
+            int level = shaft.getMineArea();
+            switch (level)
+            {
+                case 0:
+                case 10:
+                    num2 += (bait == 689) ? 3 : 0;
+                    p = 0.02 + 0.01 * num2;
+                    dict.Add(158, p);
+                    break;
+                case 40:
+                    num2 += (bait == 682) ? 3 : 0;
+                    p = 0.015 + 0.009 * num2;
+                    dict.Add(161, p);
+                    break;
+                case 80:
+                    num2 += (bait == 684) ? 3 : 0;
+                    p = 0.01 + 0.008 * num2;
+                    dict.Add(162, p);
+                    break;
+            }
+
+            if (level == 10 || level == 40)
+            {
+                return ConcatDictionary(dict,
+                    MagnifyProbabilities(
+                        GetFishes(waterDepth, who, "UndergroundMine")
+                            .Where(kv => !IsGarbage(kv.Key)).ToDictionary(x => x.Key, x => x.Value),
+                        1 - p));
+            }
+
+            return dict;
+        }
+
+        private static Dictionary<int, double> GetFishesFarm(int waterDepth, Player who)
+        {
+            switch (Game1.whichFarm)
+            {
+                case 1:
+                    return ConcatDictionary(MagnifyProbabilities(GetFishes(waterDepth, who, "Forest"), 0.3), MagnifyProbabilities(GetFishes(waterDepth, who, "Town"), 0.7));
+                case 3:
+                    return MagnifyProbabilities(GetFishes(waterDepth, who, "Forest"), 0.5);
+                case 2:
+                    {
+                        double p = 0.05 + Game1.dailyLuck;
+                        return ConcatDictionary(
+                            new Dictionary<int, double> { { 734, p } },
+                            MagnifyProbabilities(
+                                GetFishes(waterDepth, who, "Forest"),
+                                (1 - p) * 0.45)
+                            );
+                    }
+                case 4:
+                    {
+                        return MagnifyProbabilities(
+                            GetFishes(waterDepth, who, "Mountain"),
+                            0.35);
+                    }
+                default:
+                    return GetFishes(waterDepth, who);
+            }
+        }
+
+
+        private static void CollectObj(GameLocation loc, SVObject obj)
         {
             Player who = Game1.player;
-            IEnumerable<KeyValuePair<Vector2, SVObject>> objs = loc.Objects.Where(kv => kv.Value == obj);
-            if(objs.Count() == 0)
+            List<KeyValuePair<Vector2, SVObject>> objs = loc.Objects.Where(kv => kv.Value == obj).ToList();
+            if(!objs.Any())
             {
-                return false;
+                return;
             }
             Vector2 vector = objs.First().Key;
 
@@ -526,11 +741,11 @@ namespace JoysOfEfficiency.Utils
             }
             else if (obj.isForage(loc))
             {
-                if (random.NextDouble() < (double)((float)who.ForagingLevel / 30f))
+                if (random.NextDouble() < who.ForagingLevel / 30f)
                 {
                     obj.quality = 2;
                 }
-                else if (random.NextDouble() < (double)((float)who.ForagingLevel / 15f))
+                else if (random.NextDouble() < who.ForagingLevel / 15f)
                 {
                     obj.quality = 1;
                 }
@@ -543,7 +758,9 @@ namespace JoysOfEfficiency.Utils
                     DelayedAction.playSoundAfterDelay("coin", 300);
                 }
                 if(!who.isRidingHorse() && !who.ridingMineElevator)
+                {
                     who.animateOnce(279 + who.FacingDirection);
+                }
 
                 if (!loc.isFarmBuildingInterior())
                 {
@@ -556,18 +773,17 @@ namespace JoysOfEfficiency.Utils
                 {
                     who.gainExperience(0, 5);
                 }
-                who.addItemToInventoryBool(obj.getOne(), false);
+                who.addItemToInventoryBool(obj.getOne());
                 Game1.stats.ItemsForaged++;
                 if (who.professions.Contains(13) && random.NextDouble() < 0.2 && !obj.questItem && who.couldInventoryAcceptThisItem(obj) && !loc.isFarmBuildingInterior())
                 {
-                    who.addItemToInventoryBool(obj.getOne(), false);
+                    who.addItemToInventoryBool(obj.getOne());
                     who.gainExperience(2, 7);
                 }
                 loc.objects.Remove(vector);
-                return true;
+                return;
             }
             obj.quality = quality;
-            return false;
         }
 
         public static bool IsThereAnyWaterNear(GameLocation location, Vector2 tileLocation)
@@ -598,7 +814,6 @@ namespace JoysOfEfficiency.Utils
                     if (dirt.crop == null)
                     {
                         ShowHUDMessage("There is no crop under the cursor");
-                        return;
                     }
                     else
                     {
@@ -633,7 +848,6 @@ namespace JoysOfEfficiency.Utils
 
         public static bool Harvest(int xTile, int yTile, HoeDirt soil, JunimoHarvester junimoHarvester = null)
         {
-            IReflectionHelper reflection = Helper.Reflection;
             Crop crop = soil.crop;
 
             if (crop.dead)
@@ -651,7 +865,11 @@ namespace JoysOfEfficiency.Utils
                 int num = crop.whichForageCrop;
                 if (num == 1)
                 {
-                    @object = new SVObject(399, 1, false, -1, 0);
+                    @object = new SVObject(399, 1);
+                }
+                if (@object == null)
+                {
+                    return false;
                 }
                 if (Game1.player.professions.Contains(16))
                 {
@@ -665,26 +883,35 @@ namespace JoysOfEfficiency.Utils
                 {
                     @object.quality = 1;
                 }
-                Game1.stats.ItemsForaged += (uint)@object.Stack;
-                if (junimoHarvester != null)
+                
                 {
-                    junimoHarvester.tryToAddItemToHut(@object);
-                    return true;
-                }
-                if (Game1.player.addItemToInventoryBool(@object, false))
-                {
-                    Vector2 vector = new Vector2(xTile, yTile);
-                    Game1.player.animateOnce(279 + Game1.player.facingDirection);
-                    Game1.player.canMove = false;
-                    Game1.playSound("harvest");
-                    DelayedAction.playSoundAfterDelay("coin", 260);
-                    if (crop.regrowAfterHarvest == -1)
+                    Game1.stats.ItemsForaged += (uint) @object.Stack;
+                    if (junimoHarvester != null)
                     {
-                        Game1.currentLocation.temporarySprites.Add(new TemporaryAnimatedSprite(17, new Vector2(vector.X * (float)Game1.tileSize, vector.Y * (float)Game1.tileSize), Color.White, 7, Game1.random.NextDouble() < 0.5, 125f, 0, -1, -1f, -1, 0));
-                        Game1.currentLocation.temporarySprites.Add(new TemporaryAnimatedSprite(14, new Vector2(vector.X * (float)Game1.tileSize, vector.Y * (float)Game1.tileSize), Color.White, 7, Game1.random.NextDouble() < 0.5, 50f, 0, -1, -1f, -1, 0));
+                        junimoHarvester.tryToAddItemToHut(@object);
+                        return true;
                     }
-                    Game1.player.gainExperience(2, howMuch);
-                    return true;
+
+                    if (Game1.player.addItemToInventoryBool(@object))
+                    {
+                        Vector2 vector = new Vector2(xTile, yTile);
+                        Game1.player.animateOnce(279 + Game1.player.facingDirection);
+                        Game1.player.canMove = false;
+                        Game1.playSound("harvest");
+                        DelayedAction.playSoundAfterDelay("coin", 260);
+                        if (crop.regrowAfterHarvest == -1)
+                        {
+                            Game1.currentLocation.temporarySprites.Add(new TemporaryAnimatedSprite(17,
+                                new Vector2(vector.X * Game1.tileSize, vector.Y * Game1.tileSize), Color.White, 7,
+                                Game1.random.NextDouble() < 0.5, 125f));
+                            Game1.currentLocation.temporarySprites.Add(new TemporaryAnimatedSprite(14,
+                                new Vector2(vector.X * Game1.tileSize, vector.Y * Game1.tileSize), Color.White, 7,
+                                Game1.random.NextDouble() < 0.5, 50f));
+                        }
+
+                        Game1.player.gainExperience(2, howMuch);
+                        return true;
+                    }
                 }
             }
             else if (crop.currentPhase >= crop.phaseDays.Count - 1 && (!crop.fullyGrown || crop.dayOfCurrentPhase <= 0))
@@ -749,7 +976,7 @@ namespace JoysOfEfficiency.Utils
                         }
                         else
                         {
-                            Game1.createObjectDebris(crop.indexOfHarvest, xTile, yTile, -1, num3, 1f, null);
+                            Game1.createObjectDebris(crop.indexOfHarvest, xTile, yTile, -1, num3);
                         }
                     }
                     if (crop.regrowAfterHarvest == -1)
@@ -762,9 +989,9 @@ namespace JoysOfEfficiency.Utils
                 else if (junimoHarvester != null || Game1.player.addItemToInventoryBool(crop.programColored ? new ColoredObject(crop.indexOfHarvest, 1, crop.tintColor)
                 {
                     quality = num3
-                } : new SVObject(crop.indexOfHarvest, 1, false, -1, num3), false))
+                } : new SVObject(crop.indexOfHarvest, 1, false, -1, num3)))
                 {
-                    Vector2 vector2 = new Vector2((float)xTile, (float)yTile);
+                    Vector2 vector2 = new Vector2(xTile, yTile);
                     if (junimoHarvester == null)
                     {
                         Game1.player.animateOnce(279 + Game1.player.facingDirection);
@@ -777,7 +1004,7 @@ namespace JoysOfEfficiency.Utils
                             quality = num3
                         } : new SVObject(crop.indexOfHarvest, 1, false, -1, num3));
                     }
-                    if (random.NextDouble() < (double)((float)Game1.player.LuckLevel / 1500f) + Game1.dailyLuck / 1200.0 + 9.9999997473787516E-05)
+                    if (random.NextDouble() < Game1.player.LuckLevel / 1500f + Game1.dailyLuck / 1200.0 + 9.9999997473787516E-05)
                     {
                         num2 *= 2;
                         if (junimoHarvester == null || Utility.isOnScreen(junimoHarvester.getTileLocationPoint(), Game1.tileSize, junimoHarvester.currentLocation))
@@ -797,8 +1024,8 @@ namespace JoysOfEfficiency.Utils
                         }
                         if (crop.regrowAfterHarvest == -1 && (junimoHarvester == null || junimoHarvester.currentLocation.Equals(Game1.currentLocation)))
                         {
-                            Game1.currentLocation.temporarySprites.Add(new TemporaryAnimatedSprite(17, new Vector2(vector2.X * (float)Game1.tileSize, vector2.Y * (float)Game1.tileSize), Color.White, 7, Game1.random.NextDouble() < 0.5, 125f, 0, -1, -1f, -1, 0));
-                            Game1.currentLocation.temporarySprites.Add(new TemporaryAnimatedSprite(14, new Vector2(vector2.X * (float)Game1.tileSize, vector2.Y * (float)Game1.tileSize), Color.White, 7, Game1.random.NextDouble() < 0.5, 50f, 0, -1, -1f, -1, 0));
+                            Game1.currentLocation.temporarySprites.Add(new TemporaryAnimatedSprite(17, new Vector2(vector2.X * Game1.tileSize, vector2.Y * Game1.tileSize), Color.White, 7, Game1.random.NextDouble() < 0.5, 125f));
+                            Game1.currentLocation.temporarySprites.Add(new TemporaryAnimatedSprite(14, new Vector2(vector2.X * Game1.tileSize, vector2.Y * Game1.tileSize), Color.White, 7, Game1.random.NextDouble() < 0.5, 50f));
                         }
                     }
                     if (crop.indexOfHarvest == 421)
@@ -810,18 +1037,18 @@ namespace JoysOfEfficiency.Utils
                     {
                         if (junimoHarvester == null)
                         {
-                            Game1.createObjectDebris(crop.indexOfHarvest, xTile, yTile, -1, 0, 1f, null);
+                            Game1.createObjectDebris(crop.indexOfHarvest, xTile, yTile);
                         }
                         else
                         {
-                            junimoHarvester.tryToAddItemToHut(new SVObject(crop.indexOfHarvest, 1, false, -1, 0));
+                            junimoHarvester.tryToAddItemToHut(new SVObject(crop.indexOfHarvest, 1));
                         }
                     }
                     int num7 = Convert.ToInt32(Game1.objectInformation[crop.indexOfHarvest].Split('/')[1]);
-                    float num8 = (float)(16.0 * Math.Log(0.018 * (double)num7 + 1.0, 2.7182818284590451));
+                    float num8 = (float)(16.0 * Math.Log(0.018 * num7 + 1.0, 2.7182818284590451));
                     if (junimoHarvester == null)
                     {
-                        Game1.player.gainExperience(0, (int)Math.Round((double)num8));
+                        Game1.player.gainExperience(0, (int)Math.Round(num8));
                     }
                     if (crop.regrowAfterHarvest == -1)
                     {
@@ -918,7 +1145,7 @@ namespace JoysOfEfficiency.Utils
             return IsBlackListed(crop);
         }
 
-        private static bool? IsUpsideDown(GameLocation location, Fence fence)
+        private static bool? IsUpsideDown(Fence fence)
         {
             int num2 = 0;
             Vector2 tileLocation = fence.TileLocation;
@@ -951,7 +1178,7 @@ namespace JoysOfEfficiency.Utils
                 {
                     return true;
                 }
-                else if (num2 == 1500)
+                if (num2 == 1500)
                 {
                     return false;
                 }
@@ -1055,7 +1282,7 @@ namespace JoysOfEfficiency.Utils
             float treasureApeearTimer = reflection.GetField<float>(bar, "treasureAppearTimer").GetValue();
             float bobberBarSpeed = bobberSpeed.GetValue();
 
-            float up = barPos, down = barPos + barHeight;
+            float up = barPos;
 
             if (treasure && treasureApeearTimer <= 0 && !treasureCaught)
             {
@@ -1076,7 +1303,7 @@ namespace JoysOfEfficiency.Utils
             float strength = (fishPos - (barPos + barHeight / 2)) / 16f;
             float distance = fishPos - up;
 
-            float threshold = ModEntry.Conf.CPUThresholdFishing;
+            float threshold = ModEntry.Conf.CpuThresholdFishing;
             if (distance < threshold * barHeight || distance > (1 - threshold) * barHeight)
             {
                 bobberBarSpeed = strength;
@@ -1184,7 +1411,7 @@ namespace JoysOfEfficiency.Utils
             {
                 y = Game1.viewport.Height - bottomY;
             }
-            IClickableMenu.drawTextureBox(batch, Game1.menuTexture, new Rectangle(0, 256, 60, 60), x, y, rightX, bottomY, Color.White, 1f, true);
+            IClickableMenu.drawTextureBox(batch, Game1.menuTexture, new Rectangle(0, 256, 60, 60), x, y, rightX, bottomY, Color.White);
             if (!string.IsNullOrEmpty(text))
             {
                 Vector2 vector2 = new Vector2(x + Game1.tileSize / 4, y + bottomY / 2 - stringSize.Y / 2);
@@ -1299,33 +1526,29 @@ namespace JoysOfEfficiency.Utils
             IClickableMenu.drawTextureBox(batch, Game1.menuTexture, new Rectangle(0, 256, 60, 60), x, y, width, height, Color.White);
             fish.drawInMenu(batch, new Vector2(x + width / 2 - 32, y + 16), 1.0f, 1.0f, 0.9f, false);
 
-
-            Vector2 stringSize = font.MeasureString("X");
-            Vector2 addition = new Vector2(0, stringSize.Y);
-
             Vector2 vec2 = new Vector2(x + 32, y + 80 + 16);
-            DrawString(batch, font, ref vec2, speciesText, Color.Black, scale, false);
-            DrawString(batch, font, ref vec2, sizeText, Color.Black, scale, false);
+            DrawString(batch, font, ref vec2, speciesText, Color.Black, scale);
+            DrawString(batch, font, ref vec2, sizeText, Color.Black, scale);
             DrawString(batch, font, ref vec2, qualityText1, Color.Black, scale, true);
             DrawString(batch, font, ref vec2, qualityText2, GetColorForQuality(fishQuality), scale);
             vec2.X = x + 32;
-            if (treasure)
+            if (!treasure)
+                return;
+
+            if (!treasureCaught)
             {
-                if (!treasureCaught)
+                if (treasureAppearTimer > 0f)
                 {
-                    if (treasureAppearTimer > 0f)
-                    {
-                        DrawString(batch, font, ref vec2, incomingText, Color.Red, scale, false);
-                    }
-                    else
-                    {
-                        DrawString(batch, font, ref vec2, appearedText, Color.LightGoldenrodYellow, scale, false);
-                    }
+                    DrawString(batch, font, ref vec2, incomingText, Color.Red, scale);
                 }
                 else
                 {
-                    DrawString(batch, font, ref vec2, caughtText, Color.ForestGreen, scale, false);
+                    DrawString(batch, font, ref vec2, appearedText, Color.LightGoldenrodYellow, scale);
                 }
+            }
+            else
+            {
+                DrawString(batch, font, ref vec2, caughtText, Color.ForestGreen, scale);
             }
         }
 
@@ -1393,11 +1616,13 @@ namespace JoysOfEfficiency.Utils
             }
             catch
             {
+                // ignored
             }
+
             return "";
         }
 
-        private static bool CanFurnaceAcceptItem(SVObject furnace, Item item, Player player)
+        private static bool CanFurnaceAcceptItem(Item item, Player player)
         {
             if (player.getTallyOfObject(382, false) <= 0)
                 return false;
@@ -1456,7 +1681,7 @@ namespace JoysOfEfficiency.Utils
                     {
                         foreach (LargeTerrainFeature feature in lFeatures)
                         {
-                            if (feature is T && feature.tilePosition.X == loc.X && feature.tilePosition.Y == loc.Y)
+                            if (feature is T && (int)feature.tilePosition.X == (int)loc.X && (int)feature.tilePosition.Y == (int)loc.Y)
                             {
                                 list.Add(loc, feature as T);
                             }

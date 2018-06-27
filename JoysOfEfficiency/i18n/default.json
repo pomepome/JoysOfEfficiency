@@ -66,5 +66,8 @@
   "options.AutoPetNearbyPets": "Auto-pet nearby pets",
   "options.ProtectNectarProducingFlower": "Protect flowers near bee houses",
   "options.FindHoeFromInventory": "Find Hoe from inventory",
-  "options.KeyToggleBlackList": "Key to toggle harvest blacklist"
+  "options.KeyToggleBlackList": "Key to toggle harvest blacklist",
+  "options.SaveSkullCavernLevel": "Save Skull Cavern Progress",
+  "options.CavernFloorIntervalToSave": "Cavern progress saved every {0} floors",
+  "options.FishingProbabilitiesInfo": "Draw probabilities of fishing" 
 }

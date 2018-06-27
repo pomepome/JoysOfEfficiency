@@ -64,7 +64,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />
-    <Compile Include="JOEMenu.cs" />
+    <Compile Include="CustomSorter.cs" />
+    <Compile Include="JoeMenu.cs" />
     <Compile Include="ModCheckers\ModChecker.cs" />
     <Compile Include="OptionsElements\EmptyLabel.cs" />
     <Compile Include="OptionsElements\LabelComponent.cs" />

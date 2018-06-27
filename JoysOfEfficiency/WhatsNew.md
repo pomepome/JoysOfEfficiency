@@ -74,3 +74,6 @@ This is a changelog from 1.0.22
 
 ## 1.0.38
 - Pickup motion won't be played when riding.
+
+## 1.0.39
+- Added FishingProbabilitiesInfo feature.

@@ -3,10 +3,6 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
 using StardewValley.Menus;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace JoysOfEfficiency.OptionsElements
 {
@@ -46,7 +42,7 @@ namespace JoysOfEfficiency.OptionsElements
             base.leftClickHeld(x, y);
             int oldValue = Value;
             Value = x >= bounds.X
-                ? (x <= bounds.Right - 10 * Game1.pixelZoom ? (int)((x - bounds.X) / (this.bounds.Width - 10d * Game1.pixelZoom) * this.MaxValue) : this.MaxValue)
+                ? (x <= bounds.Right - 10 * Game1.pixelZoom ? (int)((x - bounds.X) / (bounds.Width - 10d * Game1.pixelZoom) * MaxValue) : MaxValue)
                 : 0;
             if (Value != oldValue)
             {

@@ -3,32 +3,26 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Buildings;
-using StardewValley.Characters;
 using StardewValley.Locations;
 using StardewValley.Menus;
-using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
 using StardewValley.Tools;
-using StardewValley.Monsters;
 using JoysOfEfficiency.Utils;
 using Microsoft.Xna.Framework.Input;
 using JoysOfEfficiency.ModCheckers;
-using Microsoft.Xna.Framework.Audio;
 
 namespace JoysOfEfficiency
 {
 
     using Player = StardewValley.Farmer;
-    using SVObject = StardewValley.Object;
     internal class ModEntry : Mod
     {
-        public static bool IsCJBCheatsOn { get; private set; } = false;
-        public static bool IsCasksAnywhereOn { get; private set; } = false;
+        public static bool IsCJBCheatsOn { get; private set; }
+        public static bool IsCasksAnywhereOn { get; private set; }
 
         public static Mod Instance { get; private set; }
         internal static Config Conf { get; private set; }
@@ -61,7 +55,8 @@ namespace JoysOfEfficiency
             GraphicsEvents.OnPreRenderHudEvent += OnPreRenderHUD;
             GraphicsEvents.OnPostRenderHudEvent += OnPostRenderHUD;
 
-            Conf.CPUThresholdFishing = Util.Cap(Conf.CPUThresholdFishing, 0, 0.5f);
+
+            Conf.CpuThresholdFishing = Util.Cap(Conf.CpuThresholdFishing, 0, 0.5f);
             Conf.HealthToEatRatio = Util.Cap(Conf.HealthToEatRatio, 0, 0.8f);
             Conf.StaminaToEatRatio = Util.Cap(Conf.StaminaToEatRatio, 0, 0.8f);
             Conf.AutoCollectRadius = (int)Util.Cap(Conf.AutoCollectRadius, 1, 3);
@@ -113,7 +108,6 @@ namespace JoysOfEfficiency
                 return;
             }
             Player player = Game1.player;
-            IReflectionHelper reflection = Helper.Reflection;
             try
             {
                 if (Conf.GiftInformation)
@@ -151,7 +145,6 @@ namespace JoysOfEfficiency
                 }
                 if (player.CurrentTool is FishingRod rod)
                 {
-                    IReflectedField<int> whichFish = reflection.GetField<int>(rod, "whichFish");
                     if (rod.isNibbling && !rod.isReeling && !rod.hit && !rod.pullingOutOfWater && !rod.fishCaught)
                     {
                         if (Conf.AutoReelRod)
@@ -300,8 +293,7 @@ namespace JoysOfEfficiency
             {
                 return;
             }
-            IReflectionHelper reflection = Helper.Reflection;
-            ITranslationHelper translation = Helper.Translation;
+
             if(args.KeyPressed == Keys.H)
             {
                 Util.ShowHUDMessage($"Hay:{Game1.getFarm().piecesOfHay}");
@@ -309,10 +301,9 @@ namespace JoysOfEfficiency
             }
             if (args.KeyPressed == Conf.KeyShowMenu)
             {
-                Player player = Game1.player;
                 //Open Up Menu
                 Game1.playSound("bigSelect");
-                Game1.activeClickableMenu = new JOEMenu(800, 548, this);
+                Game1.activeClickableMenu = new JoeMenu(800, 548, this);
             }
             else if(args.KeyPressed == Conf.KeyToggleBlackList)
             {
@@ -322,7 +313,7 @@ namespace JoysOfEfficiency
 
         private void OnPreRenderHUD(object sender, EventArgs args)
         {
-            if (Game1.currentLocation is MineShaft shaft && Conf.MineInfoGUI)
+            if (Game1.currentLocation is MineShaft shaft && Conf.MineInfoGui)
             {
                 Util.DrawMineGui(Game1.spriteBatch, Game1.smallFont, Game1.player, shaft);
             }
@@ -344,6 +335,11 @@ namespace JoysOfEfficiency
                 {
                     Util.AutoFishing(bar);
                 }
+            }
+
+            if (Conf.FishingProbabilitiesInfo && Game1.player.CurrentTool is FishingRod rod && rod.isFishing)
+            {
+                Util.PrintFishingInfo(rod);
             }
         }
 

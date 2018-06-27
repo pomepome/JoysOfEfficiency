@@ -10,8 +10,8 @@ namespace JoysOfEfficiency.OptionsElements
 {
     public class ModifiedInputListener : OptionsElement
     {
-        private bool isListening = false;
-        private bool conflicting = false;
+        private bool isListening;
+        private bool conflicting;
         private Keys button;
 
         private Action<int, ModifiedInputListener> OnStartListening;
