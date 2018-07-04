@@ -11,7 +11,7 @@ namespace JoysOfEfficiency
             {
                 return x.Key - y.Key;
             }
-            return x.Value - y.Value > 0 ? 1 : -1;
+            return x.Value - y.Value > 0 ? -1 : 1;
         }
     }
 }

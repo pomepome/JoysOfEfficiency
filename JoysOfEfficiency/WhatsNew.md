@@ -87,3 +87,10 @@ This is a changelog from 1.1.14-beta
 
 ## 1.1.35-beta
 - Improved FishingProbabilitiesInfo in Mine.
+
+## 1.1.36-beta
+- Changed Probability Determining Algorithm.
+
+## 1.1.37-beta
+- Updated de.json
+- Added Bee house, mushroom box, etc. support.

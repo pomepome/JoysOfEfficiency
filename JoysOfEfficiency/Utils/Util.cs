@@ -75,10 +75,10 @@ namespace JoysOfEfficiency.Utils
             {
                 return;
             }
-            foreach (SVObject obj in GetObjectsWithin<SVObject>(ModEntry.Conf.MachineRadius))
+            foreach (SVObject obj in GetObjectsWithin<SVObject>(ModEntry.Conf.MachineRadius).Where(IsObjectMachine))
             {
                 Vector2 loc = GetLocationOf(currentLocation, obj);
-                if (!IsObjectMachine(obj) || obj.heldObject.Value != null)
+                if (obj.heldObject.Value != null)
                     continue;
 
                 bool flag = false;
@@ -110,6 +110,8 @@ namespace JoysOfEfficiency.Utils
                 {
                     player.reduceActiveItemByOne();
                 }
+
+                return;
             }
         }
         public static void PullMachineResult()
@@ -925,7 +927,7 @@ namespace JoysOfEfficiency.Utils
             Array.Sort(array, new CustomSorter());
 
             Dictionary<int, double> dict2 =
-                GetFinalProbabilities(array.ToDictionary(x=>x.Key, x=>x.Value)).OrderByDescending(kv => kv.Value)
+                GetFinalProbabilities(array.ToDictionary(x=>x.Key, x=>x.Value)).OrderByDescending(x=>x.Value)
                     .Where(kv=>!IsGarbage(kv.Key)).ToDictionary(x => x.Key, x => x.Value);
             sum = dict2.Sum(kv => kv.Value);
             if (1 - sum >= 0.001f)
@@ -1360,7 +1362,13 @@ namespace JoysOfEfficiency.Utils
                 case "Furnace":
                 case "Charcoal Kiln":
                 case "Slime Egg-Press":
-                case "Cask": return true;
+                case "Cask":
+                case "Bee House":
+                case "Mushroom Box":
+                case "Statue Of Endless Fortune":
+                case "Statue Of Perfection":
+                case "Tapper":
+                    return true;
                 default: return false;
             }
         }
@@ -1398,7 +1406,7 @@ namespace JoysOfEfficiency.Utils
                 {
                     return true;
                 }
-                else if (num2 == 1500)
+                if (num2 == 1500)
                 {
                     return false;
                 }
