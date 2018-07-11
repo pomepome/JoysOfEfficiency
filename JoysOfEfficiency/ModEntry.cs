@@ -50,7 +50,7 @@ namespace JoysOfEfficiency
             
             SaveEvents.BeforeSave += OnBeforeSave;
 
-            TimeEvents.AfterDayStarted += OnPostSave;
+            TimeEvents.AfterDayStarted += OnDayStarted;
 
 
             Conf.CpuThresholdFishing = Util.Cap(Conf.CpuThresholdFishing, 0, 0.5f);
@@ -296,8 +296,18 @@ namespace JoysOfEfficiency
 
                 if (Game1.player.CurrentItem != null)
                 {
-                    Util.ShowHudMessage($"{Game1.player.CurrentItem.ParentSheetIndex}");
+                    Util.ShowHudMessage(Game1.player.CurrentTool == null
+                        ? $"ItemId:{Game1.player.CurrentItem.ParentSheetIndex}"
+                        : $"ToolId:{Game1.player.CurrentTool.CurrentParentTileIndex}");
                 }
+
+                List<Item> shippedList = Game1.getFarm().shippingBin.ToList();
+                int totalPrice = 0;
+                foreach (Item item in shippedList)
+                {
+                    totalPrice += Util.GetTruePrice(item) / 2 * item.Stack;
+                }
+                Util.ShowHudMessage($"Estimated Shipping Price: {totalPrice}G");
             }
             if (!Context.IsPlayerFree || Game1.activeClickableMenu != null)
             {
@@ -307,7 +317,7 @@ namespace JoysOfEfficiency
             {
                 //Open Up Menu
                 Game1.playSound("bigSelect");
-                Game1.activeClickableMenu = new JoeMenu(900, 548, this);
+                Game1.activeClickableMenu = new JoeMenu(1100, 548, this);
             }
             else if (args.KeyPressed == Conf.KeyToggleBlackList)
             {
@@ -352,6 +362,7 @@ namespace JoysOfEfficiency
             {
                 return;
             }
+            Monitor.Log("OnBeforeSave", LogLevel.Trace);
             Util.LetAnimalsInHome();
             Farm farm = Game1.getFarm();
             foreach (Building building in farm.buildings)
@@ -381,12 +392,13 @@ namespace JoysOfEfficiency
             }
         }
 
-        private void OnPostSave(object sender, EventArgs args)
+        private void OnDayStarted(object sender, EventArgs args)
         {
             if (!Context.IsWorldReady || !Conf.AutoAnimalDoor)
             {
                 return;
             }
+            Monitor.Log("OnDayStarted", LogLevel.Trace);
             _dayEnded = false;
             if (Game1.isRaining || Game1.isSnowing)
             {

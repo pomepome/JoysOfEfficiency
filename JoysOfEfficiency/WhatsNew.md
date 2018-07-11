@@ -94,3 +94,6 @@ This is a changelog from 1.1.14-beta
 ## 1.1.37-beta
 - Updated de.json
 - Added Bee house, mushroom box, etc. support.
+
+## 1.1.38-beta
+- Updated es.json

@@ -35,7 +35,21 @@ namespace JoysOfEfficiency.Utils
 
         public static string LastKilledMonster { get; private set; }
 
+        public static int GetTruePrice(Item item)
+        {
+            int truePrice = 0;
 
+            if (item is SVObject objectItem)
+            {
+                truePrice = objectItem.sellToStorePrice() * 2;
+            }
+            else if (item is Item thing)
+            {
+                truePrice = thing.salePrice();
+            }
+
+            return truePrice;
+        }
 
         public static void UpdateNectarInfo()
         {
@@ -214,7 +228,6 @@ namespace JoysOfEfficiency.Utils
                         Vector2 loc = new Vector2(x, y);
                         if (!(location.Objects.ContainsKey(loc) && location.Objects[loc].ParentSheetIndex == 590 && !location.isTileHoeDirt(loc)))
                             continue;
-
                         location.digUpArtifactSpot(x, y, player);
                         location.Objects.Remove(loc);
                         location.terrainFeatures.Add(loc, new HoeDirt());
@@ -222,21 +235,15 @@ namespace JoysOfEfficiency.Utils
                     }
                 }
                 if (flag)
-                {
                     playSound("hoeHit");
-                }
             }
         }
 
         public static void CollectNearbyCollectibles(GameLocation location)
         {
             foreach(SVObject obj in GetObjectsWithin<SVObject>(ModEntry.Conf.AutoCollectRadius))
-            {
                 if(obj.IsSpawnedObject || obj.isAnimalProduct())
-                {
                     CollectObj(location, obj);
-                }
-            }
         }
 
 
@@ -1590,13 +1597,11 @@ namespace JoysOfEfficiency.Utils
         public static void LetAnimalsInHome()
         {
             Farm farm = getFarm();
-            foreach (SerializableDictionary<long, FarmAnimal> dic in farm.animals.ToList())
+            foreach (KeyValuePair<long, FarmAnimal> kv in farm.animals.Pairs)
             {
-                foreach (KeyValuePair<long, FarmAnimal> kv in dic)
-                {
-                    FarmAnimal animal = kv.Value;
-                    animal.warpHome(farm, animal);
-                }
+                FarmAnimal animal = kv.Value;
+                Monitor.Log($"Warped {animal.displayName}({animal.shortDisplayType()}) to {animal.displayHouse}@{animal.home.animalDoor.X}, {animal.home.animalDoor.Y}");
+                animal.warpHome(farm, animal);
             }
         }
 
