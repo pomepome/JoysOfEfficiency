@@ -90,10 +90,10 @@ namespace JoysOfEfficiency.Utils
             {
                 return;
             }
-            foreach (SVObject obj in GetObjectsWithin<SVObject>(ModEntry.Conf.MachineRadius))
+            foreach (SVObject obj in GetObjectsWithin<SVObject>(ModEntry.Conf.MachineRadius).Where(IsObjectMachine))
             {
                 Vector2 loc = GetLocationOf(Game1.currentLocation, obj);
-                if (IsObjectMachine(obj) && obj.heldObject == null)
+                if (obj.heldObject == null)
                 {
                     bool flag = false;
                     bool accepted = obj.Name == "Furnace" ? CanFurnaceAcceptItem(item, player) : Utility.isThereAnObjectHereWhichAcceptsThisItem(Game1.currentLocation, item, (int)loc.X * Game1.tileSize, (int)loc.Y * Game1.tileSize);
@@ -130,7 +130,7 @@ namespace JoysOfEfficiency.Utils
         public static void PullMachineResult()
         {
             Player player = Game1.player;
-            foreach (SVObject obj in GetObjectsWithin<SVObject>(ModEntry.Conf.MachineRadius))
+            foreach (SVObject obj in GetObjectsWithin<SVObject>(ModEntry.Conf.MachineRadius).Where(IsObjectMachine))
             {
                 if (obj.readyForHarvest && obj.heldObject != null)
                 {
@@ -1214,6 +1214,11 @@ namespace JoysOfEfficiency.Utils
                 case "Charcoal Kiln":
                 case "Slime Egg-Press":
                 case "Cask":
+                case "Bee House":
+                case "Mushroom Box":
+                case "Statue Of Endless Fortune":
+                case "Statue Of Perfection":
+                case "Tapper":
                     return true;
                 default: return false;
             }
