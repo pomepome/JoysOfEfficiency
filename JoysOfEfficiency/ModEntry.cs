@@ -182,11 +182,6 @@ namespace JoysOfEfficiency
                     isNight = true;
                     OnBeforeSave(null, null);
                 }
-                if (Conf.AutoAnimalDoor && !isNight && Game1.timeOfDay >= 1900)
-                {
-                    isNight = true;
-                    OnBeforeSave(null, null);
-                }
                 ticks = (ticks + 1) % 8;
                 if(Conf.BalancedMode && ticks > 0)
                 {
