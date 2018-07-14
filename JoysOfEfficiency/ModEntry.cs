@@ -239,13 +239,11 @@ namespace JoysOfEfficiency
                         {
                             for (int j = -radius; j <= radius; j++)
                             {
-                                int x = player.getTileX() + i;
-                                int y = player.getTileY() + j;
-                                Vector2 loc = new Vector2(x, y);
+                                Vector2 loc = player.getTileLocation() + new Vector2(i, j);
                                 if (location.Objects.ContainsKey(loc) && location.Objects[loc].ParentSheetIndex == 590 && !location.isTileHoeDirt(loc))
                                 {
-                                    Util.Log($"BURIED @[{x},{y}]");
-                                    location.digUpArtifactSpot(x, y, player);
+                                    Util.Log($"BURIED @[{loc.X},{loc.Y}]");
+                                    location.digUpArtifactSpot((int) loc.X, (int) loc.Y, player);
                                     location.Objects.Remove(loc);
                                     location.terrainFeatures.Add(loc, new HoeDirt());
                                     flag = true;

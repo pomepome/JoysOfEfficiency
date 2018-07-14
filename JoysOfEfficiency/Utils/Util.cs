@@ -284,8 +284,8 @@ namespace JoysOfEfficiency.Utils
             IReflectionHelper reflection = Helper.Reflection;
             ITranslationHelper translation = Helper.Translation;
             int stonesLeft = reflection.GetField<int>(shaft, "stonesLeftOnThisLevel").GetValue();
-            Vector2 ladderPos = FindLadder(shaft);
-            bool ladder = ladderPos != null && ladderPos != Vector2.Zero;
+            Vector2? ladderPos = FindLadder(shaft);
+            bool ladder = ladderPos != null;
 
             List<Monster> currentMonsters = shaft.characters.OfType<Monster>().ToList();
             foreach (Monster mon in lastMonsters)
@@ -313,14 +313,7 @@ namespace JoysOfEfficiency.Utils
             else
             {
                 bool single = stonesLeft == 1;
-                if (single)
-                {
-                    stonesStr = translation.Get("stones.one");
-                }
-                else
-                {
-                    stonesStr = string.Format(translation.Get("stones.many"), stonesLeft);
-                }
+                stonesStr = single ? translation.Get("stones.one") : string.Format(translation.Get("stones.many"), stonesLeft);
             }
             if (ladder)
             {
@@ -401,12 +394,6 @@ namespace JoysOfEfficiency.Utils
             return !pairs.Any() ? new Vector2(-1, -1) : pairs.First().Key;
         }
 
-        public static Vector2 GetLocationOf(GameLocation location, TerrainFeature feature)
-        {
-            List<KeyValuePair<Vector2, TerrainFeature>> pairs = location.terrainFeatures.Where(kv => kv.Value == feature).ToList();
-            return !pairs.Any() ? new Vector2(-1, -1) : pairs.First().Key;
-        }
-
         /// <summary>
         /// Is the dirt's crop is a flower and producing nectar
         /// </summary>
@@ -417,7 +404,7 @@ namespace JoysOfEfficiency.Utils
             return flowerLocationProducingNectar.Contains(dirt);
         }
 
-        public static Vector2 FindLadder(MineShaft shaft)
+        public static Vector2? FindLadder(MineShaft shaft)
         {
             for (int i = 0; i < shaft.Map.GetLayer("Buildings").LayerWidth; i++)
             {
@@ -432,7 +419,7 @@ namespace JoysOfEfficiency.Utils
                     }
                 }
             }
-            return Vector2.Zero;
+            return null;
         }
 
         public static void PrintFishingInfo(FishingRod rod)
@@ -818,27 +805,13 @@ namespace JoysOfEfficiency.Utils
                     else
                     {
                         string name = "";
-                        if (dirt.crop.forageCrop)
-                        {
-                            name = new SVObject(dirt.crop.whichForageCrop, 1).Name;
-                        }
-                        else
-                        {
-                            name = new SVObject(dirt.crop.indexOfHarvest, 1).Name;
-                        }
+                        name = dirt.crop.forageCrop ? new SVObject(dirt.crop.whichForageCrop, 1).Name : new SVObject(dirt.crop.indexOfHarvest, 1).Name;
                         if (name == "")
                         {
                             return;
                         }
                         string text = "";
-                        if (ToggleBlackList(dirt.crop))
-                        {
-                            text = $"{name} has been added to AutoHarvest exception";
-                        }
-                        else
-                        {
-                            text = $"{name} has been removed from AutoHarvest exception";
-                        }
+                        text = ToggleBlackList(dirt.crop) ? $"{name} has been added to AutoHarvest exception" : $"{name} has been removed from AutoHarvest exception";
                         ShowHUDMessage(text, 1000);
                         Monitor.Log(text);
                     }
@@ -861,7 +834,7 @@ namespace JoysOfEfficiency.Utils
             if (crop.forageCrop)
             {
                 SVObject @object = null;
-                int howMuch = 3;
+                const int howMuch = 3;
                 int num = crop.whichForageCrop;
                 if (num == 1)
                 {
@@ -1057,9 +1030,6 @@ namespace JoysOfEfficiency.Utils
                     crop.dayOfCurrentPhase = crop.regrowAfterHarvest;
                     crop.fullyGrown = true;
                 }
-                else
-                {
-                }
             }
             return false;
         }
@@ -1108,9 +1078,9 @@ namespace JoysOfEfficiency.Utils
         public static T FindToolFromInventory<T>(bool fromEntireInventory) where T : Tool
         {
             Player player = Game1.player;
-            if (player.CurrentTool is T)
+            if (player.CurrentTool is T tool)
             {
-                return player.CurrentTool as T;
+                return tool;
             }
             T find = null;
             if (fromEntireInventory)
@@ -1254,18 +1224,6 @@ namespace JoysOfEfficiency.Utils
         private static bool IsPlayerFaceOrBackToFence(bool isUpDown, Player player)
         {
             return isUpDown ? player.FacingDirection % 2 == 0 : player.FacingDirection % 2 == 1;
-        }
-
-        private static Vector2 GetDeltaFrom(Player player)
-        {
-            switch (player.FacingDirection)
-            {
-                case 0: return new Vector2(0, -1);
-                case 1: return new Vector2(1, 0);
-                case 2: return new Vector2(0, 1);
-                case 3: return new Vector2(-1, 0);
-            }
-            return Vector2.Zero;
         }
 
         public static void AutoFishing(BobberBar bar)
@@ -1577,20 +1535,6 @@ namespace JoysOfEfficiency.Utils
                 case 3: return Color.Purple;
             }
             return Color.WhiteSmoke;
-        }
-
-        public static float Round(float val, int exponent)
-        {
-            return (float)Math.Round(val, exponent, MidpointRounding.AwayFromZero);
-        }
-        public static float Floor(float val, int exponent)
-        {
-            int e = 1;
-            for (int i = 0; i < exponent; i++)
-            {
-                e *= 10;
-            }
-            return (float)Math.Floor(val * e) / e;
         }
 
         public static void DrawString(SpriteBatch batch, SpriteFont font, ref Vector2 location, string text, Color color, float scale, bool next = false)
