@@ -415,6 +415,7 @@ namespace JoysOfEfficiency
             {
                 if (building is Coop coop)
                 {
+                    Monitor.Log($"Opening coop door @[{coop.animalDoor.X},{coop.animalDoor.Y}]", LogLevel.Trace);
                     if (coop.indoors.Get() is AnimalHouse house)
                     {
                         if (house.animals.Any() && !coop.animalDoorOpen.Value)
@@ -426,6 +427,7 @@ namespace JoysOfEfficiency
                 }
                 else if(building is Barn barn)
                 {
+                    Monitor.Log($"Opening barn door @[{barn.animalDoor.X},{barn.animalDoor.Y}]", LogLevel.Trace);
                     if (barn.indoors.Value is AnimalHouse house)
                     {
                         if (house.animals.Any() && !barn.animalDoorOpen.Value)

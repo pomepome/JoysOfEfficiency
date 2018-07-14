@@ -1329,13 +1329,13 @@ namespace JoysOfEfficiency.Utils
 
         private static bool IsBlackListed(Crop crop)
         {
-            int index = crop.forageCrop.Value ? crop.whichForageCrop : crop.indexOfHarvest;
+            int index = crop.forageCrop.Value ? crop.whichForageCrop.Value : crop.indexOfHarvest.Value;
             return ModEntry.Conf.HarvestException.Contains(index);
         }
 
         private static bool ToggleBlackList(Crop crop)
         {
-            int index = crop.forageCrop.Value ? crop.whichForageCrop : crop.indexOfHarvest;
+            int index = crop.forageCrop.Value ? crop.whichForageCrop.Value : crop.indexOfHarvest.Value;
             if (IsBlackListed(crop))
                 ModEntry.Conf.HarvestException.Remove(index);
             else
@@ -1597,10 +1597,10 @@ namespace JoysOfEfficiency.Utils
         public static void LetAnimalsInHome()
         {
             Farm farm = getFarm();
-            foreach (KeyValuePair<long, FarmAnimal> kv in farm.animals.Pairs)
+            foreach (KeyValuePair<long, FarmAnimal> kv in farm.animals.Pairs.ToArray())
             {
                 FarmAnimal animal = kv.Value;
-                Monitor.Log($"Warped {animal.displayName}({animal.shortDisplayType()}) to {animal.displayHouse}@{animal.home.animalDoor.X}, {animal.home.animalDoor.Y}");
+                Monitor.Log($"Warped {animal.displayName}({animal.shortDisplayType()}) to {animal.displayHouse}@{animal.homeLocation.X}, {animal.homeLocation.Y}");
                 animal.warpHome(farm, animal);
             }
         }
@@ -1670,8 +1670,8 @@ namespace JoysOfEfficiency.Utils
                 case 1: return "quality.silver";
                 case 2: return "quality.gold";
                 case 3: return "quality.iridium";
+                default: return "quality.normal";
             }
-            return "quality.normal";
         }
 
         public static Color GetColorForQuality(int fishQuality)
