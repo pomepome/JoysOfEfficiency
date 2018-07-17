@@ -13,7 +13,9 @@ using StardewValley.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using StardewModdingAPI.Events;
 using xTile.Dimensions;
+using xTile.Layers;
 using static System.String;
 using static StardewValley.Game1;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
@@ -34,6 +36,55 @@ namespace JoysOfEfficiency.Utils
         private static readonly List<Vector2> FlowerLocationProducingNectar = new List<Vector2>();
 
         public static string LastKilledMonster { get; private set; }
+
+        public static Chest GetFridge()
+        {
+            if (!ModEntry.Conf.CraftingFromChests)
+            {
+                return null;
+            }
+            int radius = ModEntry.Conf.RadiusCraftingFromChests;
+            if (ModEntry.Conf.BalancedMode)
+            {
+                radius = 1;
+            }
+            if (currentLocation is FarmHouse house && house.upgradeLevel >= 1)
+            {
+                Layer layer = house.Map.GetLayer("Buildings");
+                for (int dx = -radius; dx <= radius; dx++)
+                {
+                    for (int dy = -radius; dy <= radius; dy++)
+                    {
+                        int x = player.getTileX() + dx;
+                        int y = player.getTileY() + dy;
+                        if (x >= 0 && y >= 0 && x < layer.TileWidth && y < layer.TileHeight && layer.Tiles[x, y]?.TileIndex == 173)
+                        {
+                            return house.fridge.Value;
+                        }
+                    }
+                }
+            }
+            return null ;
+        }
+
+        public static List<Item> GetNearbyItems(Player player)
+        {
+            List<Item> items = new List<Item>(player.Items);
+            if (ModEntry.Conf.CraftingFromChests)
+            {
+                foreach (Chest chest in GetObjectsWithin<Chest>(ModEntry.Conf.RadiusCraftingFromChests))
+                {
+                    items.AddRange(chest.items);
+                }
+
+                Chest fridge = GetFridge();
+                if (fridge != null)
+                {
+                    items.AddRange(fridge.items);
+                }
+            }
+            return items;
+        }
 
         public static int GetTruePrice(Item item)
         {
@@ -652,7 +703,7 @@ namespace JoysOfEfficiency.Utils
             return true;
         }
 
-        private static List<T> GetObjectsWithin<T>(int radius) where T : SVObject
+        public static List<T> GetObjectsWithin<T>(int radius) where T : SVObject
         {
             if (!Context.IsWorldReady || currentLocation?.Objects == null)
             {

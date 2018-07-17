@@ -97,3 +97,7 @@ This is a changelog from 1.1.14-beta
 
 ## 1.1.38-beta
 - Updated es.json
+
+## 1.1.39-beta
+- Fixed crushing when using 1.3.25
+- Added 'CraftingFromChests' feature.

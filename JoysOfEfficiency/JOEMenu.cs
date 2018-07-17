@@ -149,6 +149,11 @@ namespace JoysOfEfficiency
                 tab.AddOptionsElement(new LabelComponent("Fishing Probabilities Information"));
                 tab.AddOptionsElement(new ModifiedCheckBox("FishingProbabilitiesInfo", 26, ModEntry.Conf.FishingProbabilitiesInfo, OnCheckboxValueChanged));
 
+                tab.AddOptionsElement(new EmptyLabel());
+                tab.AddOptionsElement(new LabelComponent("Crafting From Chests"));
+                tab.AddOptionsElement(new ModifiedCheckBox("CraftingFromChests", 27, ModEntry.Conf.CraftingFromChests, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedSlider("RadiusCraftingFromChests", 11, ModEntry.Conf.RadiusCraftingFromChests, 1, 5, OnSliderValueChanged, (() => !ModEntry.Conf.CraftingFromChests || ModEntry.Conf.BalancedMode)));
+
                 _tabs.Add(tab);
             }
             {
@@ -213,6 +218,7 @@ namespace JoysOfEfficiency
                 case 24: ModEntry.Conf.AutoPetNearbyPets = value; break;
                 case 25: ModEntry.Conf.ProtectNectarProducingFlower = value; break;
                 case 26: ModEntry.Conf.FishingProbabilitiesInfo = value; break;
+                case 27: ModEntry.Conf.CraftingFromChests = value; break;
                 default: return;
             }
             _mod.WriteConfig();
@@ -251,6 +257,9 @@ namespace JoysOfEfficiency
                 case 10:
                     ModEntry.Conf.MachineRadius = value;
                     break;
+                case 11:
+                    ModEntry.Conf.RadiusCraftingFromChests = value;
+                    break;
                 default:
                     return;
             }
@@ -260,7 +269,7 @@ namespace JoysOfEfficiency
 
         private static string Format(int id, int value)
         {
-            if (id >= 0 && id < 3)
+            if (id >= 0 && id <= 2)
             {
                 return $"{value / 10f:f1}";
             }

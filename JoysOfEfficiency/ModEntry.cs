@@ -12,15 +12,17 @@ using StardewValley.Menus;
 using StardewValley.Tools;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using JoysOfEfficiency.Patches;
+using Object = StardewValley.Object;
 
 namespace JoysOfEfficiency
 {
     using Player = Farmer;
     internal class ModEntry : Mod
     {
-        public static bool IsCjbCheatsOn { get; private set; }
         public static bool IsCoGOn { get; private set; }
 
         public static Config Conf { get; private set; }
@@ -38,6 +40,9 @@ namespace JoysOfEfficiency
             Util.Helper = helper;
             Util.Monitor = Monitor;
             Util.ModInstance = this;
+
+            HarmonyPatcher.Init();
+
             Conf = helper.ReadConfig<Config>();
 
             ControlEvents.KeyPressed += OnKeyPressed;
@@ -63,11 +68,7 @@ namespace JoysOfEfficiency
             Conf.AutoDigRadius = (int)Util.Cap(Conf.AutoDigRadius, 1, 3);
             Conf.AutoShakeRadius = (int)Util.Cap(Conf.AutoShakeRadius, 1, 3);
             Conf.MachineRadius = (int)Util.Cap(Conf.MachineRadius, 1, 3);
-
-            if(ModChecker.IsCjbCheatsLoaded(helper))
-            {
-                IsCjbCheatsOn = true;
-            }
+            Conf.RadiusCraftingFromChests = (int) Util.Cap(Conf.RadiusCraftingFromChests, 1, 5);
             if(ModChecker.IsCoGLoaded(helper))
             {
                 Monitor.Log("CasksOnGround detected.");
@@ -308,6 +309,9 @@ namespace JoysOfEfficiency
                     totalPrice += Util.GetTruePrice(item) / 2 * item.Stack;
                 }
                 Util.ShowHudMessage($"Estimated Shipping Price: {totalPrice}G");
+                Util.ShowHudMessage($"Luck:{Game1.dailyLuck}");
+                string str = Game1.player.fishCaught.OrderBy(kv => kv.Key).Aggregate("", (current, pair) => current + $"{new Object(pair.Key, 1).Name}\r\n");
+                File.WriteAllText(Path.Combine(Helper.DirectoryPath, "Fish.txt"), str);
             }
             if (!Context.IsPlayerFree || Game1.activeClickableMenu != null)
             {
