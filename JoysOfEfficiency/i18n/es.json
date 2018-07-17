@@ -1,4 +1,6 @@
-﻿{   "button.awaiting": "Presione la tecla para asignar...",   "button.conflict": "La tecla presionada está en conflicto",
+﻿{
+  "button.awaiting": "Presione la tecla para asignar...",
+  "button.conflict": "La tecla presionada está en conflicto",
   "button.esc": "Presione la tecla Esc para cancelar",
   "fishinfo.quality": "Calidad: ",
   "fishinfo.size": "Tamaño: {0}cm",
@@ -32,6 +34,7 @@
   "options.AutoWaterRadius": "Baldosas para regar",
   "options.BalancedMode": "Alternar el modo balanceado",
   "options.CPUThresholdFishing": "Con qué frecuencia AI opera la barra",
+  "options.CraftingFromChests": "Hacer manualidades usando artículos en los cofres cercanos",
   "options.FindCanFromInventory": "Buscar regadera en el inventario",
   "options.FindHoeFromInventory": "Buscar azada en el inventario",
   "options.FishInfo": "Dibujar información de peces",
@@ -45,6 +48,7 @@
   "options.MineInfoGui": "Dibujar la mina Información Iconos",
   "options.MuchFasterBiting": "Reduce el tiempo de mordisqueo a inmediato",
   "options.ProtectNectarProducingFlower": "Proteger las flores cerca de las casas de las abejas",
+  "options.RadiusCraftingFromChests": "Baldosas para encontrar cofres",
   "options.StaminaToEatRatio": "Resistencia para comer auto",
   "quality.gold": "Oro",
   "quality.iridium": "Iridium",

@@ -44,5 +44,7 @@ namespace JoysOfEfficiency
         public bool FishingProbabilitiesInfo { get; set; } = false;
         public int ProbBoxX { get; set; } = 100;
         public int ProbBoxY { get; set; } = 500;
+        public int RadiusCraftingFromChests { get; set; } = 3;
+        public bool CraftingFromChests { get; set; } = false;
     }
 }

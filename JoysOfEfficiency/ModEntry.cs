@@ -14,6 +14,7 @@ using StardewValley.Tools;
 using JoysOfEfficiency.Utils;
 using Microsoft.Xna.Framework.Input;
 using JoysOfEfficiency.ModCheckers;
+using JoysOfEfficiency.Patches;
 
 namespace JoysOfEfficiency
 {
@@ -42,6 +43,8 @@ namespace JoysOfEfficiency
             Util.Helper = helper;
             Util.Monitor = Monitor;
             Util.ModInstance = this;
+
+            HarmonyPatcher.Init();
 
             Conf = helper.ReadConfig<Config>();
             GameEvents.EighthUpdateTick += OnGameUpdate;

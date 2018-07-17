@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using xTile.Dimensions;
+using xTile.Layers;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace JoysOfEfficiency.Utils
@@ -32,6 +33,55 @@ namespace JoysOfEfficiency.Utils
         private static List<Monster> lastMonsters = new List<Monster>();
         private static readonly List<Vector2> flowerLocationProducingNectar = new List<Vector2>();
         private static string lastKilledMonster;
+
+        public static Chest GetFridge()
+        {
+            if (!ModEntry.Conf.CraftingFromChests)
+            {
+                return null;
+            }
+            int radius = ModEntry.Conf.RadiusCraftingFromChests;
+            if (ModEntry.Conf.BalancedMode)
+            {
+                radius = 1;
+            }
+            if (Game1.currentLocation is FarmHouse house && house.upgradeLevel >= 1)
+            {
+                Layer layer = house.Map.GetLayer("Buildings");
+                for (int dx = -radius; dx <= radius; dx++)
+                {
+                    for (int dy = -radius; dy <= radius; dy++)
+                    {
+                        int x = Game1.player.getTileX() + dx;
+                        int y = Game1.player.getTileY() + dy;
+                        if (x >= 0 && y >= 0 && x < layer.TileWidth && y < layer.TileHeight && layer.Tiles[x, y]?.TileIndex == 173)
+                        {
+                            return house.fridge;
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        public static List<Item> GetNearbyItems(Player player)
+        {
+            List<Item> items = new List<Item>(player.Items);
+            if (ModEntry.Conf.CraftingFromChests)
+            {
+                foreach (Chest chest in GetObjectsWithin<Chest>(ModEntry.Conf.RadiusCraftingFromChests))
+                {
+                    items.AddRange(chest.items);
+                }
+
+                Chest fridge = GetFridge();
+                if (fridge != null)
+                {
+                    items.AddRange(fridge.items);
+                }
+            }
+            return items;
+        }
 
         public static void PetNearbyPets()
         {
@@ -1592,7 +1642,7 @@ namespace JoysOfEfficiency.Utils
             return true;
         }
 
-        private static List<T> GetObjectsWithin<T>(int radius) where T : SVObject
+        public static List<T> GetObjectsWithin<T>(int radius) where T : SVObject
         {
             GameLocation location = Game1.player.currentLocation;
             Vector2 ov = Game1.player.getTileLocation();

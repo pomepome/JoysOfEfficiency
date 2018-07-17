@@ -81,3 +81,6 @@ This is a changelog from 1.0.22
 ## 1.0.40
 - Updated de.json and es.json
 - Added Bee house, mushroom box, etc. support.
+
+## 1.0.41
+- Added 'CraftingFromChests' feature.
