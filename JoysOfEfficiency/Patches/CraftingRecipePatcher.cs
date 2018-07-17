@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using JoysOfEfficiency.Utils;
 using StardewValley;
-using StardewValley.Locations;
-using StardewValley.Menus;
 using StardewValley.Objects;
 
 namespace JoysOfEfficiency.Patches
@@ -19,7 +17,7 @@ namespace JoysOfEfficiency.Patches
                 int index = kv.Key;
                 int count = kv.Value;
                 int toConsume;
-                foreach (Item playerItem in Game1.player.Items)
+                foreach (Item playerItem in new List<Item>(Game1.player.Items))
                 {
                     if (playerItem != null && (playerItem.ParentSheetIndex == index || playerItem.Category == index))
                     {
@@ -44,7 +42,7 @@ namespace JoysOfEfficiency.Patches
 
                     foreach (Chest chest in chests)
                     {
-                        foreach (Item chestItem in chest.items)
+                        foreach (Item chestItem in new List<Item>(chest.items))
                         {
                             if (chestItem != null &&
                                 (chestItem.ParentSheetIndex == index || chestItem.Category == index))

@@ -13,7 +13,6 @@ using StardewValley.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using StardewModdingAPI.Events;
 using xTile.Dimensions;
 using xTile.Layers;
 using static System.String;

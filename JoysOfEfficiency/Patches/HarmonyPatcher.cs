@@ -1,14 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Harmony;
 using JoysOfEfficiency.Utils;
 using StardewModdingAPI;
 using StardewValley;
-using StardewValley.Menus;
 
 namespace JoysOfEfficiency.Patches
 {
