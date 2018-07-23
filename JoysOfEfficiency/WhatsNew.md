@@ -101,3 +101,8 @@ This is a changelog from 1.1.14-beta
 ## 1.1.39-beta
 - Fixed crushing when using 1.3.25
 - Added 'CraftingFromChests' feature.
+
+## 1.1.40-beta
+- Show the reason why you can't gift when using GiftInfo.
+- Added Wells support for auto-refill watering can.
+- Avoid confliction with Convenient Chests.

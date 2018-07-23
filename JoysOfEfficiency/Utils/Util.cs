@@ -93,9 +93,9 @@ namespace JoysOfEfficiency.Utils
             {
                 truePrice = objectItem.sellToStorePrice() * 2;
             }
-            else if (item is Item thing)
+            else
             {
-                truePrice = thing.salePrice();
+                truePrice = item.salePrice();
             }
 
             return truePrice;
@@ -376,7 +376,7 @@ namespace JoysOfEfficiency.Utils
 
                 if (dirt.readyForHarvest())
                 {
-                    if (IsBlackListed(dirt.crop) || (ModEntry.Conf.ProtectNectarProducingFlower && IsProducingNectar(loc)))
+                    if (IsBlackListed(dirt.crop) || ModEntry.Conf.ProtectNectarProducingFlower && IsProducingNectar(loc))
                         continue;
 
                     if (Harvest((int)loc.X, (int)loc.Y, dirt))
@@ -853,7 +853,7 @@ namespace JoysOfEfficiency.Utils
                 {
                     Vector2 toCheck = tileLocation + new Vector2(i, j);
                     int x = (int)toCheck.X, y = (int)toCheck.Y;
-                    if (location.doesTileHaveProperty(x, y, "Water", "Back") != null || location.doesTileHaveProperty(x, y, "WaterSource", "Back") != null)
+                    if (location.doesTileHaveProperty(x, y, "Water", "Back") != null || location.doesTileHaveProperty(x, y, "WaterSource", "Back") != null || location is BuildableGameLocation loc2 && loc2.buildings.Where(b => b.occupiesTile(toCheck)).Any(building => building.buildingType.Value == "Well"))
                     {
                         return true;
                     }
@@ -969,22 +969,18 @@ namespace JoysOfEfficiency.Utils
                     break;
                 case MineShaft shaft:
                     dict = GetFishesMine(shaft, bait, waterDepth, who);
-                    sum = dict.Sum(kv => kv.Value);
-                    if (1 - sum >= 0.001f)
-                    {
-                        dict.Add(168, 1 - sum);
-                    }
-                    return dict;
+                    break;
+                case Submarine _:
+                    dict = GetFishesSubmarine();
+                    break;
                 default:
                     dict = GetFishes(waterDepth, who);
                     break;
             }
 
-            KeyValuePair<int, double>[] array = dict.ToArray();
-            Array.Sort(array, new CustomSorter());
 
             Dictionary<int, double> dict2 =
-                GetFinalProbabilities(array.ToDictionary(x=>x.Key, x=>x.Value)).OrderByDescending(x=>x.Value)
+                GetFinalProbabilities(dict).OrderByDescending(x=>x.Value)
                     .Where(kv=>!IsGarbage(kv.Key)).ToDictionary(x => x.Key, x => x.Value);
             sum = dict2.Sum(kv => kv.Value);
             if (1 - sum >= 0.001f)
@@ -1085,7 +1081,24 @@ namespace JoysOfEfficiency.Utils
                     dict.Add(num, num4);
                 }
             }
-            return dict;
+
+            KeyValuePair<int, double>[] array1 = dict.ToArray();
+            Array.Sort(array1, new CustomSorter());
+            return array1.ToDictionary(x => x.Key, x => x.Value);
+        }
+
+        private static Dictionary<int, double> GetFishesSubmarine()
+        {
+            return new Dictionary<int, double>
+            {
+                { 800, 0.1 },
+                { 799, 0.18 },
+                { 798, 0.28 },
+                { 154, 0.1 },
+                { 155, 0.08 },
+                { 149, 0.05 },
+                { 797, 0.01 }
+            };
         }
 
         private static Dictionary<int, double> GetFishesMine(MineShaft shaft, int bait, int waterDepth, Player who)
@@ -1100,17 +1113,17 @@ namespace JoysOfEfficiency.Utils
             {
                 case 0:
                 case 10:
-                    num2 += (bait == 689) ? 3 : 0;
+                    num2 += bait == 689 ? 3 : 0;
                     p = 0.02 + 0.01 * num2;
                     dict.Add(158, p);
                     break;
                 case 40:
-                    num2 += (bait == 682) ? 3 : 0;
+                    num2 += bait == 682 ? 3 : 0;
                     p = 0.015 + 0.009 * num2;
                     dict.Add(161, p);
                     break;
                 case 80:
-                    num2 += (bait == 684) ? 3 : 0;
+                    num2 += bait == 684 ? 3 : 0;
                     p = 0.01 + 0.008 * num2;
                     dict.Add(162,  p);
                     break;
@@ -1275,7 +1288,7 @@ namespace JoysOfEfficiency.Utils
                     crop.dayOfCurrentPhase.Value = crop.regrowAfterHarvest.Value;
                     crop.fullyGrown.Value = true;
                 }
-                else if (player.addItemToInventoryBool((crop.programColored.Value) ? new ColoredObject(crop.indexOfHarvest.Value, 1, crop.tintColor.Value)
+                else if (player.addItemToInventoryBool(crop.programColored.Value ? new ColoredObject(crop.indexOfHarvest.Value, 1, crop.tintColor.Value)
                 {
                     Quality = cropQuality
                 } 
@@ -1289,7 +1302,7 @@ namespace JoysOfEfficiency.Utils
                     }
                     else
                     {
-                        junimoHarvester.tryToAddItemToHut((crop.programColored.Value) ? new ColoredObject(crop.indexOfHarvest.Value, 1, crop.tintColor.Value)
+                        junimoHarvester.tryToAddItemToHut(crop.programColored.Value ? new ColoredObject(crop.indexOfHarvest.Value, 1, crop.tintColor.Value)
                         {
                             Quality = cropQuality
                         } : new SVObject(crop.indexOfHarvest.Value, 1, false, -1, cropQuality));
@@ -1524,7 +1537,7 @@ namespace JoysOfEfficiency.Utils
                     if (item.Edibility > 0)
                     {
                         //It's a edible item
-                        if (itemToEat == null || (itemToEat.Edibility / itemToEat.salePrice() < item.Edibility / item.salePrice()))
+                        if (itemToEat == null || itemToEat.Edibility / itemToEat.salePrice() < item.Edibility / item.salePrice())
                         {
                             //Found good edibility per price or just first food
                             itemToEat = item;
@@ -1596,7 +1609,7 @@ namespace JoysOfEfficiency.Utils
                 }
             }
 
-            if (fishPos > (barPos + barHeight / 2))
+            if (fishPos > barPos + barHeight / 2)
             {
                 return;
             }
@@ -1672,7 +1685,7 @@ namespace JoysOfEfficiency.Utils
 
         public static void DrawSimpleTextbox(SpriteBatch batch, string text, int x, int y, SpriteFont font, Item item = null)
         {
-            Vector2 stringSize = font.MeasureString(text);
+            Vector2 stringSize = text == null ? Vector2.Zero : font.MeasureString(text);
             if (x < 0)
             {
                 x = 0;
@@ -1702,7 +1715,7 @@ namespace JoysOfEfficiency.Utils
             IClickableMenu.drawTextureBox(batch, menuTexture, new Rectangle(0, 256, 60, 60), x, y, rightX, bottomY, Color.White);
             if (!IsNullOrEmpty(text))
             {
-                Vector2 vector2 = new Vector2(x + tileSize / 4, y + bottomY / 2 - stringSize.Y / 2);
+                Vector2 vector2 = new Vector2(x + tileSize / 4, y + (bottomY  - stringSize.Y) / 2 + 8f);
                 Utility.drawTextWithShadow(batch, text, font, vector2, Color.Black);
             }
             item?.drawInMenu(batch, new Vector2(x + (int)stringSize.X + 24, y + 16), 1.0f, 1.0f, 0.9f, false);
@@ -1710,7 +1723,7 @@ namespace JoysOfEfficiency.Utils
 
         public static void DrawSimpleTextbox(SpriteBatch batch, string text, SpriteFont font, Item item = null)
         {
-            DrawSimpleTextbox(batch, text, getMouseX() + tileSize / 2, getMouseY() + tileSize / 2 + 16, font, item);
+            DrawSimpleTextbox(batch, text, getMouseX() + tileSize / 2, getMouseY() + tileSize / 2 + 32, font, item);
         }
 
         public static string GetKeyForQuality(int fishQuality)

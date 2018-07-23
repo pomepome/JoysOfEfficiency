@@ -51,7 +51,7 @@ namespace JoysOfEfficiency.OptionsElements
             }
             base.receiveKeyPress(key);
             Config config = ModEntry.Conf;
-            if(Game1.options.isKeyInUse(key) || (key == ModEntry.Conf.KeyShowMenu))
+            if(Game1.options.isKeyInUse(key) || key == ModEntry.Conf.KeyShowMenu)
             {
                 _conflicting = true;
                 return;
