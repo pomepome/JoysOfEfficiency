@@ -831,7 +831,7 @@ namespace JoysOfEfficiency.Utils
                 {
                     Vector2 toCheck = tileLocation + new Vector2(i, j);
                     int x = (int)toCheck.X, y = (int)toCheck.Y;
-                    if (location.doesTileHaveProperty(x, y, "Water", "Back") != null || location.doesTileHaveProperty(x, y, "WaterSource", "Back") != null)
+                    if (location.doesTileHaveProperty(x, y, "Water", "Back") != null || location.doesTileHaveProperty(x, y, "WaterSource", "Back") != null || location is BuildableGameLocation loc2 && loc2.buildings.Where(b=>!b.isTilePassable(toCheck)).Any(b=>b.buildingType == "Well"))
                     {
                         return true;
                     }
@@ -1397,7 +1397,7 @@ namespace JoysOfEfficiency.Utils
 
         public static void DrawSimpleTextbox(SpriteBatch batch, string text, int x, int y, SpriteFont font, Item item = null)
         {
-            Vector2 stringSize = font.MeasureString(text);
+            Vector2 stringSize = text == null ? Vector2.Zero : font.MeasureString(text);
             if (x < 0)
             {
                 x = 0;
@@ -1418,7 +1418,7 @@ namespace JoysOfEfficiency.Utils
             int bottomY = (int)stringSize.Y + 32;
             if (item != null)
             {
-                bottomY = (int)(Game1.tileSize * 1.2) + 32;
+                bottomY = (int)(Game1.tileSize * 1.7);
             }
             if (bottomY + y > Game1.viewport.Height)
             {
@@ -1427,7 +1427,7 @@ namespace JoysOfEfficiency.Utils
             IClickableMenu.drawTextureBox(batch, Game1.menuTexture, new Rectangle(0, 256, 60, 60), x, y, rightX, bottomY, Color.White);
             if (!string.IsNullOrEmpty(text))
             {
-                Vector2 vector2 = new Vector2(x + Game1.tileSize / 4, y + bottomY / 2 - stringSize.Y / 2);
+                Vector2 vector2 = new Vector2(x + Game1.tileSize / 4, y + bottomY / 2 - stringSize.Y / 2 + 8);
                 Utility.drawTextWithShadow(batch, text, font, vector2, Color.Black);
             }
             item?.drawInMenu(batch, new Vector2(x + (int)stringSize.X + 24, y + 16), 1.0f, 1.0f, 0.9f, false);
@@ -1435,7 +1435,7 @@ namespace JoysOfEfficiency.Utils
 
         public static void DrawSimpleTextbox(SpriteBatch batch, string text, SpriteFont font, Item item = null)
         {
-            DrawSimpleTextbox(batch, text, Game1.getMouseX() + Game1.tileSize / 2, Game1.getMouseY() + Game1.tileSize / 2 + 16, font, item);
+            DrawSimpleTextbox(batch, text, Game1.getMouseX() + Game1.tileSize / 2, Game1.getMouseY() + Game1.tileSize / 2 + 32, font, item);
         }
 
         public static void DrawFishingInfoBox(SpriteBatch batch, BobberBar bar, SpriteFont font)

@@ -70,5 +70,9 @@
   "taste.love.female": "She loves this gift",
   "taste.love.male": "He loves this gift",
   "taste.neutral.female": "She has neutral feeling about this gift",
-  "taste.neutral.male": "He has neutral feeling about this gift"
+  "taste.neutral.male": "He has neutral feeling about this gift",
+  "taste.gavetoday.female": "You gifted to her today.",
+  "taste.gavetoday.male": "You gifted to him today.",
+  "taste.gavetwogifts.female": "You gifted to her twice this week.",
+  "taste.gavetwogifts.male": "You gifted to him twice this week."
 }

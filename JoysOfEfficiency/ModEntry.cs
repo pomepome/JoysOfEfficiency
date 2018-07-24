@@ -27,8 +27,9 @@ namespace JoysOfEfficiency
 
         public static Mod Instance { get; private set; }
         internal static Config Conf { get; private set; }
-        
-        private string hoverText;
+
+        private bool _unableToGift;
+        private string _hoverText;
 
         private static bool isNight;
         private static int ticks;
@@ -57,7 +58,6 @@ namespace JoysOfEfficiency
 
             GraphicsEvents.OnPreRenderHudEvent += OnPreRenderHUD;
             GraphicsEvents.OnPostRenderHudEvent += OnPostRenderHUD;
-
 
             Conf.CpuThresholdFishing = Util.Cap(Conf.CpuThresholdFishing, 0, 0.5f);
             Conf.HealthToEatRatio = Util.Cap(Conf.HealthToEatRatio, 0, 0.8f);
@@ -115,33 +115,86 @@ namespace JoysOfEfficiency
             {
                 if (Conf.GiftInformation)
                 {
-                    hoverText = null;
+                    _unableToGift = false;
+                    _hoverText = null;
                     if (player.CurrentItem != null && player.CurrentItem.canBeGivenAsGift())
                     {
                         List<NPC> npcList = player.currentLocation.characters.Where(a => a.isVillager()).ToList();
                         foreach (NPC npc in npcList)
                         {
-                            RectangleE npcRect = new RectangleE(npc.position.X, npc.position.Y - npc.sprite.getHeight() - Game1.tileSize / 1.5f, npc.sprite.getWidth() * 3 + npc.sprite.getWidth() / 1.5f, (npc.sprite.getHeight() * 3.5f));
+                            RectangleE npcRect = new RectangleE(npc.position.X,
+                        npc.position.Y - npc.Sprite.getHeight() - Game1.tileSize / 1.5f,
+                        npc.Sprite.getWidth() * 3 + npc.Sprite.getWidth() / 1.5f, npc.Sprite.getHeight() * 3.5f);
 
-                            if (npcRect.IsInternalPoint(Game1.getMouseX() + Game1.viewport.X, Game1.getMouseY() + Game1.viewport.Y))
+                            if (!npcRect.IsInternalPoint(Game1.getMouseX() + Game1.viewport.X,
+                                Game1.getMouseY() + Game1.viewport.Y))
                             {
-                                //Mouse hovered on the NPC
-                                StringBuilder key = new StringBuilder("taste.");
-                                switch (npc.getGiftTasteForThisItem(player.CurrentItem))
+                                continue;
+                            }
+
+                            //Mouse hovered on the NPC
+                            StringBuilder key = new StringBuilder("taste.");
+                            if (player.friendships.ContainsKey(npc.name) && Game1.NPCGiftTastes.ContainsKey(npc.name))
+                            {
+                                int[] friendship = player.friendships[npc.name];
+                                if (friendship[1] > 1)
                                 {
-                                    case 0: key.Append("love."); break;
-                                    case 2: key.Append("like."); break;
-                                    case 4: key.Append("dislike."); break;
-                                    case 6: key.Append("hate."); break;
-                                    default: key.Append("neutral."); break;
+                                    if (npc.isMarried())
+                                    {
+                                        //This character got married with the player, so ignore weekly restriction
+                                    }
+                                    else
+                                    {
+                                        key.Append("gavetwogifts.");
+                                        _unableToGift = true;
+                                    }
                                 }
+                                if (!_unableToGift)
+                                {
+                                    if (friendship[3] > 0)
+                                    {
+                                        key.Append("gavetoday.");
+                                        _unableToGift = true;
+                                    }
+                                    else if (npc.canReceiveThisItemAsGift(player.CurrentItem))
+                                    {
+                                        switch (npc.getGiftTasteForThisItem(player.CurrentItem))
+                                        {
+                                            case 0:
+                                                key.Append("love.");
+                                                break;
+                                            case 2:
+                                                key.Append("like.");
+                                                break;
+                                            case 4:
+                                                key.Append("dislike.");
+                                                break;
+                                            case 6:
+                                                key.Append("hate.");
+                                                break;
+                                            default:
+                                                key.Append("neutral.");
+                                                break;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        return;
+                                    }
+                                }
+
                                 switch (npc.gender)
                                 {
-                                    case 0: key.Append("male"); break;
-                                    default: key.Append("female"); break;
+                                    case 0:
+                                        key.Append("male");
+                                        break;
+                                    default:
+                                        key.Append("female");
+                                        break;
                                 }
+
                                 Translation translation = Helper.Translation.Get(key.ToString());
-                                hoverText = translation?.ToString();
+                                _hoverText = translation?.ToString();
                             }
                         }
                     }
@@ -317,9 +370,9 @@ namespace JoysOfEfficiency
 
         private void OnPostRenderHUD(object sender, EventArgs args)
         {
-            if(Context.IsPlayerFree && !string.IsNullOrEmpty(hoverText) && Game1.player.CurrentItem != null)
+            if(Context.IsPlayerFree && !string.IsNullOrEmpty(_hoverText) && Game1.player.CurrentItem != null)
             {
-                Util.DrawSimpleTextbox(Game1.spriteBatch, hoverText, Game1.smallFont, Game1.player.CurrentItem);
+                Util.DrawSimpleTextbox(Game1.spriteBatch, _hoverText, Game1.dialogueFont, _unableToGift ? null : Game1.player.CurrentItem);
             }
             if (Game1.activeClickableMenu != null && Game1.activeClickableMenu is BobberBar bar)
             {

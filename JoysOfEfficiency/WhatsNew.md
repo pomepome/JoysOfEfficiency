@@ -84,3 +84,7 @@ This is a changelog from 1.0.22
 
 ## 1.0.41
 - Added 'CraftingFromChests' feature.
+
+## 1.0.42
+- Show the reason why you can't gift when using GiftInfo.
+- Added Wells support for auto-refill watering can.
