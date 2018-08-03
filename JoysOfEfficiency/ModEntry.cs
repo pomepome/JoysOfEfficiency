@@ -357,10 +357,6 @@ namespace JoysOfEfficiency
             {
                 return;
             }
-            if (args.KeyPressed == Keys.H)
-            {
-                Util.ShowHudMessage((Game1.activeClickableMenu?.GetType().FullName) ?? "null");
-            }
             if (!Context.IsPlayerFree || Game1.activeClickableMenu != null)
             {
                 return;
