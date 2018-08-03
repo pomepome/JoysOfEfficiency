@@ -6,32 +6,32 @@ using System;
 
 namespace JoysOfEfficiency.OptionsElements
 {
-    public class ModifiedSlider : OptionsElement
+    internal class ModifiedSlider : OptionsElement
     {
-        private readonly string Label;
+        private readonly string _label;
 
-        private readonly Action<int, int> SetValue;
+        private readonly Action<int, int> _setValue;
 
-        private readonly int MaxValue;
-        private readonly int MinValue;
+        private readonly int _maxValue;
+        private readonly int _minValue;
 
-        private int Value;
+        private int _value;
 
-        private readonly Func<bool> IsDisabled;
+        private readonly Func<bool> _isDisabled;
 
-        private readonly Func<int, int, string> Format;
+        private readonly Func<int, int, string> _format;
 
         public ModifiedSlider(string label, int which, int initialValue, int minValue, int maxValue, Action<int, int> setValue, Func<bool> disabled = null, Func<int, int, string> format = null, int width = 32)
             : base(label, -1, -1, width * Game1.pixelZoom, 6 * Game1.pixelZoom, 0)
         {
             whichOption = which;
-            Label = ModEntry.Instance.Helper.Translation.Get($"options.{label}");
-            Value = initialValue - minValue;
-            MinValue = minValue;
-            MaxValue = maxValue - minValue;
-            SetValue = setValue ?? ((i, j) => { });
-            IsDisabled = disabled ?? (() => false);
-            Format = format ?? ((i, value) => value.ToString());
+            _label = ModEntry.ModHelper.Translation.Get($"options.{label}");
+            _value = initialValue - minValue;
+            _minValue = minValue;
+            _maxValue = maxValue - minValue;
+            _setValue = setValue ?? ((i, j) => { });
+            _isDisabled = disabled ?? (() => false);
+            _format = format ?? ((i, value) => value.ToString());
         }
 
         public override void leftClickHeld(int x, int y)
@@ -40,13 +40,15 @@ namespace JoysOfEfficiency.OptionsElements
                 return;
 
             base.leftClickHeld(x, y);
-            int oldValue = Value;
-            Value = x >= bounds.X
-                ? (x <= bounds.Right - 10 * Game1.pixelZoom ? (int)((x - bounds.X) / (bounds.Width - 10d * Game1.pixelZoom) * MaxValue) : MaxValue)
+            int oldValue = _value;
+            _value = x >= bounds.X
+                ? (x <= bounds.Right - 10 * Game1.pixelZoom
+                    ? (int) ((x - bounds.X) / (bounds.Width - 10d * Game1.pixelZoom) * _maxValue)
+                    : _maxValue)
                 : 0;
-            if (Value != oldValue)
+            if (_value != oldValue)
             {
-                SetValue?.Invoke(whichOption, Value + MinValue);
+                _setValue?.Invoke(whichOption, _value + _minValue);
             }
 
         }
@@ -61,17 +63,20 @@ namespace JoysOfEfficiency.OptionsElements
 
         public override void leftClickReleased(int x, int y)
         {
-            SetValue?.Invoke(whichOption, Value + MinValue);
+            _setValue?.Invoke(whichOption, _value + _minValue);
         }
 
         public override void draw(SpriteBatch spriteBatch, int slotX, int slotY)
         {
-            label = $"{Label}: {Format(whichOption, Value + MinValue)}";
-            greyedOut = IsDisabled();
+            label = _label.Contains("{0}")
+                ? string.Format(_label, _format(whichOption, _value + _minValue))
+                : $"{_label}: {_format(whichOption, _value + _minValue)}";
+
+            greyedOut = _isDisabled();
 
             base.draw(spriteBatch, slotX, slotY - ((int)Game1.dialogueFont.MeasureString(label).Y - bounds.Height) / 2);
             IClickableMenu.drawTextureBox(spriteBatch, Game1.mouseCursors, OptionsSlider.sliderBGSource, slotX + bounds.X, slotY + bounds.Y, bounds.Width, bounds.Height, Color.White, Game1.pixelZoom, false);
-            spriteBatch.Draw(Game1.mouseCursors, new Vector2(slotX + bounds.X + (bounds.Width - 10 * Game1.pixelZoom) * (Value / (float)MaxValue), slotY + bounds.Y), OptionsSlider.sliderButtonRect, Color.White, 0.0f, Vector2.Zero, Game1.pixelZoom, SpriteEffects.None, 0.9f);
+            spriteBatch.Draw(Game1.mouseCursors, new Vector2(slotX + bounds.X + (bounds.Width - 10 * Game1.pixelZoom) * (_value / (float)_maxValue), slotY + bounds.Y), OptionsSlider.sliderButtonRect, Color.White, 0.0f, Vector2.Zero, Game1.pixelZoom, SpriteEffects.None, 0.9f);
         }
     }
 }

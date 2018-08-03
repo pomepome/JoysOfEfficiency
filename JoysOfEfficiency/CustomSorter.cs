@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace JoysOfEfficiency
 {
-    internal class CustomSorter : IComparer<KeyValuePair<int, double>>
+    internal class CustomSorter : IComparer<KeyValuePair<int,double>>
     {
         public int Compare(KeyValuePair<int, double> x, KeyValuePair<int, double> y)
         {
@@ -11,7 +11,7 @@ namespace JoysOfEfficiency
             {
                 return x.Key - y.Key;
             }
-            return x.Value - y.Value > 0 ? 1 : -1;
+            return x.Value - y.Value > 0 ? -1 : 1;
         }
     }
 }

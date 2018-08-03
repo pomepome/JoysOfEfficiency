@@ -19,7 +19,7 @@ namespace JoysOfEfficiency.Patches
                 int toConsume;
                 foreach (Item playerItem in new List<Item>(Game1.player.Items))
                 {
-                    if (playerItem != null && (playerItem.parentSheetIndex == index || playerItem.category == index))
+                    if (playerItem != null && (playerItem.ParentSheetIndex == index || playerItem.Category == index))
                     {
                         toConsume = Math.Min(playerItem.Stack, count);
                         playerItem.Stack -= toConsume;
@@ -45,7 +45,7 @@ namespace JoysOfEfficiency.Patches
                         foreach (Item chestItem in new List<Item>(chest.items))
                         {
                             if (chestItem != null &&
-                                (chestItem.parentSheetIndex == index || chestItem.category == index))
+                                (chestItem.ParentSheetIndex == index || chestItem.Category == index))
                             {
                                 toConsume = Math.Min(chestItem.Stack, count);
                                 chestItem.Stack -= toConsume;
@@ -59,6 +59,7 @@ namespace JoysOfEfficiency.Patches
                     }
                 }
             }
+
             return false;
         }
     }

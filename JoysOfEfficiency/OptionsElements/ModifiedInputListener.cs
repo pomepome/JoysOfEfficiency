@@ -8,88 +8,88 @@ using System;
 
 namespace JoysOfEfficiency.OptionsElements
 {
-    public class ModifiedInputListener : OptionsElement
+    internal class ModifiedInputListener : OptionsElement
     {
-        private bool isListening;
-        private bool conflicting;
-        private Keys button;
+        private bool _isListening = false;
+        private bool _conflicting = false;
+        private Keys _button;
 
-        private Action<int, ModifiedInputListener> OnStartListening;
-        private Action<int, Keys> OnButtonPressed;
-        private Func<int, bool> IsDisabled;
-        private Rectangle ButtonRect;
+        private readonly Action<int, ModifiedInputListener> _onStartListening;
+        private readonly Action<int, Keys> _onButtonPressed;
+        private Func<int, bool> _isDisabled;
+        private Rectangle _buttonRect;
 
-        private static readonly SpriteFont font = Game1.dialogueFont;
+        private static readonly SpriteFont Font = Game1.dialogueFont;
 
-        ITranslationHelper translation;
-        IClickableMenu menu;
+        private readonly ITranslationHelper _translation;
+        private readonly IClickableMenu _menu;
 
         public ModifiedInputListener(IClickableMenu parent ,string label, int which, Keys initial, ITranslationHelper translationHelper, Action<int, Keys> onButtonPressed, Action<int, ModifiedInputListener> onStartListening = null, Func<int, bool> isDisabled = null) : base(label, -1, -1, 9 * Game1.pixelZoom, 9 * Game1.pixelZoom, 0)
         {
-            this.label = ModEntry.Instance.Helper.Translation.Get($"options.{label}");
-            button = initial;
-            OnButtonPressed = onButtonPressed;
-            IsDisabled = isDisabled ?? ((i) => false);
-            translation = translationHelper;
-            OnStartListening = onStartListening ?? ((i,obj) => { });
+            this.label = ModEntry.ModHelper.Translation.Get($"options.{label}");
+            _button = initial;
+            _onButtonPressed = onButtonPressed;
+            _isDisabled = isDisabled ?? ((i) => false);
+            _translation = translationHelper;
+            _onStartListening = onStartListening ?? ((i,obj) => { });
             whichOption = which;
-            menu = parent;
+            _menu = parent;
         }
 
         public override void receiveKeyPress(Keys key)
         {
-            if(key == button)
+            if(key == _button)
             {
                 return;
             }
             if(key == Keys.Escape)
             {
-                conflicting = false;
-                isListening = false;
-                OnButtonPressed(whichOption, button);
+                _conflicting = false;
+                _isListening = false;
+                _onButtonPressed(whichOption, _button);
                 return;
             }
             base.receiveKeyPress(key);
             Config config = ModEntry.Conf;
-            if(Game1.options.isKeyInUse(key) || (key == ModEntry.Conf.KeyShowMenu))
+            if(Game1.options.isKeyInUse(key) || key == ModEntry.Conf.KeyShowMenu)
             {
-                conflicting = true;
+                _conflicting = true;
                 return;
             }
-            if(isListening)
+            if(_isListening)
             {
-                button = key;
-                conflicting = false;
-                isListening = false;
-                OnButtonPressed(whichOption, key);
+                _button = key;
+                _conflicting = false;
+                _isListening = false;
+                _onButtonPressed(whichOption, key);
                 return;
             }
         }
 
         public override void draw(SpriteBatch b, int slotX, int slotY)
         {
-            string text = $"{label}: {button.ToString()}";
+            string text = $"{label}: {_button.ToString()}";
             Vector2 size = Game1.dialogueFont.MeasureString(text);
             b.DrawString(Game1.dialogueFont, text, new Vector2(slotX, slotY + 8), Color.Black, 0, new Vector2(), 1f, SpriteEffects.None, 1.0f);
 
             int x = slotX + (int)size.X + 8;
 
-            ButtonRect = new Rectangle(x, slotY, 90, 45);
-            bounds = new Rectangle(0, 0, (int)size.X + ButtonRect.Width, ButtonRect.Height);
+            _buttonRect = new Rectangle(x, slotY, 90, 45);
+            bounds = new Rectangle(0, 0, (int)size.X + _buttonRect.Width, _buttonRect.Height);
 
-            b.Draw(Game1.mouseCursors, ButtonRect, new Rectangle(294, 428, 21, 11), Color.White, 0, Vector2.Zero, SpriteEffects.None, 1.0f);
+            b.Draw(Game1.mouseCursors, _buttonRect, new Rectangle(294, 428, 21, 11), Color.White, 0, Vector2.Zero, SpriteEffects.None, 1.0f);
             //IClickableMenu.drawTextureBox(b, Game1.menuTexture, new Rectangle(0, 256, 60, 60), slotX + bounds.Left, slotY + bounds.Top, bounds.Width, bounds.Height, Color.White);
         }
 
         public override void receiveLeftClick(int x, int y)
         {
             base.receiveLeftClick(x, y);
-            x += menu.xPositionOnScreen;
-            y += ButtonRect.Height / 2;
-            if(ButtonRect != null && x >= ButtonRect.Left && x <= ButtonRect.Right)
+            x += _menu.xPositionOnScreen;
+            y += _buttonRect.Height / 2;
+            if(_buttonRect != null && x >= _buttonRect.Left && x <= _buttonRect.Right)
             {
-                OnStartListening(whichOption, this);
-                isListening = true;
+                _onStartListening(whichOption, this);
+                _isListening = true;
             }
         }
 
@@ -98,18 +98,18 @@ namespace JoysOfEfficiency.OptionsElements
             x += 16;
             y += 16;
             {
-                Vector2 size = font.MeasureString(translation.Get("button.awaiting"));
-                batch.DrawString(font, translation.Get("button.awaiting"), new Vector2(x, y), Color.Black, 0.0f, Vector2.Zero, 1.0f, SpriteEffects.None, 1.0f);
+                Vector2 size = Font.MeasureString(_translation.Get("button.awaiting"));
+                batch.DrawString(Font, _translation.Get("button.awaiting"), new Vector2(x, y), Color.Black, 0.0f, Vector2.Zero, 1.0f, SpriteEffects.None, 1.0f);
                 y += (int)size.Y + 8;
 
-                size = font.MeasureString(translation.Get("button.esc"));
-                batch.DrawString(font, translation.Get("button.esc"), new Vector2(x, y), Color.Black, 0.0f, Vector2.Zero, 1.0f, SpriteEffects.None, 1.0f);
+                size = Font.MeasureString(_translation.Get("button.esc"));
+                batch.DrawString(Font, _translation.Get("button.esc"), new Vector2(x, y), Color.Black, 0.0f, Vector2.Zero, 1.0f, SpriteEffects.None, 1.0f);
                 y += (int)size.Y + 8;
 
-                if (conflicting)
+                if (_conflicting)
                 {
-                    size = font.MeasureString(translation.Get("button.conflict"));
-                    batch.DrawString(font, translation.Get("button.conflict"), new Vector2(x, y), Color.Black, 0.0f, Vector2.Zero, 1.0f, SpriteEffects.None, 1.0f);
+                    size = Font.MeasureString(_translation.Get("button.conflict"));
+                    batch.DrawString(Font, _translation.Get("button.conflict"), new Vector2(x, y), Color.Black, 0.0f, Vector2.Zero, 1.0f, SpriteEffects.None, 1.0f);
                     y += (int)size.Y + 8;
                 }
             }
@@ -121,20 +121,20 @@ namespace JoysOfEfficiency.OptionsElements
             int y = 16;
 
             {
-                Vector2 size = font.MeasureString(translation.Get("button.awaiting"));
+                Vector2 size = Font.MeasureString(_translation.Get("button.awaiting"));
                 x += (int)size.X;
                 y += (int)size.Y;
             }
             {
-                Vector2 size = font.MeasureString(translation.Get("button.esc"));
+                Vector2 size = Font.MeasureString(_translation.Get("button.esc"));
                 if(size.X + 16 > x)
                 {
                     x = (int)size.X + 16;
                 }
                 y += (int)size.Y + 8;
             }
-            if(conflicting){
-                Vector2 size = font.MeasureString(translation.Get("button.conflict"));
+            if(_conflicting){
+                Vector2 size = Font.MeasureString(_translation.Get("button.conflict"));
                 if (size.X + 16 > x)
                 {
                     x = (int)size.X + 16;

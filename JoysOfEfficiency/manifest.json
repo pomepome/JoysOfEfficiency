@@ -1,10 +1,10 @@
 ﻿{
 	"Name": "JoysOfEfficiency",
 	"Author": "punyo",
-	"Version": "1.0.42",
-	"Description": "Utility set to be more efficient play",
+	"Version": "1.2.0",
+	"Description": "Utility set to make gameplay more efficient",
 	"UniqueID": "punyo.JoysOfEfficiency",
 	"EntryDll": "JoysOfEfficiency.dll",
-	"MinimumApiVersion": "2.0",
+	"MinimumApiVersion": "2.6",
 	"UpdateKeys": [ "Nexus:2162" ]
 }

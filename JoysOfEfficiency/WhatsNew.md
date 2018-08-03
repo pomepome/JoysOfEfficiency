@@ -88,3 +88,8 @@ This is a changelog from 1.0.22
 ## 1.0.42
 - Show the reason why you can't gift when using GiftInfo.
 - Added Wells support for auto-refill watering can.
+
+## 1.2.0
+- Updated for SDV 1.3.27
+- Removed debugging feature.
+- Moved UI settings to UIs Tab.

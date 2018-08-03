@@ -5,7 +5,7 @@ using StardewValley.Menus;
 
 namespace JoysOfEfficiency.OptionsElements
 {
-    public class LabelComponent : OptionsElement
+    internal class LabelComponent : OptionsElement
     {
         public LabelComponent(string label) : base(label, -1, -1, 9 * Game1.pixelZoom, 9 * Game1.pixelZoom, 0) { }
 

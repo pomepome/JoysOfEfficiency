@@ -1,67 +1,68 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using JoysOfEfficiency.ModCheckers;
+using JoysOfEfficiency.Utils;
 using Microsoft.Xna.Framework;
+using Netcode;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Locations;
 using StardewValley.Menus;
-using StardewValley.TerrainFeatures;
 using StardewValley.Tools;
-using JoysOfEfficiency.Utils;
-using Microsoft.Xna.Framework.Input;
-using JoysOfEfficiency.ModCheckers;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using JoysOfEfficiency.Patches;
+using Microsoft.Xna.Framework.Input;
 
 namespace JoysOfEfficiency
 {
-
-    using Player = StardewValley.Farmer;
+    using Player = Farmer;
     internal class ModEntry : Mod
     {
-        public static bool IsCJBCheatsOn { get; private set; }
-        public static bool IsCasksAnywhereOn { get; private set; }
+        public static bool IsCoGOn { get; private set; }
+        public static bool IsCCOn { get; private set; }
 
-        public static Mod Instance { get; private set; }
-        internal static Config Conf { get; private set; }
+        public static Config Conf { get; private set; }
+
+        public static IModHelper ModHelper { get; private set; }
 
         private bool _unableToGift;
         private string _hoverText;
+        private bool _dayEnded;
 
-        private static bool isNight;
-        private static int ticks;
+        private bool _shippingBin;
 
-        public ModEntry()
-        {
-            Instance = this;
-        }
+        private int _ticks;
 
         public override void Entry(IModHelper helper)
         {
+            ModHelper = helper;
             Util.Helper = helper;
             Util.Monitor = Monitor;
             Util.ModInstance = this;
-
-            HarmonyPatcher.Init();
-
+            
             Conf = helper.ReadConfig<Config>();
-            GameEvents.EighthUpdateTick += OnGameUpdate;
-            GameEvents.UpdateTick += OnGameTick;
 
             ControlEvents.KeyPressed += OnKeyPressed;
 
-            SaveEvents.BeforeSave += OnBeforeSave;
-            TimeEvents.AfterDayStarted += OnPostSave;
+            GameEvents.UpdateTick += OnGameTick;
+            GameEvents.EighthUpdateTick += OnGameUpdate;
 
-            GraphicsEvents.OnPreRenderHudEvent += OnPreRenderHUD;
-            GraphicsEvents.OnPostRenderHudEvent += OnPostRenderHUD;
+            GraphicsEvents.OnPreRenderHudEvent += OnPreRenderHud;
+            GraphicsEvents.OnPostRenderHudEvent += OnPostRenderHud;
+
+            MenuEvents.MenuChanged += OnMenuChanged;
+            MenuEvents.MenuClosed += OnMenuClosed;
+            
+            SaveEvents.BeforeSave += OnBeforeSave;
+
+            TimeEvents.AfterDayStarted += OnDayStarted;
 
             Conf.CpuThresholdFishing = Util.Cap(Conf.CpuThresholdFishing, 0, 0.5f);
-            Conf.HealthToEatRatio = Util.Cap(Conf.HealthToEatRatio, 0, 0.8f);
-            Conf.StaminaToEatRatio = Util.Cap(Conf.StaminaToEatRatio, 0, 0.8f);
+            Conf.HealthToEatRatio = Util.Cap(Conf.HealthToEatRatio, 0.1f, 0.8f);
+            Conf.StaminaToEatRatio = Util.Cap(Conf.StaminaToEatRatio, 0.1f, 0.8f);
             Conf.AutoCollectRadius = (int)Util.Cap(Conf.AutoCollectRadius, 1, 3);
             Conf.AutoHarvestRadius = (int)Util.Cap(Conf.AutoHarvestRadius, 1, 3);
             Conf.AutoPetRadius = (int)Util.Cap(Conf.AutoPetRadius, 1, 3);
@@ -69,148 +70,186 @@ namespace JoysOfEfficiency
             Conf.AutoDigRadius = (int)Util.Cap(Conf.AutoDigRadius, 1, 3);
             Conf.AutoShakeRadius = (int)Util.Cap(Conf.AutoShakeRadius, 1, 3);
             Conf.MachineRadius = (int)Util.Cap(Conf.MachineRadius, 1, 3);
+            Conf.RadiusCraftingFromChests = (int) Util.Cap(Conf.RadiusCraftingFromChests, 1, 5);
 
-            if (ModChecker.IsCJBCheatsLoaded(helper))
+            if(ModChecker.IsCoGLoaded(helper))
             {
-                Monitor.Log("CJBCheatsMenu detected.");
-                IsCJBCheatsOn = true;
+                Monitor.Log("CasksOnGround detected.");
+                IsCoGOn = true;
             }
-            if (ModChecker.IsCasksAnywhereLoaded(helper))
+            if (ModChecker.IsCCLoaded(helper))
             {
-                Monitor.Log("CasksAnywhere detected.");
-                IsCasksAnywhereOn = true;
+                Monitor.Log("Convenient Chests detected. JOE's CraftingFromChests feature will be disabled and won't patch the game.");
+                Conf.CraftingFromChests = false;
+                IsCCOn = true;
             }
+            else
+            {
+                HarmonyPatcher.Init();
+            }
+
             helper.WriteConfig(Conf);
-
             MineIcons.Init(helper);
         }
 
-        #region EventHandlers
-
-        private void OnGameTick(object senderm, EventArgs args)
+        private void OnMenuChanged(object sender, EventArgsClickableMenuChanged args)
         {
-            if (Game1.currentGameTime == null)
+            if (_shippingBin)
             {
                 return;
             }
+            if (args.NewMenu is ItemGrabMenu menu && menu.shippingBin)
+            {
+                Monitor.Log("Shipping Bin Detected");
+                _shippingBin = true;
+                return;
+            }
+            _shippingBin = false;
+        }
+
+        private void OnMenuClosed(object sender, EventArgsClickableMenuClosed args)
+        {
+            if (_shippingBin)
+            {
+                _shippingBin = false;
+                Monitor.Log("Shipping Bin Closed");
+            }
+        }
+
+        private void OnGameTick(object sender, EventArgs args)
+        {
+            _hoverText = null;
             if (!Context.IsWorldReady)
             {
                 return;
             }
             Player player = Game1.player;
-            if (Conf.AutoGate)
+            if(Conf.AutoGate)
             {
                 Util.TryToggleGate(player);
+            }
+
+            if (Conf.GiftInformation)
+            {
+                _unableToGift = false;
+                if (player.CurrentItem == null || !player.CurrentItem.canBeGivenAsGift() || player.currentLocation == null || player.currentLocation.characters.Count == 0)
+                {
+                    return;
+                }
+
+                List<NPC> npcList = player.currentLocation.characters.Where(a => a != null && a.isVillager()).ToList();
+                foreach (NPC npc in npcList)
+                {
+                    RectangleE npcRect = new RectangleE(npc.position.X,
+                        npc.position.Y - npc.Sprite.getHeight() - Game1.tileSize / 1.5f,
+                        npc.Sprite.getWidth() * 3 + npc.Sprite.getWidth() / 1.5f, npc.Sprite.getHeight() * 3.5f);
+
+                    if (!npcRect.IsInternalPoint(Game1.getMouseX() + Game1.viewport.X,
+                        Game1.getMouseY() + Game1.viewport.Y))
+                    {
+                        continue;
+                    }
+
+                    //Mouse hovered on the NPC
+                    StringBuilder key = new StringBuilder("taste.");
+                    if (player.friendshipData.ContainsKey(npc.Name) && Game1.NPCGiftTastes.ContainsKey(npc.Name))
+                    {
+                        Friendship friendship = player.friendshipData[npc.Name];
+                        if (friendship.GiftsThisWeek > 1)
+                        {
+                            if (npc.isMarried() && npc.getSpouse().UniqueMultiplayerID == player.UniqueMultiplayerID)
+                            {
+                                //This character got married with the player, so ignore weekly restriction
+                            }
+                            else
+                            {
+                                key.Append("gavetwogifts.");
+                                _unableToGift = true;
+                            }
+                        }
+                        if (!_unableToGift)
+                        {
+                            if (friendship.GiftsToday > 0)
+                            {
+                                key.Append("gavetoday.");
+                                _unableToGift = true;
+                            }
+                            else if (npc.canReceiveThisItemAsGift(player.CurrentItem))
+                            {
+                                switch (npc.getGiftTasteForThisItem(player.CurrentItem))
+                                {
+                                    case 0:
+                                        key.Append("love.");
+                                        break;
+                                    case 2:
+                                        key.Append("like.");
+                                        break;
+                                    case 4:
+                                        key.Append("dislike.");
+                                        break;
+                                    case 6:
+                                        key.Append("hate.");
+                                        break;
+                                    default:
+                                        key.Append("neutral.");
+                                        break;
+                                }
+                            }
+                            else
+                            {
+                                return;
+                            }
+                        }
+                        switch (npc.Gender)
+                        {
+                            case NPC.female:
+                                key.Append("female");
+                                break;
+                            default:
+                                key.Append("male");
+                                break;
+                        }
+                        Translation translation = Helper.Translation.Get(key.ToString());
+                        _hoverText = translation?.ToString();
+                    }
+                }
             }
         }
 
         private void OnGameUpdate(object sender, EventArgs args)
         {
-            if (!Context.IsWorldReady)
+            if(Conf.BalancedMode)
+            {
+                Conf.MuchFasterBiting = false;
+            }
+            if(Game1.currentGameTime == null)
+            {
+                return;
+            }
+
+            if (!Context.IsWorldReady || !Context.IsPlayerFree)
             {
                 return;
             }
             Player player = Game1.player;
+            GameLocation location = Game1.currentLocation;
+            IReflectionHelper reflection = Helper.Reflection;
             try
             {
-                if (Conf.GiftInformation)
+                if (player.CurrentTool is FishingRod rod && Game1.activeClickableMenu == null)
                 {
-                    _unableToGift = false;
-                    _hoverText = null;
-                    if (player.CurrentItem != null && player.CurrentItem.canBeGivenAsGift())
-                    {
-                        List<NPC> npcList = player.currentLocation.characters.Where(a => a.isVillager()).ToList();
-                        foreach (NPC npc in npcList)
-                        {
-                            RectangleE npcRect = new RectangleE(npc.position.X,
-                        npc.position.Y - npc.Sprite.getHeight() - Game1.tileSize / 1.5f,
-                        npc.Sprite.getWidth() * 3 + npc.Sprite.getWidth() / 1.5f, npc.Sprite.getHeight() * 3.5f);
+                    IReflectedField<int> whichFish = reflection.GetField<int>(rod, "whichFish");
 
-                            if (!npcRect.IsInternalPoint(Game1.getMouseX() + Game1.viewport.X,
-                                Game1.getMouseY() + Game1.viewport.Y))
-                            {
-                                continue;
-                            }
-
-                            //Mouse hovered on the NPC
-                            StringBuilder key = new StringBuilder("taste.");
-                            if (player.friendships.ContainsKey(npc.name) && Game1.NPCGiftTastes.ContainsKey(npc.name))
-                            {
-                                int[] friendship = player.friendships[npc.name];
-                                if (friendship[1] > 1)
-                                {
-                                    if (npc.isMarried())
-                                    {
-                                        //This character got married with the player, so ignore weekly restriction
-                                    }
-                                    else
-                                    {
-                                        key.Append("gavetwogifts.");
-                                        _unableToGift = true;
-                                    }
-                                }
-                                if (!_unableToGift)
-                                {
-                                    if (friendship[3] > 0)
-                                    {
-                                        key.Append("gavetoday.");
-                                        _unableToGift = true;
-                                    }
-                                    else if (npc.canReceiveThisItemAsGift(player.CurrentItem))
-                                    {
-                                        switch (npc.getGiftTasteForThisItem(player.CurrentItem))
-                                        {
-                                            case 0:
-                                                key.Append("love.");
-                                                break;
-                                            case 2:
-                                                key.Append("like.");
-                                                break;
-                                            case 4:
-                                                key.Append("dislike.");
-                                                break;
-                                            case 6:
-                                                key.Append("hate.");
-                                                break;
-                                            default:
-                                                key.Append("neutral.");
-                                                break;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        return;
-                                    }
-                                }
-
-                                switch (npc.gender)
-                                {
-                                    case 0:
-                                        key.Append("male");
-                                        break;
-                                    default:
-                                        key.Append("female");
-                                        break;
-                                }
-
-                                Translation translation = Helper.Translation.Get(key.ToString());
-                                _hoverText = translation?.ToString();
-                            }
-                        }
-                    }
-                }
-                if (player.CurrentTool is FishingRod rod)
-                {
-                    if (rod.isNibbling && !rod.isReeling && !rod.hit && !rod.pullingOutOfWater && !rod.fishCaught)
+                    if (rod.isNibbling && rod.isFishing && whichFish.GetValue() == -1 && !rod.isReeling && !rod.hit && !rod.isTimingCast && !rod.pullingOutOfWater && !rod.fishCaught)
                     {
                         if (Conf.AutoReelRod)
                         {
                             rod.DoFunction(player.currentLocation, 1, 1, 1, player);
                         }
                     }
-                    if (Conf.MuchFasterBiting && !rod.isNibbling && !rod.isReeling && !rod.hit && !rod.pullingOutOfWater && !rod.fishCaught)
+                    if (Conf.MuchFasterBiting && rod.isFishing && !rod.isNibbling && !rod.isReeling && !rod.hit && !rod.isTimingCast && !rod.pullingOutOfWater && !rod.fishCaught)
                     {
-                        rod.timeUntilFishingBite = 0;
+                        rod.timeUntilFishingBite -= 10000;
                     }
                 }
                 if (Game1.currentLocation is MineShaft shaft)
@@ -225,41 +264,44 @@ namespace JoysOfEfficiency
                 {
                     return;
                 }
-                if (Conf.AutoWaterNearbyCrops)
-                {
-                    Util.WaterNearbyCrops();
-                }
                 if (Conf.AutoEat)
                 {
                     Util.TryToEatIfNeeded(player);
                 }
-                if(Conf.AutoAnimalDoor && !isNight && Game1.timeOfDay >= 1900)
-                {
-                    isNight = true;
-                    OnBeforeSave(null, null);
-                }
-                ticks = (ticks + 1) % 8;
-                if(Conf.BalancedMode && ticks > 0)
+                _ticks = (_ticks + 1) % 8;
+                if(Conf.BalancedMode && _ticks % 8 != 0)
                 {
                     return;
+                }
+
+                if (Conf.AutoWaterNearbyCrops)
+                {
+                    Util.WaterNearbyCrops();
                 }
                 if (Conf.AutoPetNearbyAnimals)
                 {
                     int radius = Conf.AutoPetRadius * Game1.tileSize;
-                    RectangleE bb = Util.ExpandE(player.GetBoundingBox(), radius);
+                    Rectangle bb = Util.Expand(player.GetBoundingBox(), radius);
                     List<FarmAnimal> animalList = Util.GetAnimalsList(player);
                     foreach (FarmAnimal animal in animalList)
                     {
-                        if (bb.IsInternalPoint(animal.position.X, animal.position.Y) && !animal.wasPet)
+                        if (bb.Contains((int)animal.Position.X, (int)animal.Position.Y) && !animal.wasPet.Value)
                         {
                             if (Game1.timeOfDay >= 1900 && !animal.isMoving())
                             {
-                                //Skipping Slept Animals
                                 continue;
                             }
                             animal.pet(player);
                         }
                     }
+                }
+                if(Conf.AutoPullMachineResult)
+                {
+                    Util.PullMachineResult();
+                }
+                if(Conf.AutoDepositIngredient)
+                {
+                    Util.DepositIngredientsToMachines();
                 }
                 if (Conf.AutoHarvest)
                 {
@@ -281,86 +323,61 @@ namespace JoysOfEfficiency
                 }
                 if (Conf.AutoCollectCollectibles)
                 {
-                    Util.CollectNearbyCollectibles();
+                    Util.CollectNearbyCollectibles(location);
                 }
                 if (Conf.AutoDigArtifactSpot)
                 {
-                    int radius = Conf.AutoDigRadius;
-                    Hoe hoe = Util.FindToolFromInventory<Hoe>(Conf.FindHoeFromInventory);
-                    GameLocation location = player.currentLocation;
-                    if (hoe != null)
-                    {
-                        bool flag = false;
-                        for (int i = -radius; i <= radius; i++)
-                        {
-                            for (int j = -radius; j <= radius; j++)
-                            {
-                                Vector2 loc = player.getTileLocation() + new Vector2(i, j);
-                                if (location.Objects.ContainsKey(loc) && location.Objects[loc].ParentSheetIndex == 590 && !location.isTileHoeDirt(loc))
-                                {
-                                    Util.Log($"BURIED @[{loc.X},{loc.Y}]");
-                                    location.digUpArtifactSpot((int) loc.X, (int) loc.Y, player);
-                                    location.Objects.Remove(loc);
-                                    location.terrainFeatures.Add(loc, new HoeDirt());
-                                    flag = true;
-                                }
-                            }
-                        }
-                        if (flag)
-                        {
-                            Game1.playSound("hoeHit");
-                        }
-                    }
+                    Util.DigNearbyArtifactSpots();
                 }
                 if (Conf.AutoShakeFruitedPlants)
                 {
                     Util.ShakeNearbyFruitedTree();
                     Util.ShakeNearbyFruitedBush();
                 }
-                if(Conf.AutoDepositIngredient)
+                if(Conf.AutoAnimalDoor && !_dayEnded && Game1.timeOfDay >= 1900)
                 {
-                    Util.DepositIngredientsToMachines();
-                }
-                if(Conf.AutoPullMachineResult)
-                {
-                    Util.PullMachineResult();
+                    _dayEnded = true;
+                    OnBeforeSave(null, null);
                 }
                 if(Conf.AutoPetNearbyPets)
                 {
                     Util.PetNearbyPets();
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Util.Error(e.ToString());
+                Monitor.Log(ex.Source);
+                Monitor.Log(ex.ToString());
             }
         }
 
         private void OnKeyPressed(object sender, EventArgsKeyPressed args)
         {
-            if (!Context.IsPlayerFree || Game1.activeClickableMenu != null)
+            if (!Context.IsWorldReady)
             {
                 return;
             }
-
-            if(args.KeyPressed == Keys.H)
+            if (args.KeyPressed == Keys.H)
             {
-                Util.ShowHUDMessage($"Hay:{Game1.getFarm().piecesOfHay}");
-                Util.ShowHUDMessage($"Direction:{Game1.player.FacingDirection}");
+                Util.ShowHudMessage((Game1.activeClickableMenu?.GetType().FullName) ?? "null");
+            }
+            if (!Context.IsPlayerFree || Game1.activeClickableMenu != null)
+            {
+                return;
             }
             if (args.KeyPressed == Conf.KeyShowMenu)
             {
                 //Open Up Menu
                 Game1.playSound("bigSelect");
-                Game1.activeClickableMenu = new JoeMenu(800, 548, this);
+                Game1.activeClickableMenu = new JoeMenu(1100, 548, this);
             }
-            else if(args.KeyPressed == Conf.KeyToggleBlackList)
+            else if (args.KeyPressed == Conf.KeyToggleBlackList)
             {
                 Util.ToggleBlacklistUnderCursor();
             }
         }
 
-        private void OnPreRenderHUD(object sender, EventArgs args)
+        private void OnPreRenderHud(object sender, EventArgs args)
         {
             if (Game1.currentLocation is MineShaft shaft && Conf.MineInfoGui)
             {
@@ -368,9 +385,9 @@ namespace JoysOfEfficiency
             }
         }
 
-        private void OnPostRenderHUD(object sender, EventArgs args)
+        private void OnPostRenderHud(object sender, EventArgs args)
         {
-            if(Context.IsPlayerFree && !string.IsNullOrEmpty(_hoverText) && Game1.player.CurrentItem != null)
+            if (Context.IsPlayerFree && !string.IsNullOrEmpty(_hoverText) && Game1.player.CurrentItem != null)
             {
                 Util.DrawSimpleTextbox(Game1.spriteBatch, _hoverText, Game1.dialogueFont, _unableToGift ? null : Game1.player.CurrentItem);
             }
@@ -385,10 +402,13 @@ namespace JoysOfEfficiency
                     Util.AutoFishing(bar);
                 }
             }
-
             if (Conf.FishingProbabilitiesInfo && Game1.player.CurrentTool is FishingRod rod && rod.isFishing)
             {
                 Util.PrintFishingInfo(rod);
+            }
+            if (Conf.EstimateShippingPrice && Game1.activeClickableMenu is ItemGrabMenu menu && _shippingBin)
+            {
+                Util.DrawShippingPrice(menu, Game1.smallFont);
             }
         }
 
@@ -398,90 +418,99 @@ namespace JoysOfEfficiency
             {
                 return;
             }
+            Monitor.Log("OnBeforeSave", LogLevel.Trace);
             Util.LetAnimalsInHome();
-
             Farm farm = Game1.getFarm();
             foreach (Building building in farm.buildings)
             {
-                if (building is Coop coop)
+                switch (building)
                 {
-                    if (coop.indoors is AnimalHouse house)
+                    case Coop coop:
                     {
-                        if (house.animals.Any() && coop.animalDoorOpen)
+                        if (coop.indoors.Value is AnimalHouse house)
                         {
-                            coop.animalDoorOpen = false;
-                            Helper.Reflection.GetField<int>(coop, "animalDoorMotion").SetValue(2);
+                            if (house.animals.Any() && coop.animalDoorOpen.Value)
+                            {
+                                coop.animalDoorOpen.Value = false;
+                                Helper.Reflection.GetField<NetInt>(coop, "animalDoorMotion").SetValue(new NetInt(2));
+                            }
                         }
+
+                        break;
                     }
-                }
-                else if (building is Barn barn)
-                {
-                    if (barn.indoors is AnimalHouse house)
+                    case Barn barn:
                     {
-                        if (house.animals.Any() && barn.animalDoorOpen)
+                        if (barn.indoors.Value is AnimalHouse house)
                         {
-                            barn.animalDoorOpen = false;
-                            Helper.Reflection.GetField<int>(barn, "animalDoorMotion").SetValue(2);
+                            if (house.animals.Any() && barn.animalDoorOpen.Value)
+                            {
+                                barn.animalDoorOpen.Value = false;
+                                Helper.Reflection.GetField<NetInt>(barn, "animalDoorMotion").SetValue(new NetInt(2));
+                            }
                         }
+
+                        break;
                     }
                 }
             }
         }
 
-        private void OnPostSave(object sender, EventArgs args)
+        private void OnDayStarted(object sender, EventArgs args)
         {
             if (!Context.IsWorldReady || !Conf.AutoAnimalDoor)
             {
                 return;
             }
-            isNight = false;
-            if(Game1.isRaining || Game1.isSnowing)
+            Monitor.Log("OnDayStarted", LogLevel.Trace);
+            _dayEnded = false;
+            if (Game1.isRaining || Game1.isSnowing)
             {
-                Util.Log("Don't open the animal doors because of rainy/snowy weather.");
+                Monitor.Log("Don't open the animal door because of rainy/snowy weather.");
                 return;
             }
             if(Game1.IsWinter)
             {
-                Util.Log("Don't open the animal doors because it's winter.");
+                Monitor.Log("Don't open the animal door because it's winter");
                 return;
             }
             Farm farm = Game1.getFarm();
             foreach (Building building in farm.buildings)
             {
-                if (building is Coop coop)
+                switch (building)
                 {
-                    if (coop.indoors is AnimalHouse house)
+                    case Coop coop:
                     {
-                        if (house.animals.Any() && !coop.animalDoorOpen)
+                        if (coop.indoors.Value is AnimalHouse house)
                         {
-                            coop.animalDoorOpen = true;
-                            Helper.Reflection.GetField<int>(coop, "animalDoorMotion").SetValue(-2);
+                            if (house.animals.Any() && !coop.animalDoorOpen.Value)
+                            {
+                                Monitor.Log($"Opening coop door @[{coop.animalDoor.X},{coop.animalDoor.Y}]", LogLevel.Trace);
+                                coop.animalDoorOpen.Value = true;
+                                Helper.Reflection.GetField<NetInt>(coop, "animalDoorMotion").SetValue(new NetInt(-2));
+                            }
                         }
+                        break;
                     }
-                }
-                else if(building is Barn barn)
-                {
-                    if (barn.indoors is AnimalHouse house)
+                    case Barn barn:
                     {
-                        if (house.animals.Any() && !barn.animalDoorOpen)
+                        if (barn.indoors.Value is AnimalHouse house)
                         {
-                            barn.animalDoorOpen = true;
-                            Helper.Reflection.GetField<int>(barn, "animalDoorMotion").SetValue(-3);
+                            if (house.animals.Any() && !barn.animalDoorOpen.Value)
+                            {
+                                Monitor.Log($"Opening barn door @[{barn.animalDoor.X},{barn.animalDoor.Y}]", LogLevel.Trace);
+                                barn.animalDoorOpen.Value = true;
+                                Helper.Reflection.GetField<NetInt>(barn, "animalDoorMotion").SetValue(new NetInt(-3));
+                            }
                         }
+                        break;
                     }
                 }
             }
         }
 
-        #endregion
-
-        #region Utilities
-
         public void WriteConfig()
         {
             Helper.WriteConfig(Conf);
         }
-
-        #endregion
     }
 }
