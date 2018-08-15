@@ -8,11 +8,11 @@ This is a list of features and configs available in [Joys of Efficiency (JoE)](h
 ﻿This utility lets them not to be executed so often. (almost 1 executing per seconds), and
 ﻿automation radius will be 1 tile.
 ﻿
-﻿This utility affects to __*AutoWaterNearbyCrops, AutoPetNearbyAnimals, AutoHarvest, AutoCollectCollectibles, AutoShakeFruitedPlants,
-﻿and AutoDigArtifactSpot.__*
+﻿This utility affects to ***AutoWaterNearbyCrops, AutoPetNearbyAnimals, AutoHarvest, AutoCollectCollectibles, AutoShakeFruitedPlants,
+﻿and AutoDigArtifactSpot.***
 
 ﻿
-__[CONFIG]__
+**[CONFIG]**
 
 - BalancedMode(bool, default:true) - whether this utility is enabled.
 
@@ -20,7 +20,7 @@ __[CONFIG]__
 ﻿With this utility, you can check how many stones left, and monster kills tally counter, and whether ladder has spawned in mines.
 ﻿You can see those when your mouse hovered over the icons.﻿
 
-__[CONFIG]__
+**[CONFIG]**
 
 - ﻿MineInfoGUI(bool, default:true) - whether this utility is enabled.
 
@@ -28,7 +28,7 @@ __[CONFIG]__
 ﻿With this utility, the crops planted on the soil will be watered automatically.  
 ﻿To use this, you must have at least one of Watering Can and it to have enough water within, and this costs stamina of the farmer each crops.
 
-﻿__[CONFIG]__
+**[CONFIG]**
 
 - AutoWaterNearbyCrops(bool, default:true) - whether this utility is enabled.  ﻿
 
@@ -48,16 +48,14 @@ __(English, German, Japanese, Portuguese,
 ﻿Spanish,﻿﻿ Russian, Simplified Chinese)__
 
 ﻿
-﻿__[CONFIG]__
+**[CONFIG]**
 
 - GiftInformation(bool, default:true) - whether this utility is enabled.
 
 ## Auto Pet Nearby Animals
 ﻿﻿With this utility, ﻿you don't have to click on animals to pet, just get close to them.
 
-﻿__[CONFIG]__
-
-
+**[CONFIG]**
 
 - AutoPetNearbyAnimals(bool, default:false) - whether this utility is enabled.
 ﻿
@@ -67,7 +65,7 @@ __(English, German, Japanese, Portuguese,
 ## Auto Animal Door
 ﻿With this utility, animal doors will open in morning if it is sunny and not winter, and close at the time day changed without click it manually.﻿
 
-﻿__[CONFIG]__
+**[CONFIG]**
 
 
 
@@ -77,7 +75,7 @@ __(English, German, Japanese, Portuguese,
 Are you tired to deal with fishing minigame? When this utility is enabled, your computer will play the minigame instead of you.
 ﻿This was requested by @GastlyMister. Many thanks!
 
-﻿﻿__[CONFIG]__
+**[CONFIG]**
 
 - AutoFishing(bool, default:false) - whether this utility is enabled.
 
@@ -86,8 +84,9 @@ Are you tired to deal with fishing minigame? When this utility is enabled, your 
 
 ## Fishing Tweaks
 ﻿This is a set of tweaks of fishing.
+
 ﻿
-﻿﻿﻿__[CONFIG]__
+**[CONFIG]**
 
 - AutoReelRod(bool, default:true) - whether it automatically reels up the rod when fish nibbled.﻿
 - MuchFasterBiting(bool, default:false) - if it is true, fish will bite the bait much faster.
@@ -99,7 +98,7 @@ Are you tired to deal with fishing minigame? When this utility is enabled, your 
 This feature shows the information about the fish when playing fishing minigame.
 
 ﻿
-﻿﻿﻿__[CONFIG]__
+**[CONFIG]**
 
 - FishingInfo(bool, default:true) - whether this utility enabled.
 
@@ -109,7 +108,7 @@ This feature shows the information about the fish when playing fishing minigame.
 It should work with both single-player and coop game modes﻿.
 ﻿This was requested by @plaah007. Thanks alot!
 
-﻿__[CONFIG]__
+**[CONFIG]**
 
 - AutoGate(bool, default:true) - whether this utility enabled.
 
@@ -118,7 +117,7 @@ It should work with both single-player and coop game modes﻿.
 ﻿These threshold ratio can be changed.
 ﻿﻿This was requested by @GastlyMister. thanks!
 
-﻿﻿__[CONFIG]__
+**[CONFIG]**
 
 
 
@@ -133,7 +132,7 @@ It should work with both single-player and coop game modes﻿.
 ## Auto Harvest
 ﻿﻿This utility let the farmer to harvest crops (and spring onions) automatically  when he/she gets closed to it.
 
-﻿﻿__[CONFIG]__
+**[CONFIG]**
 
 ﻿AutoHarvest(bool, default:false) - whether this utility enabled.
 ﻿ProtectNectarProducingFlower(bool, default:true) - this option protects flowers producing nectar not to be Auto harvested.
@@ -144,7 +143,7 @@ AutoHarvestRadius(int, default:1) - How far tiles can be affected by this utilit
 ## Auto Destroy Dead Crops
 This utility destorys dead crops automatically when he/she gets closed to it.
 
-﻿﻿__[CONFIG]__
+**[CONFIG]**
 
 AutoDestroyDeadCropsbool, default:true) - whether this utility enabled.
 
@@ -152,7 +151,7 @@ AutoDestroyDeadCropsbool, default:true) - whether this utility enabled.
 ﻿﻿﻿This utility let the farmer to collect collectibles (crystals, forages, animal products, and so on) automatically 
 ﻿when he/she gets closed to it.
 
-﻿﻿__[CONFIG]__
+**[CONFIG]**
 
 AutoCollectCollectibles(bool, default:false) - whether this utility enabled.
 AutoCollectRadius(int, default:1) - How far tiles can be affected by this utility.
@@ -161,7 +160,7 @@ AutoCollectRadius(int, default:1) - How far tiles can be affected by this utilit
 ﻿This utility shakes fruited tree(pines, acorns, apples, cherries, and so on) and berry bushes
 ﻿automatically when the farmer gets closed to it.
 
-﻿__[CONFIG]__
+**[CONFIG]**
 
 AutoShakeFruitedPlamts(bool, default:true) - whether this utility enabled.
 AutoShakeRadius(int, default:1) - How far tiles can be affected by this utility.
@@ -169,7 +168,7 @@ AutoShakeRadius(int, default:1) - How far tiles can be affected by this utility.
 ## Auto Dig Artifact Spot
 ﻿﻿This utility digs artifact spots nearby the farmer automatically.
 
-﻿__[CONFIG]__
+**[CONFIG]**
 
 AutoDigArtifactSpot(bool, default:false) - whether this utility enabled.
 AutoDigRadius(int, default:1) - How far tiles can be affected by this utility.
@@ -178,7 +177,7 @@ AutoDigRadius(int, default:1) - How far tiles can be affected by this utility.
 ## Auto Deposit Ingredient
 ﻿﻿﻿This utility will try to deposit ingredient you held to nearby machines automatically.
 
-﻿__[CONFIG]__
+**[CONFIG]**
 
 AutoDepositIngredient(bool, default:false) - whether this utility enabled.
 MachineRadius(int, default:1) - How far tiles can be affected by this utility.
@@ -186,7 +185,7 @@ MachineRadius(int, default:1) - How far tiles can be affected by this utility.
 ## Auto Pull Machine Result
 ﻿This utility will try to pull results from nearby machines and give it to the farmer automatically.
 
-﻿__[CONFIG]__
+**[CONFIG]**
 
 AutoPullMachineResult(bool, default:true) - whether this utility enabled.
 MachineRadius(int, default:1) - How far tiles can be affected by this utility.
@@ -195,7 +194,7 @@ MachineRadius(int, default:1) - How far tiles can be affected by this utility.
 ﻿﻿Oh, seriously you want to pet pets automatically?
 ﻿All right, this utility pets nearby pets automatically.
 
-﻿__[CONFIG]__
+**[CONFIG]**
 
 - AutoPetNearbyPets(bool, default:false) - whether this utility is enabled.
 - AutoPetRadius(int, default:1) - How far tiles can be affected by this utility.
@@ -203,7 +202,7 @@ MachineRadius(int, default:1) - How far tiles can be affected by this utility.
 ## Fishing Probabilities Info
 ﻿﻿This utility let you know what fish could be caught (and estimated probability of catching) when you are fishing.
 
-__[CONFIG]__
+**[CONFIG]**
 
 - FishingProbabilitiesInfo(bool, default:false) - whether this utility is enabled.
 ﻿
@@ -216,7 +215,7 @@ __[CONFIG]__
 ## Show Shipping Price
 This utility shows estimated total shipping price when you opened shipping box.
 
-__[CONFIG]__
+**[CONFIG]**
 
 - EstimateShippingPrice(bool, default:false) - whether this utility is enabled.
 
@@ -224,7 +223,7 @@ __[CONFIG]__
 This utility unifies flower colors to reduce occupying space according to its species.
 In config file, you can change the color using "R, G, B, A" format.
 
-__[CONFIG]__
+**[CONFIG]**
 
 - JazzColor(Color, default:{0, 255, 255, 255}) - The color of Blue Jazz.
 
