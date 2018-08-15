@@ -103,6 +103,9 @@ This feature shows the information about the fish when playing fishing minigame.
 - FishingInfo(bool, default:true) - whether this utility enabled.
 
 ## Auto Gate﻿﻿﻿
+![](https://i.imgur.com/LMox0WR.gif)
+
+
 ﻿Are you tired of clicking fence gates? Then try this.
 ﻿This feature let gates open when farmer is close to them, and otherwise, close them automatically.
 It should work with both single-player and coop game modes﻿.
