@@ -11,8 +11,8 @@ This is a list of features and configs available in [Joys of Efficiency (JoE)](h
 ﻿This utility affects to AutoWaterNearbyCrops, AutoPetNearbyAnimals, AutoHarvest, AutoCollectCollectibles, AutoShakeFruitedPlants,
 ﻿and AutoDigArtifactSpot.
 ﻿
-##### CONFIG
-﻿BalancedMode(bool, default:true) - whether this utility is enabled.
+### CONFIG
+﻿* BalancedMode(bool, default:true) - whether this utility is enabled.
 
 ## Mine Info GUI
 ﻿With this utility, you can check how many stones left, and monster kills tally counter, and whether ladder has spawned in mines.
@@ -22,7 +22,7 @@ This is a list of features and configs available in [Joys of Efficiency (JoE)](h
 ﻿MineInfoGUI(bool, default:true) - whether this utility is enabled.
 
 ## Auto Water Nearby Crops
-﻿With this utility, the plant crops will be watered automatically.
+ With this utility, the plant crops will be watered automatically.
 ﻿To use this, you must have at least one of Watering Can and it to have enough water within.
 ﻿And this costs stamina of the farmer each crops.
 
