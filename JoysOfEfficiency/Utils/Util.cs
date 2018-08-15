@@ -1,4 +1,7 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Netcode;
 using StardewModdingAPI;
@@ -10,19 +13,17 @@ using StardewValley.Monsters;
 using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
 using StardewValley.Tools;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using xTile.Dimensions;
 using xTile.Layers;
 using static System.String;
 using static StardewValley.Game1;
+using Object = StardewValley.Object;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace JoysOfEfficiency.Utils
 {
     using Player = Farmer;
-    using SVObject = StardewValley.Object;
+    using SVObject = Object;
     internal class Util
     {
         public static IModHelper Helper;
@@ -35,6 +36,52 @@ namespace JoysOfEfficiency.Utils
         private static readonly List<Vector2> FlowerLocationProducingNectar = new List<Vector2>();
 
         public static string LastKilledMonster { get; private set; }
+
+        public static void UnifyFlowerColors()
+        {
+            foreach (KeyValuePair<Vector2, TerrainFeature> featurePair in currentLocation.terrainFeatures.Pairs.Where(kv=>kv.Value is HoeDirt))
+            {
+                Vector2 loc = featurePair.Key;
+                HoeDirt dirt = (HoeDirt)featurePair.Value;
+                Crop crop = dirt.crop;
+                if (crop == null || dirt.crop.dead.Value || !dirt.crop.programColored.Value)
+                {
+                    continue;
+                }
+                Color oldColor = crop.tintColor.Value;
+                switch (crop.indexOfHarvest.Value)
+                {
+                    case 376:
+                        //Poppy
+                        crop.tintColor.Value = ModEntry.Conf.PoppyColor;
+                        break;
+                    case 591:
+                        //Tulip
+                        crop.tintColor.Value = ModEntry.Conf.TulipColor;
+                        break;
+                    case 597:
+                        //Blue Jazz
+                        crop.tintColor.Value = ModEntry.Conf.JazzColor;
+                        break;
+                    case 593:
+                        //Summer Spangle
+                        crop.tintColor.Value = ModEntry.Conf.SummerSpangleColor;
+                        break;
+                    case 595:
+                        //Fairy Rose
+                        crop.tintColor.Value = ModEntry.Conf.FairyRoseColor;
+                        break;
+                    default:
+                        continue;
+                }
+
+                if (oldColor != crop.tintColor.Value)
+                {
+                    SVObject obj = new SVObject(crop.indexOfHarvest.Value, 1);
+                    Monitor.Log($"changed {obj.DisplayName} @[{loc.X},{loc.Y}] to color(R:{crop.tintColor.R},G:{crop.tintColor.G},B:{crop.tintColor.B},A:{crop.tintColor.A})", LogLevel.Trace);
+                }
+            }
+        }
 
         public static Chest GetFridge()
         {
@@ -85,7 +132,7 @@ namespace JoysOfEfficiency.Utils
             return items;
         }
 
-        public static int GetTruePrice(Item item)
+        private static int GetTruePrice(Item item)
         {
             int truePrice = 0;
 
@@ -261,10 +308,8 @@ namespace JoysOfEfficiency.Utils
 
         public static void DigNearbyArtifactSpots()
         {
-            Player player = Game1.player;
-
             int radius = ModEntry.Conf.AutoDigRadius;
-            Hoe hoe = FindToolFromInventory<Hoe>(player);
+            Hoe hoe = FindToolFromInventory<Hoe>(player, ModEntry.Conf.FindHoeFromInventory);
             GameLocation location = player.currentLocation;
             if (hoe != null)
             {
@@ -276,12 +321,13 @@ namespace JoysOfEfficiency.Utils
                         int x = player.getTileX() + i;
                         int y = player.getTileY() + j;
                         Vector2 loc = new Vector2(x, y);
-                        if (!(location.Objects.ContainsKey(loc) && location.Objects[loc].ParentSheetIndex == 590 && !location.isTileHoeDirt(loc)))
-                            continue;
-                        location.digUpArtifactSpot(x, y, player);
-                        location.Objects.Remove(loc);
-                        location.terrainFeatures.Add(loc, new HoeDirt());
-                        flag = true;
+                        if (location.Objects.ContainsKey(loc) && location.Objects[loc].ParentSheetIndex == 590 && !location.isTileHoeDirt(loc))
+                        {
+                            location.digUpArtifactSpot(x, y, player);
+                            location.Objects.Remove(loc);
+                            location.terrainFeatures.Add(loc, new HoeDirt());
+                            flag = true;
+                        }
                     }
                 }
                 if (flag)
@@ -408,8 +454,7 @@ namespace JoysOfEfficiency.Utils
 
         public static void WaterNearbyCrops()
         {
-            Player player = Game1.player;
-            WateringCan can = FindToolFromInventory<WateringCan>(player);
+            WateringCan can = FindToolFromInventory<WateringCan>(player, ModEntry.Conf.FindCanFromInventory);
             if (can != null)
             {
                 GetMaxCan(can);
@@ -802,16 +847,14 @@ namespace JoysOfEfficiency.Utils
         }
 */
 
-        private static bool CollectObj(GameLocation loc, SVObject obj)
+        private static void CollectObj(GameLocation loc, SVObject obj)
         {
             Player who = player;
 
             Vector2 vector = GetLocationOf(loc, obj);
 
-            if ((int) vector.X == -1 && (int) vector.Y == -1)
-                return false;
-            if (obj.questItem.Value)
-                return false;
+            if ((int) vector.X == -1 && (int) vector.Y == -1) return;
+            if (obj.questItem.Value) return;
 
             int quality = obj.Quality;
             Random random = new Random((int)uniqueIDForThisGame / 2 + (int)stats.DaysPlayed + (int)vector.X + (int)vector.Y * 777);
@@ -835,7 +878,6 @@ namespace JoysOfEfficiency.Utils
                     loc.localSound("pickUpItem");
                     DelayedAction.playSoundAfterDelay("coin", 300);
                 }
-
                 if (!who.isRidingHorse() && !who.ridingMineElevator)
                     who.animateOnce(279 + who.FacingDirection);
 
@@ -855,10 +897,9 @@ namespace JoysOfEfficiency.Utils
                     who.gainExperience(2, 7);
                 }
                 loc.Objects.Remove(vector);
-                return true;
+                return;
             }
             obj.Quality = quality;
-            return false;
         }
 
         public static bool IsThereAnyWaterNear(GameLocation location, Vector2 tileLocation)
@@ -878,13 +919,13 @@ namespace JoysOfEfficiency.Utils
             return false;
         }
         
-        public static T FindToolFromInventory<T>(Player player) where T : Tool
+        public static T FindToolFromInventory<T>(Player player, bool findFromInventory) where T : Tool
         {
             if(player.CurrentTool is T t)
             {
                 return t;
             }
-            return player.Items.OfType<T>().FirstOrDefault();
+            return findFromInventory ? player.Items.OfType<T>().FirstOrDefault() : null;
         }
 
         public static void PrintFishingInfo(FishingRod rod)
@@ -1376,9 +1417,6 @@ namespace JoysOfEfficiency.Utils
                     }
                     crop.dayOfCurrentPhase.Value = crop.regrowAfterHarvest.Value;
                     crop.fullyGrown.Value = true;
-                }
-                else
-                {
                 }
             }
             return false;

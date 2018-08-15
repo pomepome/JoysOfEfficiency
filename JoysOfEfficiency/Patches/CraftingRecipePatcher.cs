@@ -10,8 +10,7 @@ namespace JoysOfEfficiency.Patches
     {
         internal static bool Prefix(ref CraftingRecipe __instance)
         {
-            Dictionary<int, int> recipeList = Util.Helper.Reflection.GetField<Dictionary<int, int>>(__instance, "recipeList")
-                .GetValue();
+            Dictionary<int, int> recipeList = Util.Helper.Reflection.GetField<Dictionary<int, int>>(__instance, "recipeList").GetValue();
             foreach (KeyValuePair<int, int> kv in recipeList)
             {
                 int index = kv.Key;
@@ -44,8 +43,7 @@ namespace JoysOfEfficiency.Patches
                     {
                         foreach (Item chestItem in new List<Item>(chest.items))
                         {
-                            if (chestItem != null &&
-                                (chestItem.ParentSheetIndex == index || chestItem.Category == index))
+                            if (chestItem != null && (chestItem.ParentSheetIndex == index || chestItem.Category == index))
                             {
                                 toConsume = Math.Min(chestItem.Stack, count);
                                 chestItem.Stack -= toConsume;

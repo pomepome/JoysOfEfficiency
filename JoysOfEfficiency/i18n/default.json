@@ -1,4 +1,5 @@
 ﻿{
+
   "button.awaiting": "Press the key to assign...",
   "button.conflict": "The key you pressed is conflicting",
   "button.esc": "Press Esc key to Cancel",
@@ -52,6 +53,7 @@
   "options.ProtectNectarProducingFlower": "Protect flowers near bee houses",
   "options.RadiusCraftingFromChests": "How far tiles to find chests",
   "options.StaminaToEatRatio": "Stamina Threshold to auto-eat",
+  "options.UnifyFlowerColors": "Unify colors of flowers",
   "quality.gold": "Gold",
   "quality.iridium": "Iridium",
   "quality.normal": "Normal",
@@ -62,6 +64,7 @@
   "tab.automation": "Automation",
   "tab.cheats": "Cheats",
   "tab.controls": "Controls",
+  "tab.misc": "Miscellaneous",
   "tab.UIs": "User Interfaces",
   "taste.dislike.female": "She dislikes this gift",
   "taste.dislike.male": "He dislikes this gift",

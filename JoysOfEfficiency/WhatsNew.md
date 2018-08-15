@@ -90,6 +90,10 @@ This is a changelog from 1.0.22
 - Added Wells support for auto-refill watering can.
 
 ## 1.2.0
-- Updated for SDV 1.3.27
+- Updated for SDV 1.3(non-beta)
 - Removed debugging feature.
 - Moved UI settings to UIs Tab.
+- Added ShowShippingPrice feature.
+
+## 1.2.1
+- added UnifyFlowerColors feature.

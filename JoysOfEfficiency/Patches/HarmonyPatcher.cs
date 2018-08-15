@@ -7,7 +7,7 @@ using StardewValley;
 
 namespace JoysOfEfficiency.Patches
 {
-    using Player = StardewValley.Farmer;
+    using Player = Farmer;
     internal class HarmonyPatcher
     {
         public static bool Init()

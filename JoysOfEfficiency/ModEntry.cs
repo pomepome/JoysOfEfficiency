@@ -1,4 +1,9 @@
-﻿using JoysOfEfficiency.ModCheckers;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using JoysOfEfficiency.ModCheckers;
+using JoysOfEfficiency.Patches;
 using JoysOfEfficiency.Utils;
 using Microsoft.Xna.Framework;
 using Netcode;
@@ -9,12 +14,6 @@ using StardewValley.Buildings;
 using StardewValley.Locations;
 using StardewValley.Menus;
 using StardewValley.Tools;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using JoysOfEfficiency.Patches;
-using Microsoft.Xna.Framework.Input;
 
 namespace JoysOfEfficiency
 {
@@ -249,7 +248,7 @@ namespace JoysOfEfficiency
                     }
                     if (Conf.MuchFasterBiting && rod.isFishing && !rod.isNibbling && !rod.isReeling && !rod.hit && !rod.isTimingCast && !rod.pullingOutOfWater && !rod.fishCaught)
                     {
-                        rod.timeUntilFishingBite -= 10000;
+                        rod.timeUntilFishingBite = 0;
                     }
                 }
                 if (Game1.currentLocation is MineShaft shaft)
@@ -273,7 +272,6 @@ namespace JoysOfEfficiency
                 {
                     return;
                 }
-
                 if (Conf.AutoWaterNearbyCrops)
                 {
                     Util.WaterNearbyCrops();
@@ -342,6 +340,10 @@ namespace JoysOfEfficiency
                 if(Conf.AutoPetNearbyPets)
                 {
                     Util.PetNearbyPets();
+                }
+                if (Conf.UnifyFlowerColors)
+                {
+                    Util.UnifyFlowerColors();
                 }
             }
             catch (Exception ex)

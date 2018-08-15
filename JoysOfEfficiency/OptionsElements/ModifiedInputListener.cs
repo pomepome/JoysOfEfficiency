@@ -1,17 +1,17 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Menus;
-using System;
 
 namespace JoysOfEfficiency.OptionsElements
 {
     internal class ModifiedInputListener : OptionsElement
     {
-        private bool _isListening = false;
-        private bool _conflicting = false;
+        private bool _isListening;
+        private bool _conflicting;
         private Keys _button;
 
         private readonly Action<int, ModifiedInputListener> _onStartListening;
@@ -29,7 +29,7 @@ namespace JoysOfEfficiency.OptionsElements
             this.label = ModEntry.ModHelper.Translation.Get($"options.{label}");
             _button = initial;
             _onButtonPressed = onButtonPressed;
-            _isDisabled = isDisabled ?? ((i) => false);
+            _isDisabled = isDisabled ?? (i => false);
             _translation = translationHelper;
             _onStartListening = onStartListening ?? ((i,obj) => { });
             whichOption = which;
@@ -62,7 +62,6 @@ namespace JoysOfEfficiency.OptionsElements
                 _conflicting = false;
                 _isListening = false;
                 _onButtonPressed(whichOption, key);
-                return;
             }
         }
 

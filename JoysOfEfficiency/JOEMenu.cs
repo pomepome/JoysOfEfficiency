@@ -1,14 +1,12 @@
-﻿using System;
+﻿using System.Collections.Generic;
+using JoysOfEfficiency.OptionsElements;
+using JoysOfEfficiency.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Menus;
-using System.Collections.Generic;
-
-using JoysOfEfficiency.OptionsElements;
-using JoysOfEfficiency.Utils;
 
 namespace JoysOfEfficiency
 {
@@ -24,6 +22,7 @@ namespace JoysOfEfficiency
         private Rectangle _tabAutomation;
         private Rectangle _tabUIs;
         private Rectangle _tabCheats;
+        private Rectangle _tabMisc;
         private Rectangle _tabControls;
 
         private int _tabIndex;
@@ -33,6 +32,7 @@ namespace JoysOfEfficiency
         private readonly string _tabAutomationString;
         private readonly string _tabUIsString;
         private readonly string _tabCheatsString;
+        private readonly string _tabMiscString;
         private readonly string _tabControlsString;
 
         private bool _isListening;
@@ -57,11 +57,15 @@ namespace JoysOfEfficiency
 
             _tabCheatsString = translation.Get("tab.cheats");
             size = _font.MeasureString(_tabCheatsString);
-            _tabCheats = new Rectangle(xPositionOnScreen - (int)size.X - 20, yPositionOnScreen + 136, (int)size.X + 32, 64);
+            _tabCheats = new Rectangle(xPositionOnScreen - (int)size.X - 20, yPositionOnScreen + 68*2, (int)size.X + 32, 64);
+
+            _tabMiscString = translation.Get("tab.misc");
+            size = _font.MeasureString(_tabMiscString);
+            _tabMisc = new Rectangle(xPositionOnScreen - (int)size.X - 20, yPositionOnScreen + 68*3, (int)size.X + 32, 64);
 
             _tabControlsString = translation.Get("tab.controls");
             size = _font.MeasureString(_tabControlsString);
-            _tabControls = new Rectangle(xPositionOnScreen - (int)size.X - 20, yPositionOnScreen + 204, (int)size.X + 32, 64);
+            _tabControls = new Rectangle(xPositionOnScreen - (int)size.X - 20, yPositionOnScreen + 68*4, (int)size.X + 32, 64);
 
             {
                 //Automation Tab
@@ -140,12 +144,6 @@ namespace JoysOfEfficiency
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoDepositIngredient", 22, ModEntry.Conf.AutoDepositIngredient, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoPullMachineResult", 23, ModEntry.Conf.AutoPullMachineResult, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedSlider("MachineRadius", 10, ModEntry.Conf.MachineRadius, 1, 3, OnSliderValueChanged, () => !(ModEntry.Conf.AutoPullMachineResult || ModEntry.Conf.AutoDepositIngredient) || ModEntry.Conf.BalancedMode));
-                
-                tab.AddOptionsElement(new EmptyLabel());
-                tab.AddOptionsElement(new LabelComponent("Crafting From Chests"));
-                tab.AddOptionsElement(new ModifiedCheckBox("CraftingFromChests", 27, ModEntry.Conf.CraftingFromChests, OnCheckboxValueChanged, i => ModEntry.IsCCOn));
-                tab.AddOptionsElement(new ModifiedSlider("RadiusCraftingFromChests", 11, ModEntry.Conf.RadiusCraftingFromChests, 1, 5, OnSliderValueChanged, () => !ModEntry.Conf.CraftingFromChests || ModEntry.Conf.BalancedMode));
-
                 tab.AddOptionsElement(new EmptyLabel());
                 _tabs.Add(tab);
             }
@@ -170,7 +168,7 @@ namespace JoysOfEfficiency
                 tab.AddOptionsElement(new ModifiedCheckBox("FishingProbabilitiesInfo", 26, ModEntry.Conf.FishingProbabilitiesInfo, OnCheckboxValueChanged));
 
                 tab.AddOptionsElement(new EmptyLabel());
-                tab.AddOptionsElement(new LabelComponent("Shipping Price Estimator"));
+                tab.AddOptionsElement(new LabelComponent("Show Shipping Price"));
                 tab.AddOptionsElement(new ModifiedCheckBox("EstimateShippingPrice", 28, ModEntry.Conf.EstimateShippingPrice, OnCheckboxValueChanged));
 
                 tab.AddOptionsElement(new EmptyLabel());
@@ -183,6 +181,22 @@ namespace JoysOfEfficiency
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Fishing Tweaks"));
                 tab.AddOptionsElement(new ModifiedCheckBox("MuchFasterBiting", 7, ModEntry.Conf.MuchFasterBiting, OnCheckboxValueChanged));
+
+                tab.AddOptionsElement(new EmptyLabel());
+                _tabs.Add(tab);
+            }
+            {
+                //Misc Tab
+                MenuTab tab = new MenuTab();
+                
+                tab.AddOptionsElement(new EmptyLabel());
+                tab.AddOptionsElement(new LabelComponent("Crafting From Chests"));
+                tab.AddOptionsElement(new ModifiedCheckBox("CraftingFromChests", 27, ModEntry.Conf.CraftingFromChests, OnCheckboxValueChanged, i => ModEntry.IsCCOn));
+                tab.AddOptionsElement(new ModifiedSlider("RadiusCraftingFromChests", 11, ModEntry.Conf.RadiusCraftingFromChests, 1, 5, OnSliderValueChanged, () => !ModEntry.Conf.CraftingFromChests || ModEntry.Conf.BalancedMode));
+
+                tab.AddOptionsElement(new EmptyLabel());
+                tab.AddOptionsElement(new LabelComponent("Unify Flower Colors"));
+                tab.AddOptionsElement(new ModifiedCheckBox("UnifyFlowerColors", 29, ModEntry.Conf.UnifyFlowerColors, OnCheckboxValueChanged));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 _tabs.Add(tab);
@@ -248,6 +262,7 @@ namespace JoysOfEfficiency
                 case 26: ModEntry.Conf.FishingProbabilitiesInfo = value; break;
                 case 27: ModEntry.Conf.CraftingFromChests = value; break;
                 case 28: ModEntry.Conf.EstimateShippingPrice = value; break;
+                case 29: ModEntry.Conf.UnifyFlowerColors = value; break;
                 default: return;
             }
             _mod.WriteConfig();
@@ -340,13 +355,15 @@ namespace JoysOfEfficiency
 
             drawTextureBox(b, _tabUIs.Left, _tabUIs.Top, _tabUIs.Width, _tabUIs.Height, Color.White * (_tabIndex == 1 ? 1.0f : 0.6f));
             b.DrawString(Game1.smallFont, _tabUIsString, new Vector2(_tabUIs.Left + 16, _tabUIs.Top + (_tabUIs.Height - _font.MeasureString(_tabUIsString).Y) / 2), Color.Black * (_tabIndex == 1 ? 1.0f : 0.6f));
-
-            drawTextureBox(b, _tabControls.Left, _tabControls.Top, _tabControls.Width, _tabControls.Height, Color.White * (_tabIndex == 2 ? 1.0f : 0.6f));
+            
             drawTextureBox(b, _tabCheats.Left, _tabCheats.Top, _tabCheats.Width, _tabCheats.Height, Color.White * (_tabIndex == 2 ? 1.0f : 0.6f));
             b.DrawString(Game1.smallFont, _tabCheatsString, new Vector2(_tabCheats.Left + 16, _tabCheats.Top + (_tabCheats.Height - _font.MeasureString(_tabCheatsString).Y) / 2), Color.Black * (_tabIndex == 2 ? 1.0f : 0.6f));
 
-            drawTextureBox(b, _tabControls.Left, _tabControls.Top, _tabControls.Width, _tabControls.Height, Color.White * (_tabIndex == 3 ? 1.0f : 0.6f));
-            b.DrawString(Game1.smallFont, _tabControlsString, new Vector2(_tabControls.Left + 16, _tabControls.Top + (_tabControls.Height - _font.MeasureString(_tabControlsString).Y) / 2), Color.Black * (_tabIndex == 3 ? 1.0f : 0.6f));
+            drawTextureBox(b, _tabMisc.Left, _tabMisc.Top, _tabMisc.Width, _tabMisc.Height, Color.White * (_tabIndex == 3 ? 1.0f : 0.6f));
+            b.DrawString(Game1.smallFont, _tabMiscString, new Vector2(_tabMisc.Left + 16, _tabMisc.Top + (_tabMisc.Height - _font.MeasureString(_tabMiscString).Y) / 2), Color.Black * (_tabIndex == 3 ? 1.0f : 0.6f));
+
+            drawTextureBox(b, _tabControls.Left, _tabControls.Top, _tabControls.Width, _tabControls.Height, Color.White * (_tabIndex == 4 ? 1.0f : 0.6f));
+            b.DrawString(Game1.smallFont, _tabControlsString, new Vector2(_tabControls.Left + 16, _tabControls.Top + (_tabControls.Height - _font.MeasureString(_tabControlsString).Y) / 2), Color.Black * (_tabIndex == 4 ? 1.0f : 0.6f));
 
             drawTextureBox(b, Game1.menuTexture, new Rectangle(0, 256, 60, 60), xPositionOnScreen, yPositionOnScreen, width, height, Color.White, 1.0f, false);
             base.draw(b);
@@ -458,9 +475,16 @@ namespace JoysOfEfficiency
                     Game1.playSound("coin");
                 return;
             }
-            if (_tabControls.Contains(x, y))
+
+            if (_tabMisc.Contains(x, y))
             {
                 TryToChangeTab(3);
+                return;
+            }
+
+            if (_tabControls.Contains(x, y))
+            {
+                TryToChangeTab(4);
                 return;
             }
             if (_upCursor.bounds.Contains(x, y) && _upCursor.visible)

@@ -1,5 +1,6 @@
-﻿using Microsoft.Xna.Framework.Input;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 
 namespace JoysOfEfficiency
 {
@@ -48,5 +49,12 @@ namespace JoysOfEfficiency
         public int RadiusCraftingFromChests { get; set; } = 3;
         public bool CraftingFromChests { get; set; } = false;
         public bool EstimateShippingPrice { get; set; } = true;
+        public bool UnifyFlowerColors { get; set; } = false;
+
+        public Color JazzColor { get; set; } = Color.Aqua;
+        public Color TulipColor { get; set; } = Color.Red;
+        public Color PoppyColor { get; set; } = Color.OrangeRed;
+        public Color SummerSpangleColor { get; set; } = Color.Gold;
+        public Color FairyRoseColor { get; set; } = Color.Thistle;
     }
 }
