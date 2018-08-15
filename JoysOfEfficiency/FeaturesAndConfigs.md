@@ -103,7 +103,8 @@ This feature shows the information about the fish when playing fishing minigame.
 - FishingInfo(bool, default:true) - whether this utility enabled.
 
 ## Auto Gate﻿﻿﻿
-![](https://i.imgur.com/LMox0WR.gif)
+
+![Auto Gate](https://i.imgur.com/ZUiI9Zr.gif)
 
 
 ﻿Are you tired of clicking fence gates? Then try this.
