@@ -1,4 +1,4 @@
-﻿# Overview
+﻿﻿# Overview
 This is a list of features and configs available in [Joys of Efficiency (JoE)](https://www.nexusmods.com/stardewvalley/mods/2162).
 
 # Features
@@ -221,7 +221,7 @@ This utility shows estimated total shipping price when you opened shipping box.
 
 **[CONFIG]**
 
-- EstimateShippingPrice(bool, default:false) - whether this utility is enabled.
+- EstimateShippingPrice(bool, default:true) - whether this utility is enabled.
 
 ## Unify Flower Colors
 This utility unifies flower colors to reduce occupying space according to its species.
@@ -229,7 +229,11 @@ In config file, you can change the color using "R, G, B, A" format.
 
 **[CONFIG]**
 
+- UnifyFlowerColors(bool, default:false) - whether this utility is enabled.
+
+
 - JazzColor(Color, default:{0, 255, 255, 255}) - The color of Blue Jazz.
+
 
 - TulipColor(Color, default:{255, 0, 0, 255}) - The color of Turip.
 
@@ -241,3 +245,18 @@ In config file, you can change the color using "R, G, B, A" format.
 
 
 - FairyRoseColor(Color, default:{216, 191, 216, 255}) - The color of Fairy Rose.
+
+
+## Auto Loot Treasures
+
+
+This utility loots all acceptable items in treasure box, not chests player placed. (e.g. fishing treasures, mine treasures)
+
+
+**[CONFIG]**
+
+
+- AutoLootTreasures(bool, default:true) - whether this utility is enabled.
+
+
+- CloseTreasureWhenAllLooted(bool, default:false) - Closes the treasure chest menu when all items taken.

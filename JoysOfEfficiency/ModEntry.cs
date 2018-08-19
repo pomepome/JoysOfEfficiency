@@ -97,13 +97,23 @@ namespace JoysOfEfficiency
             {
                 return;
             }
-            if (args.NewMenu is ItemGrabMenu menu && menu.shippingBin)
+
+            if (args.NewMenu is ItemGrabMenu menu)
             {
-                Monitor.Log("Shipping Bin Detected");
-                _shippingBin = true;
-                return;
+                if (Conf.AutoLootTreasures)
+                {
+                    Util.LootAllAcceptableItems(menu);
+                }
+                if (menu.shippingBin)
+                {
+                    Monitor.Log("Shipping Bin Detected");
+                    _shippingBin = true;
+                }
+                else
+                {
+                    _shippingBin = false;
+                }
             }
-            _shippingBin = false;
         }
 
         private void OnMenuClosed(object sender, EventArgsClickableMenuClosed args)
@@ -226,10 +236,17 @@ namespace JoysOfEfficiency
                 return;
             }
 
+            if (Conf.CloseTreasureWhenAllLooted && Game1.activeClickableMenu is ItemGrabMenu menu && menu.source != ItemGrabMenu.source_chest && !menu.shippingBin && (menu.source == ItemGrabMenu.source_fishingChest || menu.source == ItemGrabMenu.source_gift || !menu.showReceivingMenu) && menu.areAllItemsTaken() && menu.heldItem == null)
+            {
+                menu.exitThisMenu();
+            }
+
             if (!Context.IsWorldReady || !Context.IsPlayerFree)
             {
                 return;
             }
+
+
             Player player = Game1.player;
             GameLocation location = Game1.currentLocation;
             IReflectionHelper reflection = Helper.Reflection;

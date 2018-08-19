@@ -144,6 +144,12 @@ namespace JoysOfEfficiency
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoDepositIngredient", 22, ModEntry.Conf.AutoDepositIngredient, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoPullMachineResult", 23, ModEntry.Conf.AutoPullMachineResult, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedSlider("MachineRadius", 10, ModEntry.Conf.MachineRadius, 1, 3, OnSliderValueChanged, () => !(ModEntry.Conf.AutoPullMachineResult || ModEntry.Conf.AutoDepositIngredient) || ModEntry.Conf.BalancedMode));
+
+                tab.AddOptionsElement(new EmptyLabel());
+                tab.AddOptionsElement(new LabelComponent("Auto Loot Treasures"));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoLootTreasures", 30, ModEntry.Conf.AutoLootTreasures, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("CloseTreasureWhenAllLooted", 31, ModEntry.Conf.CloseTreasureWhenAllLooted, OnCheckboxValueChanged));
+
                 tab.AddOptionsElement(new EmptyLabel());
                 _tabs.Add(tab);
             }
@@ -197,7 +203,6 @@ namespace JoysOfEfficiency
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Unify Flower Colors"));
                 tab.AddOptionsElement(new ModifiedCheckBox("UnifyFlowerColors", 29, ModEntry.Conf.UnifyFlowerColors, OnCheckboxValueChanged));
-
                 tab.AddOptionsElement(new EmptyLabel());
                 _tabs.Add(tab);
             }
@@ -208,6 +213,7 @@ namespace JoysOfEfficiency
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Settings Menu"));
                 tab.AddOptionsElement(new ModifiedInputListener(this, "KeyShowMenu", 0, ModEntry.Conf.KeyShowMenu, translation, OnInputListnerChanged, OnStartListening));
+
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Auto Harvest"));
                 tab.AddOptionsElement(new ModifiedInputListener(this, "KeyToggleBlackList", 1, ModEntry.Conf.KeyToggleBlackList, translation, OnInputListnerChanged, OnStartListening));
@@ -263,6 +269,8 @@ namespace JoysOfEfficiency
                 case 27: ModEntry.Conf.CraftingFromChests = value; break;
                 case 28: ModEntry.Conf.EstimateShippingPrice = value; break;
                 case 29: ModEntry.Conf.UnifyFlowerColors = value; break;
+                case 30: ModEntry.Conf.AutoLootTreasures = value; break;
+                case 31: ModEntry.Conf.CloseTreasureWhenAllLooted = value; break;
                 default: return;
             }
             _mod.WriteConfig();

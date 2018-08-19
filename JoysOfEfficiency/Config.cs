@@ -56,5 +56,8 @@ namespace JoysOfEfficiency
         public Color PoppyColor { get; set; } = Color.OrangeRed;
         public Color SummerSpangleColor { get; set; } = Color.Gold;
         public Color FairyRoseColor { get; set; } = Color.Thistle;
+
+        public bool AutoLootTreasures { get; set; } = true;
+        public bool CloseTreasureWhenAllLooted { get; set; } = false;
     }
 }

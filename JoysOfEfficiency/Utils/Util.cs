@@ -37,6 +37,235 @@ namespace JoysOfEfficiency.Utils
 
         public static string LastKilledMonster { get; private set; }
 
+        private static void OnFoundNewItem(Item item, int count)
+        {
+            if (player.IsLocalPlayer)
+            {
+                if (item is SpecialItem specialItem)
+                {
+                    specialItem.actionWhenReceived(player);
+                    return;
+                }
+
+                if (item is SVObject obj)
+                {
+                    if (obj.specialItem)
+                    {
+                        if (obj.bigCraftable.Value || item is Furniture)
+                        {
+                            if (player.specialBigCraftables.Contains(obj.ParentSheetIndex))
+                            {
+                                player.specialBigCraftables.Add(obj.ParentSheetIndex);
+                            }
+                        }
+                        else if (!player.specialItems.Contains(obj.ParentSheetIndex))
+                        {
+                            player.specialItems.Add(obj.ParentSheetIndex);
+                        }
+                    }
+                    if (obj.Category == -2 && !obj.HasBeenPickedUpByFarmer)
+                    {
+                        player.foundMineral(obj.ParentSheetIndex);
+                    }
+                    else if (!(item is Furniture) && !IsNullOrWhiteSpace(obj.Type) && obj.Type.Contains("Arch") && !obj.HasBeenPickedUpByFarmer)
+                    {
+                        player.foundArtifact(obj.ParentSheetIndex, count);
+                    }
+                    if (obj.ParentSheetIndex == 102)
+                    {
+                        player.foundArtifact(obj.ParentSheetIndex, count);
+                        player.removeItemFromInventory(obj);
+                    }
+                    else
+                    {
+                        switch (obj.ParentSheetIndex)
+                        {
+                            case 384:
+                                stats.GoldFound += (uint)item.Stack;
+                                break;
+                            case 378:
+                                stats.CopperFound += (uint)item.Stack;
+                                break;
+                            case 380:
+                                stats.IronFound += (uint)item.Stack;
+                                break;
+                            case 386:
+                                stats.IridiumFound += (uint)item.Stack;
+                                break;
+                        }
+                    }
+                }
+            }
+
+            if (item is SVObject obj2)
+            {
+                if (!(item is Furniture) && !obj2.bigCraftable.Value && !obj2.HasBeenPickedUpByFarmer)
+                {
+                    player.checkForQuestComplete(null, obj2.ParentSheetIndex, count, item, null, 9);
+                }
+                obj2.HasBeenPickedUpByFarmer = true;
+                if (obj2.questItem.Value)
+                {
+                    return;
+                }
+
+                switch (obj2.ParentSheetIndex)
+                {
+                    case 535:
+                        if (!player.hasOrWillReceiveMail("geodeFound"))
+                        {
+                            player.mailReceived.Add("geodeFound");
+                            player.holdUpItemThenMessage(item);
+                        }
+                        break;
+                    case 378:
+                        if (!player.hasOrWillReceiveMail("copperFound"))
+                        {
+                            addMailForTomorrow("copperFound", true);
+                        }
+                        break;
+                    case 102:
+                        stats.NotesFound++;
+                        playSound("newRecipe");
+                        player.holdUpItemThenMessage(item);
+                        return;
+                    case 390:
+                        stats.StoneGathered++;
+                        if (stats.StoneGathered >= 100 && !player.hasOrWillReceiveMail("robinWell"))
+                        {
+                            addMailForTomorrow("robinWell");
+                        }
+                        break;
+                }
+                Color color = Color.WhiteSmoke;
+                string text = item.DisplayName;
+                if (item is Object)
+                {
+                    switch (obj2.Type)
+                    {
+                        case "Arch":
+                            color = Color.Tan;
+                            text += content.LoadString("Strings\\StringsFromCSFiles:Farmer.cs.1954");
+                            break;
+                        case "Fish":
+                            color = Color.SkyBlue;
+                            break;
+                        case "Mineral":
+                            color = Color.PaleVioletRed;
+                            break;
+                        case "Vegetable":
+                            color = Color.PaleGreen;
+                            break;
+                        case "Fruit":
+                            color = Color.Pink;
+                            break;
+                    }
+                }
+                addHUDMessage(new HUDMessage(text, Math.Max(1, count), true, color, item));
+                player.checkForQuestComplete(null, item.ParentSheetIndex, count, item, "", 10);
+                item.hasBeenInInventory = true;
+            }
+        }
+
+        /// <summary>
+        /// Adds a item into player inventory.
+        /// </summary>
+        /// <param name="item">The item to push</param>
+        /// <returns>Remaining stack number that couldn't be added</returns>
+        public static int AddItemIntoInventory(Item item)
+        {
+            int remaining = item.Stack;
+            for (int i = 0; i < player.MaxItems; i++)
+            {
+                if (i >= player.Items.Count)
+                {
+                    player.Items.Add(item);
+                    remaining = 0;
+                    break;
+                }
+                Item stack = player.Items[i];
+                if (stack == null)
+                {
+                    player.Items[i] = item;
+                    remaining = 0;
+                    break;
+                }
+                if (!stack.canStackWith(item))
+                {
+                    continue;
+                }
+
+                int toPut = Math.Min(remaining, stack.maximumStackSize() - stack.Stack);
+                if (toPut > 0)
+                {
+                    remaining -= toPut;
+                    player.Items[i].Stack += toPut;
+                    (stack as SVObject)?.reloadSprite();
+                }
+
+                if (remaining == 0)
+                {
+                    break;
+                }
+            }
+
+            if (remaining < item.Stack && !item.hasBeenInInventory)
+            {
+                OnFoundNewItem(item, item.Stack - remaining);
+            }
+
+            return remaining;
+        }
+
+        
+
+        public static void LootAllAcceptableItems(ItemGrabMenu menu, bool skipCheck = false)
+        {
+            if (!skipCheck)
+            {
+                if (menu.shippingBin)
+                {
+                    Monitor.Log("Don't do anything with shipping bin", LogLevel.Trace);
+                    return;
+                }
+
+                if (menu.source == ItemGrabMenu.source_chest)
+                {
+                    Monitor.Log("Don't do anything with chest player placed", LogLevel.Trace);
+                    return;
+                }
+            }
+
+            for (int i = menu.ItemsToGrabMenu.actualInventory.Count - 1; i >= 0; i--)
+            {
+                if (i >= menu.ItemsToGrabMenu.actualInventory.Count)
+                {
+                    continue;
+                }
+                Item item = menu.ItemsToGrabMenu.actualInventory[i];
+                int oldStack = item.Stack;
+                int remain = AddItemIntoInventory(item);
+                int taken = oldStack - remain;
+                if (taken > 0)
+                {
+                    Monitor.Log($"You looted {item.DisplayName}{(taken == 1 ? "" : " x" + taken)}.");
+                }
+
+                if (remain == 0)
+                {
+                    menu.ItemsToGrabMenu.actualInventory.Remove(item);
+                    continue;
+                }
+
+                menu.ItemsToGrabMenu.actualInventory[i].Stack = remain;
+            }
+
+            if (menu.areAllItemsTaken())
+            {
+                //menu.exitThisMenu();
+            }
+        }
+        
         public static void UnifyFlowerColors()
         {
             foreach (KeyValuePair<Vector2, TerrainFeature> featurePair in currentLocation.terrainFeatures.Pairs.Where(kv=>kv.Value is HoeDirt))
@@ -75,7 +304,7 @@ namespace JoysOfEfficiency.Utils
                         continue;
                 }
 
-                if (oldColor != crop.tintColor.Value)
+                if (oldColor.PackedValue != crop.tintColor.Value.PackedValue)
                 {
                     SVObject obj = new SVObject(crop.indexOfHarvest.Value, 1);
                     Monitor.Log($"changed {obj.DisplayName} @[{loc.X},{loc.Y}] to color(R:{crop.tintColor.R},G:{crop.tintColor.G},B:{crop.tintColor.B},A:{crop.tintColor.A})", LogLevel.Trace);
@@ -105,6 +334,7 @@ namespace JoysOfEfficiency.Utils
                         int y = player.getTileY() + dy;
                         if (x >= 0 && y >= 0 && x < layer.TileWidth && y < layer.TileHeight && layer.Tiles[x, y]?.TileIndex == 173)
                         {
+                            //It's the fridge sprite
                             return house.fridge.Value;
                         }
                     }
@@ -115,10 +345,11 @@ namespace JoysOfEfficiency.Utils
 
         public static List<Item> GetNearbyItems(Player player)
         {
+            int radius = ModEntry.Conf.BalancedMode ? 1 : ModEntry.Conf.RadiusCraftingFromChests;
             List<Item> items = new List<Item>(player.Items);
             if (ModEntry.Conf.CraftingFromChests)
             {
-                foreach (Chest chest in GetObjectsWithin<Chest>(ModEntry.Conf.RadiusCraftingFromChests))
+                foreach (Chest chest in GetObjectsWithin<Chest>(radius))
                 {
                     items.AddRange(chest.items);
                 }
@@ -429,7 +660,7 @@ namespace JoysOfEfficiency.Utils
                     {
                         if (dirt.crop.regrowAfterHarvest.Value == -1 || dirt.crop.forageCrop.Value)
                         {
-                            //destroy crop if it does not reqrow.
+                            //destroy crop if it does not regrow.
                             dirt.destroyCrop(loc, true, location);
                         }
                     }
@@ -445,7 +676,7 @@ namespace JoysOfEfficiency.Utils
                 {
                     if (dirt.crop.regrowAfterHarvest.Value == -1 || dirt.crop.forageCrop.Value)
                     {
-                        //destroy crop if it does not reqrow.
+                        //destroy crop if it does not regrow.
                         dirt.destroyCrop(tileLoc, true, location);
                     }
                 }
@@ -1526,16 +1757,16 @@ namespace JoysOfEfficiency.Utils
 
             if (fence.isGate.Value)
             {
-                if (num2 == 110)
+                switch (num2)
                 {
-                    return true;
-                }
-                if (num2 == 1500)
-                {
-                    return false;
+                    case 110:
+                        return true;
+                    case 1500:
+                        return false;
+                    default:
+                        return null;
                 }
             }
-
             return null;
         }
 
@@ -1554,11 +1785,7 @@ namespace JoysOfEfficiency.Utils
             {
                 return false;
             }
-            if (isUpDown == true)
-            {
-                return ExpandSpecific(fence.getBoundingBox(fenceLocation), 0, 16).Intersects(player.GetBoundingBox());
-            }
-            return ExpandSpecific(fence.getBoundingBox(fenceLocation), 16, 0).Intersects(player.GetBoundingBox());
+            return isUpDown.Value ? ExpandSpecific(fence.getBoundingBox(fenceLocation), 0, 16).Intersects(player.GetBoundingBox()) : ExpandSpecific(fence.getBoundingBox(fenceLocation), 16, 0).Intersects(player.GetBoundingBox());
         }
 
         private static Rectangle ExpandSpecific(Rectangle rect, int deltaX, int deltaY)
@@ -1717,7 +1944,7 @@ namespace JoysOfEfficiency.Utils
             foreach (KeyValuePair<long, FarmAnimal> kv in farm.animals.Pairs.ToArray())
             {
                 FarmAnimal animal = kv.Value;
-                Monitor.Log($"Warped {animal.displayName}({animal.shortDisplayType()}) to {animal.displayHouse}@{animal.homeLocation.X}, {animal.homeLocation.Y}");
+                Monitor.Log($"Warped {animal.displayName}({animal.shortDisplayType()}) to {animal.displayHouse}@[{animal.homeLocation.X}, {animal.homeLocation.Y}]");
                 animal.warpHome(farm, animal);
             }
         }
@@ -1732,6 +1959,19 @@ namespace JoysOfEfficiency.Utils
             addHUDMessage(hudMessage);
         }
 
+
+        public static void ShowHudMessageWithIcon(string message,Item icon, int number = -1, int duration = 3500)
+        {
+            if (number == -1)
+            {
+                number = icon.Stack;
+            }
+            HUDMessage hudMessage = new HUDMessage(message, number, true, Color.Black, icon)
+            {
+                timeLeft = duration
+            };
+            addHUDMessage(hudMessage);
+        }
         public static Rectangle Expand(Rectangle rect, int radius)
         {
             return new Rectangle(rect.Left - radius, rect.Top - radius, 2 * radius, 2 * radius);

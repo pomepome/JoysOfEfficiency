@@ -54,6 +54,8 @@
   "options.RadiusCraftingFromChests": "How far tiles to find chests",
   "options.StaminaToEatRatio": "Stamina Threshold to auto-eat",
   "options.UnifyFlowerColors": "Unify colors of flowers",
+  "options.AutoLootTreasures": "Auto Loot all acceptable items in treasure box",
+  "options.CloseTreasureWhenAllLooted": "Cerrar la caja del tesoro al saquear todos los ítems",
   "quality.gold": "Gold",
   "quality.iridium": "Iridium",
   "quality.normal": "Normal",

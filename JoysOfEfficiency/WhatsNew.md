@@ -97,3 +97,6 @@ This is a changelog from 1.0.22
 
 ## 1.2.1
 - added UnifyFlowerColors feature.
+
+## 1.2.2
+- added AutoLootTreasures feature.
