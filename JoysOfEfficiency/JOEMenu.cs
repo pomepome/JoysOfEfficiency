@@ -38,6 +38,7 @@ namespace JoysOfEfficiency
         private bool _isListening;
 
         private bool _isFirstTime;
+
         private ModifiedInputListener _listener;
 
         internal JoeMenu(int width, int height, ModEntry mod) : base(Game1.viewport.Width / 2 - width / 2, Game1.viewport.Height / 2 - height / 2, width, height, true)
@@ -332,7 +333,78 @@ namespace JoysOfEfficiency
         {
             base.update(time);
             _upCursor.visible = _firstIndex > 0;
-            _downCursor.visible = !CanDrawAll();
+            _downCursor.visible = _firstIndex < GetLastViewableIndex();
+        }
+
+        public override void gamePadButtonHeld(Buttons b)
+        {
+            if (b.HasFlag(Buttons.RightThumbstickUp) && _upCursor.visible)
+            {
+                UpCursor();
+            }
+            else if (b.HasFlag(Buttons.RightThumbstickDown) && _downCursor.visible)
+            {
+                DownCursor();
+            }
+        }
+
+        public override void receiveGamePadButton(Buttons b)
+        {
+            if (b.HasFlag(Buttons.DPadUp) && _upCursor.visible)
+            {
+                UpCursor();
+            }
+            else if (b.HasFlag(Buttons.DPadDown) && _downCursor.visible)
+            {
+                DownCursor();
+            }
+            else if(b.HasFlag(Buttons.B))
+            {
+                CloseMenu();
+            }
+            else if (b.HasFlag(Buttons.LeftShoulder))
+            {
+                Game1.playSound("shwip");
+                _firstIndex = 0;
+                _tabIndex--;
+                if (_tabIndex == -1)
+                {
+                    _tabIndex = _tabs.Count - 1;
+                }
+                if (_tabIndex == 2 && ModEntry.Conf.BalancedMode)
+                {
+                    //Skip Cheats tab.
+                    _tabIndex--;
+                }
+            }
+            else if (b.HasFlag(Buttons.RightShoulder))
+            {
+                Game1.playSound("shwip");
+                _firstIndex = 0;
+                _tabIndex++;
+                if (_tabIndex >= _tabs.Count)
+                {
+                    _tabIndex = 0;
+                }
+
+                if (_tabIndex == 2 && ModEntry.Conf.BalancedMode)
+                {
+                    //Skip Cheats tab.
+                    _tabIndex++;
+                }
+            }
+        }
+
+        private void DownCursor()
+        {
+            Game1.playSound("shwip");
+            _firstIndex++;
+        }
+
+        private void UpCursor()
+        {
+            Game1.playSound("shwip");
+            _firstIndex--;
         }
 
         public override void receiveScrollWheelAction(int direction)
@@ -344,18 +416,21 @@ namespace JoysOfEfficiency
             //Scroll with Mouse Wheel
             if (direction > 0 && _upCursor.visible)
             {
-                Game1.playSound("shwip");
-                _firstIndex--;
+                UpCursor();
             }
             else if (direction < 0 && _downCursor.visible)
             {
-                Game1.playSound("shwip");
-                _firstIndex++;
+                DownCursor();
             }
         }
 
         public override void draw(SpriteBatch b)
         {
+            if (ModEntry.Conf.FilterBackgroundWhenOpeningMenu)
+            {
+                b.Draw(Game1.fadeToBlackRect, new Rectangle(0, 0, Game1.viewport.Width, Game1.viewport.Height), Color.Black * 0.5f);
+            }
+
             int x = 16, y = 16;
             
             drawTextureBox(b, _tabAutomation.Left, _tabAutomation.Top, _tabAutomation.Width, _tabAutomation.Height, Color.White * (_tabIndex == 0 ? 1.0f : 0.6f));
@@ -452,10 +527,13 @@ namespace JoysOfEfficiency
             }
         }
 
-        private void CloseMenu()
+        private static void CloseMenu()
         {
-            Game1.playSound("bigDeSelect");
-            Game1.activeClickableMenu = null;
+            if (Game1.activeClickableMenu is JoeMenu)
+            {
+                Game1.playSound("bigDeSelect");
+                Game1.exitActiveMenu();
+            }
         }
 
         public override void receiveLeftClick(int x, int y, bool playSound = true)
@@ -556,11 +634,15 @@ namespace JoysOfEfficiency
             return elements;
         }
 
-        public bool CanDrawAll()
+        public bool CanDrawAll(int firstIndex = -1)
         {
+            if (firstIndex < 0)
+            {
+                firstIndex = _firstIndex;
+            }
             List<OptionsElement> menuElements = _tabs[_tabIndex].GetElements();
             int y = 16;
-            for (int i = _firstIndex; i < menuElements.Count; i++)
+            for (int i = firstIndex; i < menuElements.Count; i++)
             {
                 OptionsElement element = menuElements[i];
                 int hElem = element is ModifiedSlider ? element.bounds.Height + 4 : element.bounds.Height;
@@ -574,6 +656,16 @@ namespace JoysOfEfficiency
                 }
             }
             return true;
+        }
+
+        private int GetLastViewableIndex()
+        {
+            int index = 0;
+            while (!CanDrawAll(index))
+            {
+                index++;
+            }
+            return index;
         }
 
         private void TryToChangeTab(int which)

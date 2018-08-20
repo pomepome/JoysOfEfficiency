@@ -31,8 +31,6 @@ namespace JoysOfEfficiency
         private string _hoverText;
         private bool _dayEnded;
 
-        private bool _shippingBin;
-
         private int _ticks;
 
         public override void Entry(IModHelper helper)
@@ -51,6 +49,7 @@ namespace JoysOfEfficiency
 
             GraphicsEvents.OnPreRenderHudEvent += OnPreRenderHud;
             GraphicsEvents.OnPostRenderHudEvent += OnPostRenderHud;
+            GraphicsEvents.OnPostRenderGuiEvent += OnPostRenderGui;
 
             MenuEvents.MenuChanged += OnMenuChanged;
             MenuEvents.MenuClosed += OnMenuClosed;
@@ -93,13 +92,9 @@ namespace JoysOfEfficiency
 
         private void OnMenuChanged(object sender, EventArgsClickableMenuChanged args)
         {
-            if (_shippingBin)
-            {
-                return;
-            }
-
             if (args.NewMenu is ItemGrabMenu menu)
             {
+                //Opened ItemGrabMenu
                 if (Conf.AutoLootTreasures)
                 {
                     Util.LootAllAcceptableItems(menu);
@@ -107,22 +102,12 @@ namespace JoysOfEfficiency
                 if (menu.shippingBin)
                 {
                     Monitor.Log("Shipping Bin Detected");
-                    _shippingBin = true;
-                }
-                else
-                {
-                    _shippingBin = false;
                 }
             }
         }
 
         private void OnMenuClosed(object sender, EventArgsClickableMenuClosed args)
         {
-            if (_shippingBin)
-            {
-                _shippingBin = false;
-                Monitor.Log("Shipping Bin Closed");
-            }
         }
 
         private void OnGameTick(object sender, EventArgs args)
@@ -406,7 +391,15 @@ namespace JoysOfEfficiency
             {
                 Util.DrawSimpleTextbox(Game1.spriteBatch, _hoverText, Game1.dialogueFont, _unableToGift ? null : Game1.player.CurrentItem);
             }
-            if (Game1.activeClickableMenu != null && Game1.activeClickableMenu is BobberBar bar)
+            if (Conf.FishingProbabilitiesInfo && Game1.player.CurrentTool is FishingRod rod && rod.isFishing)
+            {
+                Util.PrintFishingInfo(rod);
+            }
+        }
+
+        private void OnPostRenderGui(object sender, EventArgs args)
+        {
+            if (Game1.activeClickableMenu is BobberBar bar)
             {
                 if (Conf.FishingInfo)
                 {
@@ -417,11 +410,7 @@ namespace JoysOfEfficiency
                     Util.AutoFishing(bar);
                 }
             }
-            if (Conf.FishingProbabilitiesInfo && Game1.player.CurrentTool is FishingRod rod && rod.isFishing)
-            {
-                Util.PrintFishingInfo(rod);
-            }
-            if (Conf.EstimateShippingPrice && Game1.activeClickableMenu is ItemGrabMenu menu && _shippingBin)
+            if (Conf.EstimateShippingPrice && Game1.activeClickableMenu is ItemGrabMenu menu && (menu.shippingBin || Util.IsCAShippingBinMenu(menu)))
             {
                 Util.DrawShippingPrice(menu, Game1.smallFont);
             }

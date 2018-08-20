@@ -1,4 +1,4 @@
-# Overview
+﻿# Overview
 
 This is a list of features and configs available in [Joys of Efficiency (JoE)](https://www.nexusmods.com/stardewvalley/mods/2162).
 
@@ -10,7 +10,7 @@ This is a list of features and configs available in [Joys of Efficiency (JoE)](h
 ﻿automation radius will be 1 tile.
 ﻿
 ﻿This utility affects to ***AutoWaterNearbyCrops, AutoPetNearbyAnimals, AutoHarvest, AutoCollectCollectibles, AutoShakeFruitedPlants,
-﻿and AutoDigArtifactSpot.***
+AutoDigArtifactSpot, AutoDepositIngredient, and AutoPullMachineResult.***
 
 ﻿
 **[CONFIG]**

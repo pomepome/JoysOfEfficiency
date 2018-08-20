@@ -37,6 +37,12 @@ namespace JoysOfEfficiency.Utils
 
         public static string LastKilledMonster { get; private set; }
 
+        public static bool IsCAShippingBinMenu(ItemGrabMenu menu)
+        {
+            bool isEssential = Helper.Reflection.GetField<bool>(menu, "essential").GetValue();
+            return !isEssential && menu.source == ItemGrabMenu.source_none && menu.context == null;
+        }
+
         private static void OnFoundNewItem(Item item, int count)
         {
             if (player.IsLocalPlayer)
@@ -229,9 +235,22 @@ namespace JoysOfEfficiency.Utils
                     return;
                 }
 
+                if (menu.reverseGrab)
+                {
+                    Monitor.Log("You can't get item from this menu.", LogLevel.Trace);
+                    return;
+                }
+
                 if (menu.source == ItemGrabMenu.source_chest)
                 {
                     Monitor.Log("Don't do anything with chest player placed", LogLevel.Trace);
+                    return;
+                }
+
+                if (menu.showReceivingMenu && menu.source == ItemGrabMenu.source_none)
+                {
+                    //Possibly Chests Anywhere screen?
+                    Monitor.Log("showReceivingMenu true but is not gift or fishing chest.", LogLevel.Trace);
                     return;
                 }
             }
@@ -763,7 +782,7 @@ namespace JoysOfEfficiency.Utils
             Vector2 sizeText = font.MeasureString(text) * 1.2f;
             int width = Math.Max((int) sizeTitle.X, (int) sizeText.X) + 32;
             int height = 16 + (int) sizeTitle.Y + 8 + (int) sizeText.Y + 16;
-            Vector2 basePos = new Vector2(menu.xPositionOnScreen - width, menu.yPositionOnScreen);
+            Vector2 basePos = new Vector2(menu.xPositionOnScreen - width, menu.yPositionOnScreen + menu.height / 4 - height);
 
             IClickableMenu.drawTextureBox(spriteBatch, (int)basePos.X, (int)basePos.Y, width, height, Color.White);
             Utility.drawTextWithShadow(spriteBatch, title, font, basePos + new Vector2(16,16), Color.Black, 1.2f);

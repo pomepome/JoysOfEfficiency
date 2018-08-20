@@ -59,5 +59,6 @@ namespace JoysOfEfficiency
 
         public bool AutoLootTreasures { get; set; } = true;
         public bool CloseTreasureWhenAllLooted { get; set; } = false;
+        public bool FilterBackgroundWhenOpeningMenu { get; set; } = true;
     }
 }

@@ -100,3 +100,7 @@ This is a changelog from 1.0.22
 
 ## 1.2.2
 - added AutoLootTreasures feature.
+
+## 1.2.3
+- added compatibility for ChestsAnywhere created by Pathoschild.
+- added game pad support in config menu.
