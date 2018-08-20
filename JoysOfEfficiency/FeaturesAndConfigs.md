@@ -1,4 +1,4 @@
-﻿﻿# Overview
+﻿# Overview
 This is a list of features and configs available in [Joys of Efficiency (JoE)](https://www.nexusmods.com/stardewvalley/mods/2162).
 
 # Features
@@ -250,7 +250,7 @@ In config file, you can change the color using "R, G, B, A" format.
 ## Auto Loot Treasures
 
 
-This utility loots all acceptable items in treasure box, not chests player placed. (e.g. fishing treasures, mine treasures)
+This utility loots all acceptable items in treasure box, not chests player placed or shipping bin. (e.g. fishing treasures, mine treasures)
 
 
 **[CONFIG]**
