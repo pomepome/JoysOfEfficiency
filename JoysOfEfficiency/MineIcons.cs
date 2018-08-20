@@ -29,7 +29,7 @@ namespace JoysOfEfficiency
                 batch.Draw(_iconPickaxe, new Vector2(x, y), null, Color.White, 0.0f, Vector2.Zero, 2.5f, SpriteEffects.None, 0.9f);
                 Rectangle rect = new Rectangle(x, y, 40, 40);
                 if (rect.Contains(Game1.getMouseX(), Game1.getMouseY()))
-                    Util.DrawSimpleTextbox(batch, stoneStr, Game1.dialogueFont);
+                    Util.DrawSimpleTextbox(batch, stoneStr, Game1.dialogueFont, true);
 
                 x -= 48;
             }
@@ -38,7 +38,7 @@ namespace JoysOfEfficiency
                 batch.Draw(_iconMonster, new Vector2(x, y), null, Color.White, 0.0f, Vector2.Zero, 2.5f, SpriteEffects.None, 0.9f);
                 Rectangle rect = new Rectangle(x, y, 40, 40);
                 if (rect.Contains(Game1.getMouseX(), Game1.getMouseY()))
-                    Util.DrawSimpleTextbox(batch, monsterStr, Game1.dialogueFont);
+                    Util.DrawSimpleTextbox(batch, monsterStr, Game1.dialogueFont, true);
 
                 x -= 48;
             }
@@ -48,7 +48,7 @@ namespace JoysOfEfficiency
                 Rectangle rect = new Rectangle(x, y, 40, 40);
                 if (rect.Contains(Game1.getMouseX(), Game1.getMouseY()))
                 {
-                    Util.DrawSimpleTextbox(batch, ladderStr, Game1.dialogueFont);
+                    Util.DrawSimpleTextbox(batch, ladderStr, Game1.dialogueFont,true);
                 }
             }
             DrawCursor(batch);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using JoysOfEfficiency.ModCheckers;
@@ -18,6 +19,7 @@ using StardewValley.Tools;
 namespace JoysOfEfficiency
 {
     using Player = Farmer;
+    [SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
     internal class ModEntry : Mod
     {
         public static bool IsCoGOn { get; private set; }
@@ -45,9 +47,8 @@ namespace JoysOfEfficiency
             ControlEvents.KeyPressed += OnKeyPressed;
 
             GameEvents.UpdateTick += OnGameTick;
-            GameEvents.EighthUpdateTick += OnGameUpdate;
-
-            GraphicsEvents.OnPreRenderHudEvent += OnPreRenderHud;
+            GameEvents.EighthUpdateTick += OnGameEighthUpdate;
+            
             GraphicsEvents.OnPostRenderHudEvent += OnPostRenderHud;
             GraphicsEvents.OnPostRenderGuiEvent += OnPostRenderGui;
 
@@ -92,17 +93,15 @@ namespace JoysOfEfficiency
 
         private void OnMenuChanged(object sender, EventArgsClickableMenuChanged args)
         {
-            if (args.NewMenu is ItemGrabMenu menu)
+            if (Conf.AutoLootTreasures && args.NewMenu is ItemGrabMenu menu)
             {
                 //Opened ItemGrabMenu
-                if (Conf.AutoLootTreasures)
-                {
-                    Util.LootAllAcceptableItems(menu);
-                }
-                if (menu.shippingBin)
-                {
-                    Monitor.Log("Shipping Bin Detected");
-                }
+                Util.LootAllAcceptableItems(menu);
+            }
+
+            if (Conf.CollectLetterAttachmentsAndQuests && args.NewMenu is LetterViewerMenu letter)
+            {
+                Util.CollectMailAttachmentsAndQuests(letter);
             }
         }
 
@@ -210,7 +209,7 @@ namespace JoysOfEfficiency
             }
         }
 
-        private void OnGameUpdate(object sender, EventArgs args)
+        private void OnGameEighthUpdate(object sender, EventArgs args)
         {
             if(Conf.BalancedMode)
             {
@@ -221,7 +220,7 @@ namespace JoysOfEfficiency
                 return;
             }
 
-            if (Conf.CloseTreasureWhenAllLooted && Game1.activeClickableMenu is ItemGrabMenu menu && menu.source != ItemGrabMenu.source_chest && !menu.shippingBin && (menu.source == ItemGrabMenu.source_fishingChest || menu.source == ItemGrabMenu.source_gift || !menu.showReceivingMenu) && menu.areAllItemsTaken() && menu.heldItem == null)
+            if (Conf.CloseTreasureWhenAllLooted && Game1.activeClickableMenu is ItemGrabMenu menu && menu.source != ItemGrabMenu.source_chest && !menu.shippingBin && (menu.source == ItemGrabMenu.source_fishingChest || menu.source == ItemGrabMenu.source_gift) && menu.context != null && menu.areAllItemsTaken() && menu.heldItem == null)
             {
                 menu.exitThisMenu();
             }
@@ -377,26 +376,22 @@ namespace JoysOfEfficiency
             }
         }
 
-        private void OnPreRenderHud(object sender, EventArgs args)
+        private void OnPostRenderHud(object sender, EventArgs args)
         {
             if (Game1.currentLocation is MineShaft shaft && Conf.MineInfoGui)
             {
                 Util.DrawMineGui(Game1.spriteBatch, Game1.smallFont, Game1.player, shaft);
             }
-        }
-
-        private void OnPostRenderHud(object sender, EventArgs args)
-        {
             if (Context.IsPlayerFree && !string.IsNullOrEmpty(_hoverText) && Game1.player.CurrentItem != null)
             {
-                Util.DrawSimpleTextbox(Game1.spriteBatch, _hoverText, Game1.dialogueFont, _unableToGift ? null : Game1.player.CurrentItem);
+                Util.DrawSimpleTextbox(Game1.spriteBatch, _hoverText, Game1.dialogueFont, false, _unableToGift ? null : Game1.player.CurrentItem);
             }
             if (Conf.FishingProbabilitiesInfo && Game1.player.CurrentTool is FishingRod rod && rod.isFishing)
             {
                 Util.PrintFishingInfo(rod);
             }
         }
-
+        
         private void OnPostRenderGui(object sender, EventArgs args)
         {
             if (Game1.activeClickableMenu is BobberBar bar)

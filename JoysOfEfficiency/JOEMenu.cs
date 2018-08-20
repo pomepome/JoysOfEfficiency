@@ -25,6 +25,11 @@ namespace JoysOfEfficiency
         private Rectangle _tabMisc;
         private Rectangle _tabControls;
 
+        private bool _isScrolling;
+
+        private Rectangle _scrollBarRunner;
+        private readonly ClickableTextureComponent _scrollBar;
+
         private int _tabIndex;
         private int _firstIndex;
 
@@ -47,6 +52,9 @@ namespace JoysOfEfficiency
             ITranslationHelper translation = mod.Helper.Translation;
             _upCursor = new ClickableTextureComponent("up-arrow", new Rectangle(xPositionOnScreen + this.width + Game1.tileSize / 4, yPositionOnScreen + Game1.tileSize, 11 * Game1.pixelZoom, 12 * Game1.pixelZoom), "", "", Game1.mouseCursors, new Rectangle(421, 459, 11, 12), Game1.pixelZoom);
             _downCursor = new ClickableTextureComponent("down-arrow", new Rectangle(xPositionOnScreen + this.width + Game1.tileSize / 4, yPositionOnScreen + this.height - Game1.tileSize, 11 * Game1.pixelZoom, 12 * Game1.pixelZoom), "", "", Game1.mouseCursors, new Rectangle(421, 472, 11, 12), Game1.pixelZoom);
+
+            _scrollBar = new ClickableTextureComponent(new Rectangle(_upCursor.bounds.X + 12, _upCursor.bounds.Y + _upCursor.bounds.Height + 4, 24, 40), Game1.mouseCursors, new Rectangle(435, 463, 6, 10), 4f);
+            _scrollBarRunner = new Rectangle(_scrollBar.bounds.X, _upCursor.bounds.Y + _upCursor.bounds.Height + 4, _scrollBar.bounds.Width, height - 128 - _upCursor.bounds.Height - 8);
 
             _tabAutomationString = translation.Get("tab.automation");
             Vector2 size = _font.MeasureString(_tabAutomationString);
@@ -159,6 +167,10 @@ namespace JoysOfEfficiency
                 MenuTab tab = new MenuTab();
 
                 tab.AddOptionsElement(new EmptyLabel());
+                tab.AddOptionsElement(new LabelComponent("Config Menu"));
+                tab.AddOptionsElement(new ModifiedCheckBox("FilterBackgroundInMenu", 32, ModEntry.Conf.FilterBackgroundInMenu, OnCheckboxValueChanged));
+
+                tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Mine Info GUI"));
                 tab.AddOptionsElement(new ModifiedCheckBox("MineInfoGUI", 0, ModEntry.Conf.MineInfoGui, OnCheckboxValueChanged));
 
@@ -212,7 +224,7 @@ namespace JoysOfEfficiency
                 MenuTab tab = new MenuTab();
 
                 tab.AddOptionsElement(new EmptyLabel());
-                tab.AddOptionsElement(new LabelComponent("Settings Menu"));
+                tab.AddOptionsElement(new LabelComponent("Config Menu"));
                 tab.AddOptionsElement(new ModifiedInputListener(this, "KeyShowMenu", 0, ModEntry.Conf.KeyShowMenu, translation, OnInputListnerChanged, OnStartListening));
 
                 tab.AddOptionsElement(new EmptyLabel());
@@ -272,6 +284,7 @@ namespace JoysOfEfficiency
                 case 29: ModEntry.Conf.UnifyFlowerColors = value; break;
                 case 30: ModEntry.Conf.AutoLootTreasures = value; break;
                 case 31: ModEntry.Conf.CloseTreasureWhenAllLooted = value; break;
+                case 32: ModEntry.Conf.FilterBackgroundInMenu = value; break;
                 default: return;
             }
             _mod.WriteConfig();
@@ -399,12 +412,14 @@ namespace JoysOfEfficiency
         {
             Game1.playSound("shwip");
             _firstIndex++;
+            ChengeIndexOfScrollBar(_firstIndex);
         }
 
         private void UpCursor()
         {
             Game1.playSound("shwip");
             _firstIndex--;
+            ChengeIndexOfScrollBar(_firstIndex);
         }
 
         public override void receiveScrollWheelAction(int direction)
@@ -426,7 +441,7 @@ namespace JoysOfEfficiency
 
         public override void draw(SpriteBatch b)
         {
-            if (ModEntry.Conf.FilterBackgroundWhenOpeningMenu)
+            if (ModEntry.Conf.FilterBackgroundInMenu)
             {
                 b.Draw(Game1.fadeToBlackRect, new Rectangle(0, 0, Game1.viewport.Width, Game1.viewport.Height), Color.Black * 0.5f);
             }
@@ -450,6 +465,17 @@ namespace JoysOfEfficiency
 
             drawTextureBox(b, Game1.menuTexture, new Rectangle(0, 256, 60, 60), xPositionOnScreen, yPositionOnScreen, width, height, Color.White, 1.0f, false);
             base.draw(b);
+
+            if(!CanDrawAll(0))
+            {
+                _scrollBar.visible = true;
+                drawTextureBox(b, Game1.mouseCursors, new Rectangle(403, 383, 6, 6), _scrollBarRunner.X, _scrollBarRunner.Y, _scrollBarRunner.Width, _scrollBarRunner.Height, Color.White, 4f, false);
+                _scrollBar.draw(b);
+            }
+            else
+            {
+                _scrollBar.visible = false;
+            }
 
             {
                 int x2 = (Game1.viewport.Width - 400) / 2;
@@ -488,6 +514,17 @@ namespace JoysOfEfficiency
 
         public override void leftClickHeld(int x, int y)
         {
+            if (_isScrolling && _scrollBar.visible && _scrollBarRunner.Contains(x, y))
+            {
+                int maxIndex = GetLastViewableIndex();
+                int index = (int)((y - _scrollBarRunner.Top) / ((float)_scrollBarRunner.Height / (maxIndex + 1)));
+                index = (int)Util.Cap(index, 0, maxIndex);
+                if (_firstIndex != index)
+                {
+                    Game1.playSound("shwip");
+                    ChengeIndexOfScrollBar(index);
+                }
+            }
             if (_isListening)
             {
                 return;
@@ -500,6 +537,17 @@ namespace JoysOfEfficiency
                     element.leftClickHeld(x - element.bounds.X - xPositionOnScreen, y - element.bounds.Y - yPositionOnScreen);
                 }
                 y -= element.bounds.Height + 16;
+            }
+        }
+
+        private void ChengeIndexOfScrollBar(int index)
+        {
+            int maxIndex = GetLastViewableIndex();
+            _firstIndex = index;
+            _scrollBar.bounds.Y = _scrollBarRunner.Top + (int) (index * ((float) (_scrollBarRunner.Height - _scrollBar.bounds.Height) / (maxIndex + 1)));
+            if (index == maxIndex)
+            {
+                _scrollBar.bounds.Y = _scrollBarRunner.Bottom - _scrollBar.bounds.Height;
             }
         }
 
@@ -543,6 +591,11 @@ namespace JoysOfEfficiency
             {
                 return;
             }
+
+            if (_scrollBar.visible && _scrollBarRunner.Contains(x, y))
+            {
+                _isScrolling = true;
+            }
             if (_tabAutomation.Contains(x, y))
             {
                 TryToChangeTab(0);
@@ -575,14 +628,12 @@ namespace JoysOfEfficiency
             }
             if (_upCursor.bounds.Contains(x, y) && _upCursor.visible)
             {
-                Game1.playSound("shwip");
-                _firstIndex--;
+                UpCursor();
                 return;
             }
             if (_downCursor.bounds.Contains(x, y) && _downCursor.visible)
             {
-                Game1.playSound("shwip");
-                _firstIndex++;
+                DownCursor();
                 return;
             }
             foreach (OptionsElement element in GetElementsToShow())
@@ -597,6 +648,7 @@ namespace JoysOfEfficiency
 
         public override void releaseLeftClick(int x, int y)
         {
+            _isScrolling = false;
             base.releaseLeftClick(x, y);
             if (_isListening)
             {
@@ -674,6 +726,7 @@ namespace JoysOfEfficiency
             {
                 _tabIndex = which;
                 _firstIndex = 0;
+                ChengeIndexOfScrollBar(0);
                 Game1.playSound("drumkit6");
             }
         }

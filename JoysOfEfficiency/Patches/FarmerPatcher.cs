@@ -1,10 +1,12 @@
-﻿using JoysOfEfficiency.Utils;
+﻿using System.Diagnostics.CodeAnalysis;
+using JoysOfEfficiency.Utils;
 using StardewValley;
 using StardewValley.Objects;
 
 namespace JoysOfEfficiency.Patches
 {
     using Player = Farmer;
+    [SuppressMessage("ReSharper", "UnusedMember.Local")]
     internal class FarmerPatcher
     {
         private static bool Prefix(Player __instance, ref bool __result, ref int itemIndex, ref int quantity)

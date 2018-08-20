@@ -37,140 +37,57 @@ namespace JoysOfEfficiency.Utils
 
         public static string LastKilledMonster { get; private set; }
 
+        private static bool CanPlayerAcceptsItemPartially(Item item)
+        {
+            if (player.Items.Contains(null) || player.Items.Count < player.MaxItems)
+            {
+                // Inventory includes at least one free space.
+                return true;
+            }
+
+            return player.Items.Any(stack => stack.canStackWith(item) && stack.Stack < stack.maximumStackSize());
+        }
+
+        public static void CollectMailAttachmentsAndQuests(LetterViewerMenu menu)
+        {
+            IReflectedField<int> questIDField = Helper.Reflection.GetField<int>(menu, "questID");
+            int questID = questIDField.GetValue();
+
+            if (menu.itemsLeftToGrab())
+            {
+                foreach (ClickableComponent component in menu.itemsToGrab.ToArray())
+                {
+                    if (component.item != null && CanPlayerAcceptsItemPartially(component.item))
+                    {
+                        int stack = component.item.Stack;
+                        playSound("coin");
+                        int remain = AddItemIntoInventory(component.item);
+
+                        Monitor.Log($"You collected {component.item.DisplayName}{(stack - remain > 1 ? " x" + (stack - remain) : "")}.");
+                        if (remain == 0)
+                        {
+                            component.item = null;
+                        }
+                        else
+                        {
+                            component.item.Stack = remain;
+                        }
+                    }
+                }
+            }
+
+            if (questID != -1)
+            {
+                player.addQuest(questID);
+                playSound("newArtifact");
+                questIDField.SetValue(-1);
+            }
+        }
+
         public static bool IsCAShippingBinMenu(ItemGrabMenu menu)
         {
             bool isEssential = Helper.Reflection.GetField<bool>(menu, "essential").GetValue();
             return !isEssential && menu.source == ItemGrabMenu.source_none && menu.context == null;
-        }
-
-        private static void OnFoundNewItem(Item item, int count)
-        {
-            if (player.IsLocalPlayer)
-            {
-                if (item is SpecialItem specialItem)
-                {
-                    specialItem.actionWhenReceived(player);
-                    return;
-                }
-
-                if (item is SVObject obj)
-                {
-                    if (obj.specialItem)
-                    {
-                        if (obj.bigCraftable.Value || item is Furniture)
-                        {
-                            if (player.specialBigCraftables.Contains(obj.ParentSheetIndex))
-                            {
-                                player.specialBigCraftables.Add(obj.ParentSheetIndex);
-                            }
-                        }
-                        else if (!player.specialItems.Contains(obj.ParentSheetIndex))
-                        {
-                            player.specialItems.Add(obj.ParentSheetIndex);
-                        }
-                    }
-                    if (obj.Category == -2 && !obj.HasBeenPickedUpByFarmer)
-                    {
-                        player.foundMineral(obj.ParentSheetIndex);
-                    }
-                    else if (!(item is Furniture) && !IsNullOrWhiteSpace(obj.Type) && obj.Type.Contains("Arch") && !obj.HasBeenPickedUpByFarmer)
-                    {
-                        player.foundArtifact(obj.ParentSheetIndex, count);
-                    }
-                    if (obj.ParentSheetIndex == 102)
-                    {
-                        player.foundArtifact(obj.ParentSheetIndex, count);
-                        player.removeItemFromInventory(obj);
-                    }
-                    else
-                    {
-                        switch (obj.ParentSheetIndex)
-                        {
-                            case 384:
-                                stats.GoldFound += (uint)item.Stack;
-                                break;
-                            case 378:
-                                stats.CopperFound += (uint)item.Stack;
-                                break;
-                            case 380:
-                                stats.IronFound += (uint)item.Stack;
-                                break;
-                            case 386:
-                                stats.IridiumFound += (uint)item.Stack;
-                                break;
-                        }
-                    }
-                }
-            }
-
-            if (item is SVObject obj2)
-            {
-                if (!(item is Furniture) && !obj2.bigCraftable.Value && !obj2.HasBeenPickedUpByFarmer)
-                {
-                    player.checkForQuestComplete(null, obj2.ParentSheetIndex, count, item, null, 9);
-                }
-                obj2.HasBeenPickedUpByFarmer = true;
-                if (obj2.questItem.Value)
-                {
-                    return;
-                }
-
-                switch (obj2.ParentSheetIndex)
-                {
-                    case 535:
-                        if (!player.hasOrWillReceiveMail("geodeFound"))
-                        {
-                            player.mailReceived.Add("geodeFound");
-                            player.holdUpItemThenMessage(item);
-                        }
-                        break;
-                    case 378:
-                        if (!player.hasOrWillReceiveMail("copperFound"))
-                        {
-                            addMailForTomorrow("copperFound", true);
-                        }
-                        break;
-                    case 102:
-                        stats.NotesFound++;
-                        playSound("newRecipe");
-                        player.holdUpItemThenMessage(item);
-                        return;
-                    case 390:
-                        stats.StoneGathered++;
-                        if (stats.StoneGathered >= 100 && !player.hasOrWillReceiveMail("robinWell"))
-                        {
-                            addMailForTomorrow("robinWell");
-                        }
-                        break;
-                }
-                Color color = Color.WhiteSmoke;
-                string text = item.DisplayName;
-                if (item is Object)
-                {
-                    switch (obj2.Type)
-                    {
-                        case "Arch":
-                            color = Color.Tan;
-                            text += content.LoadString("Strings\\StringsFromCSFiles:Farmer.cs.1954");
-                            break;
-                        case "Fish":
-                            color = Color.SkyBlue;
-                            break;
-                        case "Mineral":
-                            color = Color.PaleVioletRed;
-                            break;
-                        case "Vegetable":
-                            color = Color.PaleGreen;
-                            break;
-                        case "Fruit":
-                            color = Color.Pink;
-                            break;
-                    }
-                }
-                addHUDMessage(new HUDMessage(text, Math.Max(1, count), true, color, item));
-                player.checkForQuestComplete(null, item.ParentSheetIndex, count, item, "", 10);
-                item.hasBeenInInventory = true;
-            }
         }
 
         /// <summary>
@@ -183,19 +100,14 @@ namespace JoysOfEfficiency.Utils
             int remaining = item.Stack;
             for (int i = 0; i < player.MaxItems; i++)
             {
-                if (i >= player.Items.Count)
+                if (player.Items[i] == null || i >= player.Items.Count)
                 {
-                    player.Items.Add(item);
                     remaining = 0;
                     break;
                 }
+
                 Item stack = player.Items[i];
-                if (stack == null)
-                {
-                    player.Items[i] = item;
-                    remaining = 0;
-                    break;
-                }
+
                 if (!stack.canStackWith(item))
                 {
                     continue;
@@ -205,8 +117,6 @@ namespace JoysOfEfficiency.Utils
                 if (toPut > 0)
                 {
                     remaining -= toPut;
-                    player.Items[i].Stack += toPut;
-                    (stack as SVObject)?.reloadSprite();
                 }
 
                 if (remaining == 0)
@@ -215,15 +125,47 @@ namespace JoysOfEfficiency.Utils
                 }
             }
 
-            if (remaining < item.Stack && !item.hasBeenInInventory)
+            player.addItemToInventoryBool(item);
+            if (activeClickableMenu is ItemGrabMenu)
             {
-                OnFoundNewItem(item, item.Stack - remaining);
+                // Draw item pickup hud because addItemToInventoryBool doesn't if ItemGrabMenu is opened.
+                DrawItemPickupHud(item);
             }
 
             return remaining;
         }
 
-        
+        private static void DrawItemPickupHud(Item item)
+        {
+            Color color = Color.WhiteSmoke;
+            string text = item.DisplayName;
+
+            if (item is Object obj2)
+            {
+                switch (obj2.Type)
+                {
+                    case "Arch":
+                        color = Color.Tan;
+                        text += content.LoadString("Strings\\StringsFromCSFiles:Farmer.cs.1954");
+                        break;
+                    case "Fish":
+                        color = Color.SkyBlue;
+                        break;
+                    case "Mineral":
+                        color = Color.PaleVioletRed;
+                        break;
+                    case "Vegetable":
+                        color = Color.PaleGreen;
+                        break;
+                    case "Fruit":
+                        color = Color.Pink;
+                        break;
+                }
+            }
+
+            addHUDMessage(new HUDMessage(text, Math.Max(1, item.Stack), true, color, item));
+        }
+
 
         public static void LootAllAcceptableItems(ItemGrabMenu menu, bool skipCheck = false)
         {
@@ -249,7 +191,6 @@ namespace JoysOfEfficiency.Utils
 
                 if (menu.showReceivingMenu && menu.source == ItemGrabMenu.source_none)
                 {
-                    //Possibly Chests Anywhere screen?
                     Monitor.Log("showReceivingMenu true but is not gift or fishing chest.", LogLevel.Trace);
                     return;
                 }
@@ -277,11 +218,6 @@ namespace JoysOfEfficiency.Utils
                 }
 
                 menu.ItemsToGrabMenu.actualInventory[i].Stack = remain;
-            }
-
-            if (menu.areAllItemsTaken())
-            {
-                //menu.exitThisMenu();
             }
         }
         
@@ -362,22 +298,32 @@ namespace JoysOfEfficiency.Utils
             return null ;
         }
 
-        public static List<Item> GetNearbyItems(Player player)
+        public static List<Chest> GetNearbyChests(Player player)
         {
             int radius = ModEntry.Conf.BalancedMode ? 1 : ModEntry.Conf.RadiusCraftingFromChests;
-            List<Item> items = new List<Item>(player.Items);
+            List<Chest> chests = new List<Chest>();
             if (ModEntry.Conf.CraftingFromChests)
             {
                 foreach (Chest chest in GetObjectsWithin<Chest>(radius))
                 {
-                    items.AddRange(chest.items);
+                    chests.Add(chest);
                 }
 
                 Chest fridge = GetFridge();
                 if (fridge != null)
                 {
-                    items.AddRange(fridge.items);
+                    chests.Add(fridge);
                 }
+            }
+            return chests;
+        }
+
+        public static List<Item> GetNearbyItems(Player player)
+        {
+            List<Item> items = new List<Item>(player.Items);
+            foreach (Chest chest in GetNearbyChests(player))
+            {
+                items.AddRange(chest.items);
             }
             return items;
         }
@@ -789,11 +735,15 @@ namespace JoysOfEfficiency.Utils
             Utility.drawTextWithShadow(spriteBatch, text, font, basePos + new Vector2(16, 16 + (int)sizeTitle.Y + 8), Color.Black, 1.2f);
         }
 
+        private static int CountActualStones(MineShaft shaft)
+        {
+            return shaft.Objects.Pairs.Count(kv => kv.Value.Name.Contains("Stone"));
+        }
+
         public static void DrawMineGui(SpriteBatch batch, SpriteFont font, Player player, MineShaft shaft)
         {
-            IReflectionHelper reflection = Helper.Reflection;
             ITranslationHelper translation = Helper.Translation;
-            int stonesLeft = reflection.GetField<NetIntDelta>(shaft, "netStonesLeftOnThisLevel").GetValue().Value;
+            int stonesLeft = CountActualStones(shaft);
             Vector2 ladderPos = FindLadder(shaft);
             bool ladder = ladderPos != Vector2.Zero;
 
@@ -829,6 +779,7 @@ namespace JoysOfEfficiency.Utils
                 ladderStr = translation.Get("ladder");
             }
             Icons.Draw(stonesStr, tallyStr, ladderStr);
+            
         }
 
         public static void DrawFishingInfoBox(SpriteBatch batch, BobberBar bar, SpriteFont font)
@@ -1085,8 +1036,7 @@ namespace JoysOfEfficiency.Utils
         
         private static Vector2 GetLocationOf(GameLocation location, SVObject obj)
         {
-            List<KeyValuePair<Vector2, SVObject>> pairs = location.Objects.Pairs.Where(kv => kv.Value == obj).ToList();
-            return pairs.Any() ? pairs.First().Key : new Vector2(-1, -1);
+            return location.Objects.Pairs.Any(kv => kv.Value == obj) ? location.Objects.Pairs.First(kv => kv.Value == obj).Key : new Vector2(-1, -1);
         }
 
 /*
@@ -2034,9 +1984,9 @@ namespace JoysOfEfficiency.Utils
             item?.drawInMenu(batch, new Vector2(x + (int)stringSize.X + 24, y + 16), 1.0f, 1.0f, 0.9f, false);
         }
 
-        public static void DrawSimpleTextbox(SpriteBatch batch, string text, SpriteFont font, Item item = null)
+        public static void DrawSimpleTextbox(SpriteBatch batch, string text, SpriteFont font, bool isIcon = false, Item item = null)
         {
-            DrawSimpleTextbox(batch, text, getMouseX() + tileSize / 2, getMouseY() + tileSize + 8, font, item);
+            DrawSimpleTextbox(batch, text, getMouseX() + tileSize / 2, getMouseY() + (isIcon ? 24 : tileSize) + 24, font, item);
         }
 
         public static string GetKeyForQuality(int fishQuality)

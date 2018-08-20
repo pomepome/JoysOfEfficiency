@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using JoysOfEfficiency.Utils;
 using StardewValley;
 using StardewValley.Objects;
 
 namespace JoysOfEfficiency.Patches
 {
+    [SuppressMessage("ReSharper", "UnusedMember.Global")]
     internal class CraftingRecipePatcher
     {
         internal static bool Prefix(ref CraftingRecipe __instance)
@@ -18,6 +20,7 @@ namespace JoysOfEfficiency.Patches
                 int toConsume;
                 foreach (Item playerItem in new List<Item>(Game1.player.Items))
                 {
+                    //Search for player inventory
                     if (playerItem != null && (playerItem.ParentSheetIndex == index || playerItem.Category == index))
                     {
                         toConsume = Math.Min(playerItem.Stack, count);
@@ -30,34 +33,26 @@ namespace JoysOfEfficiency.Patches
                     }
                 }
 
-                if (ModEntry.Conf.CraftingFromChests)
+                List<Chest> chests = Util.GetNearbyChests(Game1.player);
+                foreach (Chest chest in new List<Chest>(chests))
                 {
-                    List<Chest> chests = Util.GetObjectsWithin<Chest>(ModEntry.Conf.RadiusCraftingFromChests);
-                    Chest fridge = Util.GetFridge();
-                    if (fridge != null)
+                    //Search for chests
+                    foreach (Item chestItem in chest.items)
                     {
-                        chests.Add(fridge);
-                    }
-
-                    foreach (Chest chest in chests)
-                    {
-                        foreach (Item chestItem in new List<Item>(chest.items))
+                        if (chestItem != null && (chestItem.ParentSheetIndex == index || chestItem.Category == index))
                         {
-                            if (chestItem != null && (chestItem.ParentSheetIndex == index || chestItem.Category == index))
+                            toConsume = Math.Min(chestItem.Stack, count);
+                            chestItem.Stack -= toConsume;
+                            count -= toConsume;
+                            if (chestItem.Stack == 0)
                             {
-                                toConsume = Math.Min(chestItem.Stack, count);
-                                chestItem.Stack -= toConsume;
-                                count -= toConsume;
-                                if (chestItem.Stack == 0)
-                                {
-                                    chest.items.Remove(chestItem);
-                                }
+                                chest.items.Remove(chestItem);
                             }
                         }
                     }
+                    
                 }
             }
-
             return false;
         }
     }

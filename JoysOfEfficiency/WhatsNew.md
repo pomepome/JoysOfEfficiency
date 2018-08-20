@@ -104,3 +104,8 @@ This is a changelog from 1.0.22
 ## 1.2.3
 - added compatibility for ChestsAnywhere created by Pathoschild.
 - added game pad support in config menu.
+
+## 1.2.4
+- added scroll bar to Config menu.
+- added CollectLetterAttachmentsAndQuests feature.
+- added FilterBackgroundInMenu config to ConfigMenu.

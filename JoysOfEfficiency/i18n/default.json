@@ -56,6 +56,7 @@
   "options.UnifyFlowerColors": "Unify colors of flowers",
   "options.AutoLootTreasures": "Auto Loot all acceptable items in treasure box",
   "options.CloseTreasureWhenAllLooted": "Cerrar la caja del tesoro al saquear todos los ítems",
+  "options.FilterBackgroundInMenu": "Outside of config menu will be darker",
   "quality.gold": "Gold",
   "quality.iridium": "Iridium",
   "quality.normal": "Normal",

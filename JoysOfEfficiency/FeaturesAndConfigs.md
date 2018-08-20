@@ -2,7 +2,26 @@
 
 This is a list of features and configs available in [Joys of Efficiency (JoE)](https://www.nexusmods.com/stardewvalley/mods/2162).
 
+Config description will be like:
+	Name("Category Tab in config menu", Type, default value, [minimum or maximum value if its type is int or float]) - "discription of the config".
+
+"Category Tab in config menu" is one of following: "Automation", "UIs", "Cheats", "Misc", and "Controls".
+
 # Features
+
+## Config Menu
+You can open mod configuration menu when specified key(Default:R).
+You can't disable this feature because it's a core feature.
+
+
+**[CONFIG]**
+
+
+- KeyShowMenu("Controls", Keys, default:"R") - The key to open config menu.
+
+
+- FilterBackgroundInMenu("UIs", bool, default:true) - When config menu is opened, outside of it will be darker like inventory menu.
+
 
 ## Balanced Mode
 ﻿Did you thought following utilities are a bit cheaty?
@@ -15,7 +34,7 @@ AutoDigArtifactSpot, AutoDepositIngredient, and AutoPullMachineResult.***
 ﻿
 **[CONFIG]**
 
-- BalancedMode(bool, default:true) - whether this utility is enabled.
+- BalancedMode("Automation" bool, default:true) - whether this utility is enabled.
 
 ## Mine Info GUI
 ﻿With this utility, you can check how many stones left, and monster kills tally counter, and whether ladder has spawned in mines.
@@ -23,7 +42,7 @@ AutoDigArtifactSpot, AutoDepositIngredient, and AutoPullMachineResult.***
 
 **[CONFIG]**
 
-- ﻿MineInfoGUI(bool, default:true) - whether this utility is enabled.
+- ﻿MineInfoGUI("UIs", bool, default:true) - whether this utility is enabled.
 
 ## Auto Water Nearby Crops
 ﻿With this utility, the crops planted on the soil will be watered automatically.  
@@ -31,13 +50,13 @@ AutoDigArtifactSpot, AutoDepositIngredient, and AutoPullMachineResult.***
 
 **[CONFIG]**
 
-- AutoWaterNearbyCrops(bool, default:true) - whether this utility is enabled.  ﻿
+- AutoWaterNearbyCrops("Automation", bool, default:true) - whether this utility is enabled.  ﻿
 
 
-- AutoWaterRadius(int, default:1) - How far tiles can be  affected by this utility.  
+- AutoWaterRadius("Automation", int, default:1) - How far tiles can be  affected by this utility.  
 
 
-- FindCanFromInventory(bool, default:true) - Find Can from entire inventory or just held by player.
+- FindCanFromInventory("Automation", bool, default:true) - Find Can from entire inventory or just held by player.
 
 ## Gift Information Tooltip
 ![](https://i.imgur.com/NOYidaU.gif)
@@ -51,17 +70,17 @@ __(English, German, Japanese, Portuguese,
 ﻿
 **[CONFIG]**
 
-- GiftInformation(bool, default:true) - whether this utility is enabled.
+- GiftInformation("UIs", bool, default:true) - whether this utility is enabled.
 
 ## Auto Pet Nearby Animals
 ﻿﻿With this utility, ﻿you don't have to click on animals to pet, just get close to them.
 
 **[CONFIG]**
 
-- AutoPetNearbyAnimals(bool, default:false) - whether this utility is enabled.
+- AutoPetNearbyAnimals("Automation", bool, default:false) - whether this utility is enabled.
 ﻿
 
-- AutoPetRadius(int, default:1) - How far tiles can be affected by this utility.
+- AutoPetRadius("Automation", int, default:1) - How far tiles can be affected by this utility.
 
 ## Auto Animal Door
 ﻿With this utility, animal doors will open in morning if it is sunny and not winter, and close at the time day changed without click it manually.﻿
@@ -70,7 +89,7 @@ __(English, German, Japanese, Portuguese,
 
 
 
-- AutoAnimalDoor(bool, default:true) - whether this utility is enabled.
+- AutoAnimalDoor("Automation", bool, default:true) - whether this utility is enabled.
 
 ## Auto Fishing
 Are you tired to deal with fishing minigame? When this utility is enabled, your computer will play the minigame instead of you.
@@ -78,10 +97,10 @@ Are you tired to deal with fishing minigame? When this utility is enabled, your 
 
 **[CONFIG]**
 
-- AutoFishing(bool, default:false) - whether this utility is enabled.
+- AutoFishing("Automation", bool, default:false) - whether this utility is enabled.
 
 
-- ﻿CPUThresholdFishing(float default:0.2 min:0.0 max:0.5)       - determines how often cpu reel up the rod.
+- ﻿CPUThresholdFishing("Automation", float, default:0.2 min:0.0 max:0.5)       - determines how often cpu reel up the rod.
 
 ## Fishing Tweaks
 ﻿This is a set of tweaks of fishing.
@@ -89,8 +108,8 @@ Are you tired to deal with fishing minigame? When this utility is enabled, your 
 ﻿
 **[CONFIG]**
 
-- AutoReelRod(bool, default:true) - whether it automatically reels up the rod when fish nibbled.﻿
-- MuchFasterBiting(bool, default:false) - if it is true, fish will bite the bait much faster.
+- AutoReelRod("Automation", bool, default:true) - whether it automatically reels up the rod when fish nibbled.﻿
+- MuchFasterBiting("Cheats", bool, default:false) - if it is true, fish will bite the bait much faster.
 
 ## Fishing Information GUI
 
@@ -101,7 +120,7 @@ This feature shows the information about the fish when playing fishing minigame.
 ﻿
 **[CONFIG]**
 
-- FishingInfo(bool, default:true) - whether this utility enabled.
+- FishingInfo("UIs", bool, default:true) - whether this utility enabled.
 
 ## Auto Gate﻿﻿﻿
 
@@ -115,7 +134,7 @@ It should work with both single-player and coop game modes﻿.
 
 **[CONFIG]**
 
-- AutoGate(bool, default:true) - whether this utility enabled.
+- AutoGate("Automation", bool, default:true) - whether this utility enabled.
 
 ## Auto Eat
 ﻿This utility let the farmer to eat something automatically when his/her health or stamina is low.
@@ -126,31 +145,31 @@ It should work with both single-player and coop game modes﻿.
 
 
 
-- AutoEat(bool, default:false) - whether this utility enabled.
+- AutoEat("Automation", bool, default:false) - whether this utility enabled.
 
 
-- StaminaToEatRatio(float, default:0.3 min:0.3 max:0.8) - the threshold ratio of stamina to eat something
+- StaminaToEatRatio("Automation", float, default:0.3 min:0.3 max:0.8) - the threshold ratio of stamina to eat something
 
 
-- HealthToEatRatio(float, default:0.3 min:0.3 max:0.8) -  the threshold ratio of health to eat something
+- HealthToEatRatio("Automation", float, default:0.3 min:0.3 max:0.8) -  the threshold ratio of health to eat something
 
 ## Auto Harvest
 ﻿﻿This utility let the farmer to harvest crops (and spring onions) automatically  when he/she gets closed to it.
 
 **[CONFIG]**
 
-﻿AutoHarvest(bool, default:false) - whether this utility enabled.
-﻿ProtectNectarProducingFlower(bool, default:true) - this option protects flowers producing nectar not to be Auto harvested.
-AutoHarvestRadius(int, default:1) - How far tiles can be affected by this utility.
-﻿HarvestException(List<int>) - Crop id list not to be auto harvested.﻿
-﻿KeyToggleBlackList(Keys, default:"F2") - Add/Remove crop under cursor to/from blacklist.
+﻿AutoHarvest("Automation", bool, default:false) - whether this utility enabled.
+﻿ProtectNectarProducingFlower("Automation", bool, default:true) - this option protects flowers producing nectar not to be Auto harvested.
+AutoHarvestRadius("Automation", int, default:1) - How far tiles can be affected by this utility.
+﻿HarvestException("Automation", List<int>) - Crop id list not to be auto harvested.﻿
+﻿KeyToggleBlackList("Controls", Keys, default:"F2") - Add/Remove crop under cursor to/from blacklist.
 
 ## Auto Destroy Dead Crops
 This utility destorys dead crops automatically when he/she gets closed to it.
 
 **[CONFIG]**
 
-AutoDestroyDeadCropsbool, default:true) - whether this utility enabled.
+AutoDestroyDeadCrops("Automation", bool, default:true) - whether this utility enabled.
 
 ## Auto Collect Collectibles
 ﻿﻿﻿This utility let the farmer to collect collectibles (crystals, forages, animal products, and so on) automatically 
@@ -158,8 +177,8 @@ AutoDestroyDeadCropsbool, default:true) - whether this utility enabled.
 
 **[CONFIG]**
 
-AutoCollectCollectibles(bool, default:false) - whether this utility enabled.
-AutoCollectRadius(int, default:1) - How far tiles can be affected by this utility.
+AutoCollectCollectibles("Automation", bool, default:false) - whether this utility enabled.
+AutoCollectRadius("Automation", int, default:1) - How far tiles can be affected by this utility.
 
 ## Auto Shake Fruited Plants
 ﻿This utility shakes fruited tree(pines, acorns, apples, cherries, and so on) and berry bushes
@@ -167,33 +186,33 @@ AutoCollectRadius(int, default:1) - How far tiles can be affected by this utilit
 
 **[CONFIG]**
 
-AutoShakeFruitedPlamts(bool, default:true) - whether this utility enabled.
-AutoShakeRadius(int, default:1) - How far tiles can be affected by this utility.
+AutoShakeFruitedPlamts("Automation", bool, default:true) - whether this utility enabled.
+AutoShakeRadius("Automation", int, default:1) - How far tiles can be affected by this utility.
 
 ## Auto Dig Artifact Spot
 ﻿﻿This utility digs artifact spots nearby the farmer automatically.
 
 **[CONFIG]**
 
-AutoDigArtifactSpot(bool, default:false) - whether this utility enabled.
-AutoDigRadius(int, default:1) - How far tiles can be affected by this utility.
-﻿FindHoeFromInventory(bool, default:true) - Find hoe from entire inventory or just held by player.
+AutoDigArtifactSpot("Automation", bool, default:false) - whether this utility enabled.
+AutoDigRadius("Automation", int, default:1) - How far tiles can be affected by this utility.
+﻿FindHoeFromInventory("Automation", bool, default:true) - Find hoe from entire inventory or just held by player.
 
 ## Auto Deposit Ingredient
 ﻿﻿﻿This utility will try to deposit ingredient you held to nearby machines automatically.
 
 **[CONFIG]**
 
-AutoDepositIngredient(bool, default:false) - whether this utility enabled.
-MachineRadius(int, default:1) - How far tiles can be affected by this utility.
+AutoDepositIngredient("Automation", bool, default:false) - whether this utility enabled.
+MachineRadius("Automation", int, default:1) - How far tiles can be affected by this utility.
 
 ## Auto Pull Machine Result
 ﻿This utility will try to pull results from nearby machines and give it to the farmer automatically.
 
 **[CONFIG]**
 
-AutoPullMachineResult(bool, default:true) - whether this utility enabled.
-MachineRadius(int, default:1) - How far tiles can be affected by this utility.
+AutoPullMachineResult("Automation", bool, default:true) - whether this utility enabled.
+MachineRadius("Automation", int, default:1) - How far tiles can be affected by this utility.
 ﻿
 ## Auto Pet Nearby Pets
 ﻿﻿Oh, seriously you want to pet pets automatically?
@@ -201,28 +220,39 @@ MachineRadius(int, default:1) - How far tiles can be affected by this utility.
 
 **[CONFIG]**
 
-- AutoPetNearbyPets(bool, default:false) - whether this utility is enabled.
-- AutoPetRadius(int, default:1) - How far tiles can be affected by this utility.
+- AutoPetNearbyPets("Automation", bool, default:false) - whether this utility is enabled.
+- AutoPetRadius("Automation", int, default:1) - How far tiles can be affected by this utility.
 
 ## Fishing Probabilities Info
 ﻿﻿This utility let you know what fish could be caught (and estimated probability of catching) when you are fishing.
 
 **[CONFIG]**
 
-- FishingProbabilitiesInfo(bool, default:false) - whether this utility is enabled.
+- FishingProbabilitiesInfo("UIs", bool, default:false) - whether this utility is enabled.
 ﻿
 
-- ProbBoxX(int, default:100) - Base X location of rendering info box.
+- ProbBoxX("UIs", int, default:100) - Base X location of rendering info box.
 ﻿
 
-- ProbBoxY(int, default:500) - Base Y location of rendering info box.
+- ProbBoxY("UIs", int, default:500) - Base Y location of rendering info box.
+
+## Crafting From Chests
+This feature lets player craft using contents of nearby chests or fridge as ingredients.
+It patches game, so it may cause environment dependent bugs.
+
+
+- CraftingFromChests("Misc", default:false) - Whether this feature is enabled.
+
+
+- RadiusCraftingFromChests("Misc", int, default:3) - How far tiles can this feature search for chests or fridge.
+
 
 ## Show Shipping Price
 This utility shows estimated total shipping price when you opened shipping box.
 
 **[CONFIG]**
 
-- EstimateShippingPrice(bool, default:true) - whether this utility is enabled.
+- EstimateShippingPrice("UIs", bool, default:true) - whether this utility is enabled.
 
 ## Unify Flower Colors
 This utility unifies flower colors to reduce occupying space according to its species.
@@ -230,22 +260,22 @@ In config file, you can change the color using "R, G, B, A" format.
 
 **[CONFIG]**
 
-- UnifyFlowerColors(bool, default:false) - whether this utility is enabled.
+- UnifyFlowerColors("Misc", bool, default:false) - whether this utility is enabled.
 
 
-- JazzColor(Color, default:{0, 255, 255, 255}) - The color of Blue Jazz.
+- JazzColor("Misc", Color, default:{0, 255, 255, 255}) - The color of Blue Jazz.
 
 
-- TulipColor(Color, default:{255, 0, 0, 255}) - The color of Turip.
+- TulipColor("Misc", Color, default:{255, 0, 0, 255}) - The color of Turip.
 
 
-- PoppyColor(Color, default:{255, 69, 0, 255}) - The color of Poppy.
+- PoppyColor("Misc", Color, default:{255, 69, 0, 255}) - The color of Poppy.
 
 
-- SummerSpangleColor(Color, default:{255, 215, 0, 255}) - The color of Summer Spangle.
+- SummerSpangleColor("Misc", Color, default:{255, 215, 0, 255}) - The color of Summer Spangle.
 
 
-- FairyRoseColor(Color, default:{216, 191, 216, 255}) - The color of Fairy Rose.
+- FairyRoseColor("Misc", Color, default:{216, 191, 216, 255}) - The color of Fairy Rose.
 
 
 ## Auto Loot Treasures
@@ -257,7 +287,19 @@ This utility loots all acceptable items in treasure box, not chests player place
 **[CONFIG]**
 
 
-- AutoLootTreasures(bool, default:true) - whether this utility is enabled.
+- AutoLootTreasures("Automation", bool, default:true) - whether this utility is enabled.
 
 
-- CloseTreasureWhenAllLooted(bool, default:false) - Closes the treasure chest menu when all items taken.
+- CloseTreasureWhenAllLooted("Automation", bool, default:false) - Closes the treasure chest menu when all items taken.
+
+
+## Collect Letter Attachments And Quests
+
+
+This feature collects attached items or accepts quests when you opened mail contains those.
+
+
+**[CONFIG]**
+
+
+- CollectLetterAttachmentsAndQuests("Automation", bool, default:false) - whether this utility is enabled.
