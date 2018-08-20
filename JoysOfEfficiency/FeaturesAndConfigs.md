@@ -1,9 +1,5 @@
-<<<<<<< HEAD
-﻿# Overview
-=======
-﻿﻿# Overview
-  
->>>>>>> 78c1fcc8f8f62b58d3572637d020c524e24e6311
+# Overview
+
 This is a list of features and configs available in [Joys of Efficiency (JoE)](https://www.nexusmods.com/stardewvalley/mods/2162).
 
 # Features
