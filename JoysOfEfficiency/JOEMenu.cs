@@ -21,7 +21,6 @@ namespace JoysOfEfficiency
 
         private Rectangle _tabAutomation;
         private Rectangle _tabUIs;
-        private Rectangle _tabCheats;
         private Rectangle _tabMisc;
         private Rectangle _tabControls;
 
@@ -36,7 +35,6 @@ namespace JoysOfEfficiency
         private readonly SpriteFont _font = Game1.smallFont;
         private readonly string _tabAutomationString;
         private readonly string _tabUIsString;
-        private readonly string _tabCheatsString;
         private readonly string _tabMiscString;
         private readonly string _tabControlsString;
 
@@ -64,17 +62,13 @@ namespace JoysOfEfficiency
             size = _font.MeasureString(_tabUIsString);
             _tabUIs = new Rectangle(xPositionOnScreen - (int)size.X - 20, yPositionOnScreen + 68, (int)size.X + 32, 64);
 
-            _tabCheatsString = translation.Get("tab.cheats");
-            size = _font.MeasureString(_tabCheatsString);
-            _tabCheats = new Rectangle(xPositionOnScreen - (int)size.X - 20, yPositionOnScreen + 68*2, (int)size.X + 32, 64);
-
             _tabMiscString = translation.Get("tab.misc");
             size = _font.MeasureString(_tabMiscString);
-            _tabMisc = new Rectangle(xPositionOnScreen - (int)size.X - 20, yPositionOnScreen + 68*3, (int)size.X + 32, 64);
+            _tabMisc = new Rectangle(xPositionOnScreen - (int)size.X - 20, yPositionOnScreen + 68*2, (int)size.X + 32, 64);
 
             _tabControlsString = translation.Get("tab.controls");
             size = _font.MeasureString(_tabControlsString);
-            _tabControls = new Rectangle(xPositionOnScreen - (int)size.X - 20, yPositionOnScreen + 68*4, (int)size.X + 32, 64);
+            _tabControls = new Rectangle(xPositionOnScreen - (int)size.X - 20, yPositionOnScreen + 68*3, (int)size.X + 32, 64);
 
             {
                 //Automation Tab
@@ -159,6 +153,12 @@ namespace JoysOfEfficiency
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoLootTreasures", 30, ModEntry.Conf.AutoLootTreasures, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("CloseTreasureWhenAllLooted", 31, ModEntry.Conf.CloseTreasureWhenAllLooted, OnCheckboxValueChanged));
 
+
+                tab.AddOptionsElement(new EmptyLabel());
+                tab.AddOptionsElement(new LabelComponent("Auto Pick Up Trash"));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoPickUpTrash", 34, ModEntry.Conf.AutoPickUpTrash, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedSlider("ScavengingRadius", 13, ModEntry.Conf.ScavengingRadius, 1, 3, OnSliderValueChanged, () => !ModEntry.Conf.AutoHarvest || ModEntry.Conf.BalancedMode));
+
                 tab.AddOptionsElement(new EmptyLabel());
                 _tabs.Add(tab);
             }
@@ -194,17 +194,6 @@ namespace JoysOfEfficiency
                 _tabs.Add(tab);
             }
             {
-                //Cheats Tab
-                MenuTab tab = new MenuTab();
-
-                tab.AddOptionsElement(new EmptyLabel());
-                tab.AddOptionsElement(new LabelComponent("Fishing Tweaks"));
-                tab.AddOptionsElement(new ModifiedCheckBox("MuchFasterBiting", 7, ModEntry.Conf.MuchFasterBiting, OnCheckboxValueChanged));
-
-                tab.AddOptionsElement(new EmptyLabel());
-                _tabs.Add(tab);
-            }
-            {
                 //Misc Tab
                 MenuTab tab = new MenuTab();
                 
@@ -216,6 +205,14 @@ namespace JoysOfEfficiency
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Unify Flower Colors"));
                 tab.AddOptionsElement(new ModifiedCheckBox("UnifyFlowerColors", 29, ModEntry.Conf.UnifyFlowerColors, OnCheckboxValueChanged));
+
+                tab.AddOptionsElement(new EmptyLabel());
+                tab.AddOptionsElement(new LabelComponent("Pause When Idle"));
+                tab.AddOptionsElement(new ModifiedCheckBox("PauseWhenIdle", 33, ModEntry.Conf.PauseWhenIdle, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedSlider("IdleTimeout", 12, ModEntry.Conf.IdleTimeout, 1, 300, OnSliderValueChanged, ()=>!ModEntry.Conf.PauseWhenIdle, (which, value) => value + "s"));
+
+
+
                 tab.AddOptionsElement(new EmptyLabel());
                 _tabs.Add(tab);
             }
@@ -261,7 +258,6 @@ namespace JoysOfEfficiency
                 case 4: ModEntry.Conf.AutoAnimalDoor = value; break;
                 case 5: ModEntry.Conf.AutoFishing = value; break;
                 case 6: ModEntry.Conf.AutoReelRod = value; break;
-                case 7: ModEntry.Conf.MuchFasterBiting = value; break;
                 case 8: ModEntry.Conf.FishingInfo = value; break;
                 case 9: ModEntry.Conf.AutoGate = value; break;
                 case 10: ModEntry.Conf.AutoEat = value; break;
@@ -285,6 +281,8 @@ namespace JoysOfEfficiency
                 case 30: ModEntry.Conf.AutoLootTreasures = value; break;
                 case 31: ModEntry.Conf.CloseTreasureWhenAllLooted = value; break;
                 case 32: ModEntry.Conf.FilterBackgroundInMenu = value; break;
+                case 33: ModEntry.Conf.PauseWhenIdle = value; break;
+                case 34: ModEntry.Conf.AutoPickUpTrash = value; break;
                 default: return;
             }
             _mod.WriteConfig();
@@ -325,6 +323,12 @@ namespace JoysOfEfficiency
                     break;
                 case 11:
                     ModEntry.Conf.RadiusCraftingFromChests = value;
+                    break;
+                case 12:
+                    ModEntry.Conf.IdleTimeout = value;
+                    break;
+                case 13:
+                    ModEntry.Conf.ScavengingRadius = value;
                     break;
                 default:
                     return;
@@ -446,22 +450,20 @@ namespace JoysOfEfficiency
                 b.Draw(Game1.fadeToBlackRect, new Rectangle(0, 0, Game1.viewport.Width, Game1.viewport.Height), Color.Black * 0.5f);
             }
 
-            int x = 16, y = 16;
-            
+            const int x = 16;
+            int y = 16;
+
             drawTextureBox(b, _tabAutomation.Left, _tabAutomation.Top, _tabAutomation.Width, _tabAutomation.Height, Color.White * (_tabIndex == 0 ? 1.0f : 0.6f));
             b.DrawString(Game1.smallFont, _tabAutomationString, new Vector2(_tabAutomation.Left + 16, _tabAutomation.Top + (_tabAutomation.Height - _font.MeasureString(_tabAutomationString).Y) / 2), Color.Black * (_tabIndex == 0 ? 1.0f : 0.6f));
 
             drawTextureBox(b, _tabUIs.Left, _tabUIs.Top, _tabUIs.Width, _tabUIs.Height, Color.White * (_tabIndex == 1 ? 1.0f : 0.6f));
             b.DrawString(Game1.smallFont, _tabUIsString, new Vector2(_tabUIs.Left + 16, _tabUIs.Top + (_tabUIs.Height - _font.MeasureString(_tabUIsString).Y) / 2), Color.Black * (_tabIndex == 1 ? 1.0f : 0.6f));
-            
-            drawTextureBox(b, _tabCheats.Left, _tabCheats.Top, _tabCheats.Width, _tabCheats.Height, Color.White * (_tabIndex == 2 ? 1.0f : 0.6f));
-            b.DrawString(Game1.smallFont, _tabCheatsString, new Vector2(_tabCheats.Left + 16, _tabCheats.Top + (_tabCheats.Height - _font.MeasureString(_tabCheatsString).Y) / 2), Color.Black * (_tabIndex == 2 ? 1.0f : 0.6f));
 
-            drawTextureBox(b, _tabMisc.Left, _tabMisc.Top, _tabMisc.Width, _tabMisc.Height, Color.White * (_tabIndex == 3 ? 1.0f : 0.6f));
-            b.DrawString(Game1.smallFont, _tabMiscString, new Vector2(_tabMisc.Left + 16, _tabMisc.Top + (_tabMisc.Height - _font.MeasureString(_tabMiscString).Y) / 2), Color.Black * (_tabIndex == 3 ? 1.0f : 0.6f));
+            drawTextureBox(b, _tabMisc.Left, _tabMisc.Top, _tabMisc.Width, _tabMisc.Height, Color.White * (_tabIndex == 2 ? 1.0f : 0.6f));
+            b.DrawString(Game1.smallFont, _tabMiscString, new Vector2(_tabMisc.Left + 16, _tabMisc.Top + (_tabMisc.Height - _font.MeasureString(_tabMiscString).Y) / 2), Color.Black * (_tabIndex == 2 ? 1.0f : 0.6f));
 
-            drawTextureBox(b, _tabControls.Left, _tabControls.Top, _tabControls.Width, _tabControls.Height, Color.White * (_tabIndex == 4 ? 1.0f : 0.6f));
-            b.DrawString(Game1.smallFont, _tabControlsString, new Vector2(_tabControls.Left + 16, _tabControls.Top + (_tabControls.Height - _font.MeasureString(_tabControlsString).Y) / 2), Color.Black * (_tabIndex == 4 ? 1.0f : 0.6f));
+            drawTextureBox(b, _tabControls.Left, _tabControls.Top, _tabControls.Width, _tabControls.Height, Color.White * (_tabIndex == 3 ? 1.0f : 0.6f));
+            b.DrawString(Game1.smallFont, _tabControlsString, new Vector2(_tabControls.Left + 16, _tabControls.Top + (_tabControls.Height - _font.MeasureString(_tabControlsString).Y) / 2), Color.Black * (_tabIndex == 3 ? 1.0f : 0.6f));
 
             drawTextureBox(b, Game1.menuTexture, new Rectangle(0, 256, 60, 60), xPositionOnScreen, yPositionOnScreen, width, height, Color.White, 1.0f, false);
             base.draw(b);
@@ -481,7 +483,7 @@ namespace JoysOfEfficiency
                 int x2 = (Game1.viewport.Width - 400) / 2;
                 drawTextureBox(b, x2, yPositionOnScreen - 108, 400, 100, Color.White);
 
-                string str = "JOE Settings";
+                const string str = "JOE Settings";
                 Vector2 size = Game1.dialogueFont.MeasureString(str) * 1.1f;
 
                 Utility.drawTextWithShadow(b, str, Game1.dialogueFont, new Vector2((Game1.viewport.Width - size.X) / 2, yPositionOnScreen - 50 - (int)size.Y / 2), Color.Black, 1.1f);
@@ -512,15 +514,28 @@ namespace JoysOfEfficiency
             _downCursor.tryHover(x, y);
         }
 
+        private void ChengeIndexOfScrollBar(int index)
+        {
+            int maxIndex = GetLastViewableIndex();
+            _firstIndex = index;
+            _scrollBar.bounds.Y = _scrollBarRunner.Top + (int)(index * ((float)(_scrollBarRunner.Height - _scrollBar.bounds.Height) / maxIndex));
+            if (index == maxIndex)
+            {
+                _scrollBar.bounds.Y = _scrollBarRunner.Bottom - _scrollBar.bounds.Height;
+            }
+        }
+
         public override void leftClickHeld(int x, int y)
         {
+            IMonitor monitor = Util.Monitor;
             if (_isScrolling && _scrollBar.visible && _scrollBarRunner.Contains(x, y))
             {
                 int maxIndex = GetLastViewableIndex();
-                int index = (int)((y - _scrollBarRunner.Top) / ((float)_scrollBarRunner.Height / (maxIndex + 1)));
+                int index = (int)((y - _scrollBarRunner.Top - _scrollBar.bounds.Height / 2) / ((double)(_scrollBarRunner.Height - _scrollBar.bounds.Height) / maxIndex) * 1.02);
                 index = (int)Util.Cap(index, 0, maxIndex);
                 if (_firstIndex != index)
                 {
+                    monitor.Log($"currentIndex:{_firstIndex} maxIndex:{maxIndex}");
                     Game1.playSound("shwip");
                     ChengeIndexOfScrollBar(index);
                 }
@@ -537,17 +552,6 @@ namespace JoysOfEfficiency
                     element.leftClickHeld(x - element.bounds.X - xPositionOnScreen, y - element.bounds.Y - yPositionOnScreen);
                 }
                 y -= element.bounds.Height + 16;
-            }
-        }
-
-        private void ChengeIndexOfScrollBar(int index)
-        {
-            int maxIndex = GetLastViewableIndex();
-            _firstIndex = index;
-            _scrollBar.bounds.Y = _scrollBarRunner.Top + (int) (index * ((float) (_scrollBarRunner.Height - _scrollBar.bounds.Height) / (maxIndex + 1)));
-            if (index == maxIndex)
-            {
-                _scrollBar.bounds.Y = _scrollBarRunner.Bottom - _scrollBar.bounds.Height;
             }
         }
 
@@ -606,24 +610,16 @@ namespace JoysOfEfficiency
                 TryToChangeTab(1);
                 return;
             }
-            if (_tabCheats.Contains(x, y))
-            {
-                if (!ModEntry.Conf.BalancedMode)
-                    TryToChangeTab(2);
-                else
-                    Game1.playSound("coin");
-                return;
-            }
 
             if (_tabMisc.Contains(x, y))
             {
-                TryToChangeTab(3);
+                TryToChangeTab(2);
                 return;
             }
 
             if (_tabControls.Contains(x, y))
             {
-                TryToChangeTab(4);
+                TryToChangeTab(3);
                 return;
             }
             if (_upCursor.bounds.Contains(x, y) && _upCursor.visible)

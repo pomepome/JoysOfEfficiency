@@ -109,3 +109,8 @@ This is a changelog from 1.0.22
 - added scroll bar to Config menu.
 - added CollectLetterAttachmentsAndQuests feature.
 - added FilterBackgroundInMenu config to ConfigMenu.
+
+## 1.2.5
+- Removed MuchFasterBiting feature and Cheats tab from the menu.
+- Added PauseWhenIdle feature.
+- Added AutoPickUpTrash feature.

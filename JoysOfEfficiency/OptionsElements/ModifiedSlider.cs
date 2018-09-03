@@ -21,7 +21,7 @@ namespace JoysOfEfficiency.OptionsElements
 
         private readonly Func<int, int, string> _format;
 
-        public ModifiedSlider(string label, int which, int initialValue, int minValue, int maxValue, Action<int, int> setValue, Func<bool> disabled = null, Func<int, int, string> format = null, int width = 32)
+        public ModifiedSlider(string label, int which, int initialValue, int minValue, int maxValue, Action<int, int> setValue, Func<bool> disabled = null, Func<int, int, string> format = null, int width = 64)
             : base(label, -1, -1, width * Game1.pixelZoom, 6 * Game1.pixelZoom, 0)
         {
             whichOption = which;

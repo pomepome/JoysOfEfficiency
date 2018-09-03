@@ -11,6 +11,7 @@ using StardewValley.Locations;
 using StardewValley.Menus;
 using StardewValley.Monsters;
 using StardewValley.Objects;
+using StardewValley.Quests;
 using StardewValley.TerrainFeatures;
 using StardewValley.Tools;
 using xTile.Dimensions;
@@ -36,6 +37,167 @@ namespace JoysOfEfficiency.Utils
         private static readonly List<Vector2> FlowerLocationProducingNectar = new List<Vector2>();
 
         public static string LastKilledMonster { get; private set; }
+
+        private static int LastItemIndex;
+
+        public static void TryCloseItemGrabMenu(ItemGrabMenu menu)
+        {
+            if (!menu.areAllItemsTaken() || menu.heldItem != null)
+            {
+                return;
+            }
+
+            switch (menu.source)
+            {
+                case ItemGrabMenu.source_chest:
+                case ItemGrabMenu.source_none when menu.context == null:
+                    return;// It's a chest.
+            }
+
+            menu.exitThisMenu();
+        }
+
+        public static void ScavengeTrashCan()
+        {
+            if (!(currentLocation is Town))
+            {
+                return;
+            }
+
+            int radius = ModEntry.Conf.BalancedMode ? 1 : ModEntry.Conf.ScavengingRadius;
+            Layer layer = currentLocation.Map.GetLayer("Buildings");
+            int ox = player.getTileX(), oy = player.getTileY();
+            for(int dy = -radius; dy <= radius;dy++)
+            {
+                for (int dx = -radius; dx <= radius; dx++)
+                {
+                    int x = ox + dx, y = oy + dy;
+
+                    if (layer.Tiles[x, y]?.TileIndex == 78)
+                    {
+                        CollectTrashCan(x, y);
+                    }
+                }
+            }
+        }
+
+        private static void CollectTrashCan(int x, int y)
+        {
+            if (!(currentLocation is Town town))
+            {
+                return;
+            }
+
+            NetArray<bool, NetBool> garbageChecked =
+                Helper.Reflection.GetField<NetArray<bool, NetBool>>(town, "garbageChecked").GetValue();
+
+            string text = currentLocation.doesTileHaveProperty(x, y, "Action", "Buildings");
+            int num = text != null ? Convert.ToInt32(text.Split(' ')[1]) : -1;
+            if (num >= 0 && num < garbageChecked.Length && !garbageChecked[num])
+            {
+                garbageChecked[num] = true;
+                currentLocation.playSound("trashcan");
+                Random random = new Random((int)uniqueIDForThisGame / 2 + (int)stats.DaysPlayed + 777 + num);
+                if (random.NextDouble() < 0.2 + dailyLuck)
+                {
+                    int parentSheetIndex = 168;
+                    switch (random.Next(10))
+                    {
+                        case 0:
+                            parentSheetIndex = 168;
+                            break;
+                        case 1:
+                            parentSheetIndex = 167;
+                            break;
+                        case 2:
+                            parentSheetIndex = 170;
+                            break;
+                        case 3:
+                            parentSheetIndex = 171;
+                            break;
+                        case 4:
+                            parentSheetIndex = 172;
+                            break;
+                        case 5:
+                            parentSheetIndex = 216;
+                            break;
+                        case 6:
+                            parentSheetIndex = Utility.getRandomItemFromSeason(currentSeason, x * 653 + y * 777, false);
+                            break;
+                        case 7:
+                            parentSheetIndex = 403;
+                            break;
+                        case 8:
+                            parentSheetIndex = 309 + random.Next(3);
+                            break;
+                        case 9:
+                            parentSheetIndex = 153;
+                            break;
+                    }
+                    switch (num)
+                    {
+                        case 3 when random.NextDouble() < 0.2 + dailyLuck:
+                            parentSheetIndex = 535;
+                            if (random.NextDouble() < 0.05)
+                            {
+                                parentSheetIndex = 749;
+                            }
+
+                            break;
+                        case 4 when random.NextDouble() < 0.2 + dailyLuck:
+                            parentSheetIndex = 378 + random.Next(3) * 2;
+                            break;
+                        case 5 when random.NextDouble() < 0.2 + dailyLuck && dishOfTheDay != null:
+                            parentSheetIndex = dishOfTheDay.ParentSheetIndex != 217 ? dishOfTheDay.ParentSheetIndex : 216;
+                            break;
+                        case 6 when random.NextDouble() < 0.2 + dailyLuck:
+                            parentSheetIndex = 223;
+                            break;
+                    }
+
+                    Monitor.Log($"You picked up trash @ [{x},{y}]");
+                    player.addItemByMenuIfNecessary(new Object(parentSheetIndex, 1));
+                }
+            }
+        }
+
+        public static void DrawPausedHud()
+        {
+            SpriteFont font = dialogueFont;
+            string text = Helper.Translation.Get("hud.paused");
+            Vector2 stringSize = font.MeasureString(text);
+            int x = ModEntry.Conf.PauseNotificationX;
+            int y = ModEntry.Conf.PauseNotificationY;
+            int width = 16 + (int) stringSize.X + 16;
+            int height = 16 + (int) stringSize.Y + 16;
+
+            IClickableMenu.drawTextureBox(spriteBatch, x, y, width, height, Color.White);
+            Utility.drawTextWithShadow(spriteBatch, text, font, new Vector2(x + 16, y + 16 + 8), Color.Black);
+        }
+
+        public static bool IsPlayerIdle()
+        {
+            if (paused || !shouldTimePass())
+            {
+                //When game is paused or time is stopped already. it's not idle.
+                return false;
+            }
+
+            if (player.CurrentToolIndex != LastItemIndex)
+            {
+                //When tool index changed, it's not idle.
+                LastItemIndex = player.CurrentToolIndex;
+                return false;
+            }
+
+            if (player.isMoving() || player.UsingTool)
+            {
+                //When player is moving or is using tools, it's not idle ofcause.
+                return false;
+            }
+
+            return true;
+        }
 
         private static bool CanPlayerAcceptsItemPartially(Item item)
         {
@@ -78,6 +240,7 @@ namespace JoysOfEfficiency.Utils
 
             if (questID != -1)
             {
+                Monitor.Log($"You started Quest: {Quest.getQuestFromId(questID).questTitle}''.");
                 player.addQuest(questID);
                 playSound("newArtifact");
                 questIDField.SetValue(-1);
@@ -97,7 +260,8 @@ namespace JoysOfEfficiency.Utils
         /// <returns>Remaining stack number that couldn't be added</returns>
         public static int AddItemIntoInventory(Item item)
         {
-            int remaining = item.Stack;
+            int oldStack = item.Stack;
+            int remaining = oldStack;
             for (int i = 0; i < player.MaxItems; i++)
             {
                 if (player.Items[i] == null || i >= player.Items.Count)
@@ -126,15 +290,17 @@ namespace JoysOfEfficiency.Utils
             }
 
             player.addItemToInventoryBool(item);
-            if (activeClickableMenu is ItemGrabMenu)
+            if (activeClickableMenu is ItemGrabMenu && oldStack - remaining > 0)
             {
                 // Draw item pickup hud because addItemToInventoryBool doesn't if ItemGrabMenu is opened.
-                DrawItemPickupHud(item);
+                Item toShow = item.getOne();
+                toShow.Stack = oldStack - remaining;
+                DrawItemPickupHud(toShow);
             }
 
             return remaining;
         }
-
+        
         private static void DrawItemPickupHud(Item item)
         {
             Color color = Color.WhiteSmoke;

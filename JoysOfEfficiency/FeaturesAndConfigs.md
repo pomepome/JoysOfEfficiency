@@ -3,9 +3,13 @@
 This is a list of features and configs available in [Joys of Efficiency (JoE)](https://www.nexusmods.com/stardewvalley/mods/2162).
 
 Config description will be like:
-	Name("Category Tab in config menu", Type, default value, [minimum or maximum value if its type is int or float]) - "discription of the config".
 
-"Category Tab in config menu" is one of following: "Automation", "UIs", "Cheats", "Misc", and "Controls".
+
+	Name("Category Tab in config menu", Type, default value, 
+			[minimum or maximum value if its type is int or float]) - "discription of the config".
+
+
+"Category Tab in config menu" is one of following: "Automation", "UIs", "Cheats", "Misc", "Controls", and "Not on menu".
 
 # Features
 
@@ -109,7 +113,6 @@ Are you tired to deal with fishing minigame? When this utility is enabled, your 
 **[CONFIG]**
 
 - AutoReelRod("Automation", bool, default:true) - whether it automatically reels up the rod when fish nibbled.﻿
-- MuchFasterBiting("Cheats", bool, default:false) - if it is true, fish will bite the bait much faster.
 
 ## Fishing Information GUI
 
@@ -221,7 +224,7 @@ MachineRadius("Automation", int, default:1) - How far tiles can be affected by t
 **[CONFIG]**
 
 - AutoPetNearbyPets("Automation", bool, default:false) - whether this utility is enabled.
-- AutoPetRadius("Automation", int, default:1) - How far tiles can be affected by this utility.
+- AutoPetRadius("Automation", int, default:1 min:1 max:3) - How far tiles can be affected by this utility.
 
 ## Fishing Probabilities Info
 ﻿﻿This utility let you know what fish could be caught (and estimated probability of catching) when you are fishing.
@@ -303,3 +306,39 @@ This feature collects attached items or accepts quests when you opened mail cont
 
 
 - CollectLetterAttachmentsAndQuests("Automation", bool, default:false) - whether this utility is enabled.
+
+
+## Pause When Idle
+
+
+This feature pauses game when you are not in work.
+
+
+It helps you not to waste in-game time when idling.
+
+
+**[CONFIG]**
+
+
+- PauseWhenIdle("Misc", bool, default:false) - whether this utility is enabled.
+
+
+- IdleTimeout("Misc", int, default:180 min:1 max:300) - Timeout needed to pause the game in seconds.
+
+
+- PauseNotificationX("Not on menu", int, default:100) - X position of paused notification.
+
+
+- PauseNotificationY("Not on menu", int, default:700) - Y position of paused notification.
+
+
+## Auto Pick Up Trash
+
+
+This feature searches trash can and pick up trash without being detected.
+
+
+- PauseWhenIdle("Automation", bool, default:false) - whether this utility is enabled.
+
+
+- ScavengingRadius("Automation", int, default:2 min:1 max:3) - How far tiles can be affected by this utility.

@@ -19,6 +19,7 @@ using StardewValley.Tools;
 namespace JoysOfEfficiency
 {
     using Player = Farmer;
+    using SVObject = StardewValley.Object;
     [SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
     internal class ModEntry : Mod
     {
@@ -31,9 +32,15 @@ namespace JoysOfEfficiency
 
         private bool _unableToGift;
         private string _hoverText;
+
         private bool _dayEnded;
 
+        private bool _paused;
+
         private int _ticks;
+
+        private double _timeoutCounter;
+        private int LastTimeOfDay;
 
         public override void Entry(IModHelper helper)
         {
@@ -53,7 +60,6 @@ namespace JoysOfEfficiency
             GraphicsEvents.OnPostRenderGuiEvent += OnPostRenderGui;
 
             MenuEvents.MenuChanged += OnMenuChanged;
-            MenuEvents.MenuClosed += OnMenuClosed;
             
             SaveEvents.BeforeSave += OnBeforeSave;
 
@@ -70,6 +76,8 @@ namespace JoysOfEfficiency
             Conf.AutoShakeRadius = (int)Util.Cap(Conf.AutoShakeRadius, 1, 3);
             Conf.MachineRadius = (int)Util.Cap(Conf.MachineRadius, 1, 3);
             Conf.RadiusCraftingFromChests = (int) Util.Cap(Conf.RadiusCraftingFromChests, 1, 5);
+            Conf.IdleTimeout = (int) Util.Cap(Conf.IdleTimeout, 1, 300);
+            Conf.ScavengingRadius = (int) Util.Cap(Conf.ScavengingRadius, 1, 3);
 
             if(ModChecker.IsCoGLoaded(helper))
             {
@@ -104,18 +112,47 @@ namespace JoysOfEfficiency
                 Util.CollectMailAttachmentsAndQuests(letter);
             }
         }
-
-        private void OnMenuClosed(object sender, EventArgsClickableMenuClosed args)
-        {
-        }
-
         private void OnGameTick(object sender, EventArgs args)
         {
-            _hoverText = null;
             if (!Context.IsWorldReady)
             {
                 return;
             }
+            if (Conf.PauseWhenIdle)
+            {
+                if (Util.IsPlayerIdle())
+                {
+                    _timeoutCounter += Game1.currentGameTime.ElapsedGameTime.TotalMilliseconds;
+                    if (_timeoutCounter > Conf.IdleTimeout * 1000)
+                    {
+                        if (!_paused)
+                        {
+                            Monitor.Log("Paused game");
+                            _paused = true;
+                        }
+
+                        Game1.timeOfDay = LastTimeOfDay;
+                    }
+                }
+                else
+                {
+                    if (_paused)
+                    {
+                        _paused = false;
+                        Monitor.Log("Resumed game");
+                    }
+
+                    _timeoutCounter = 0;
+                    LastTimeOfDay = Game1.timeOfDay;
+                }
+            }
+            else
+            {
+                _paused = false;
+            }
+
+            _hoverText = null;
+
             Player player = Game1.player;
             if(Conf.AutoGate)
             {
@@ -202,8 +239,7 @@ namespace JoysOfEfficiency
                                 key.Append("male");
                                 break;
                         }
-                        Translation translation = Helper.Translation.Get(key.ToString());
-                        _hoverText = translation?.ToString();
+                        _hoverText = Helper.Translation.Get(key.ToString());
                     }
                 }
             }
@@ -211,25 +247,20 @@ namespace JoysOfEfficiency
 
         private void OnGameEighthUpdate(object sender, EventArgs args)
         {
-            if(Conf.BalancedMode)
-            {
-                Conf.MuchFasterBiting = false;
-            }
             if(Game1.currentGameTime == null)
             {
                 return;
             }
 
-            if (Conf.CloseTreasureWhenAllLooted && Game1.activeClickableMenu is ItemGrabMenu menu && menu.source != ItemGrabMenu.source_chest && !menu.shippingBin && (menu.source == ItemGrabMenu.source_fishingChest || menu.source == ItemGrabMenu.source_gift) && menu.context != null && menu.areAllItemsTaken() && menu.heldItem == null)
+            if (Conf.CloseTreasureWhenAllLooted && Game1.activeClickableMenu is ItemGrabMenu menu)
             {
-                menu.exitThisMenu();
+                Util.TryCloseItemGrabMenu(menu);
             }
 
             if (!Context.IsWorldReady || !Context.IsPlayerFree)
             {
                 return;
             }
-
 
             Player player = Game1.player;
             GameLocation location = Game1.currentLocation;
@@ -246,10 +277,6 @@ namespace JoysOfEfficiency
                         {
                             rod.DoFunction(player.currentLocation, 1, 1, 1, player);
                         }
-                    }
-                    if (Conf.MuchFasterBiting && rod.isFishing && !rod.isNibbling && !rod.isReeling && !rod.hit && !rod.isTimingCast && !rod.pullingOutOfWater && !rod.fishCaught)
-                    {
-                        rod.timeUntilFishingBite = 0;
                     }
                 }
                 if (Game1.currentLocation is MineShaft shaft)
@@ -272,6 +299,11 @@ namespace JoysOfEfficiency
                 if(Conf.BalancedMode && _ticks % 8 != 0)
                 {
                     return;
+                }
+
+                if (Conf.AutoPickUpTrash)
+                {
+                    Util.ScavengeTrashCan();
                 }
                 if (Conf.AutoWaterNearbyCrops)
                 {
@@ -390,6 +422,10 @@ namespace JoysOfEfficiency
             {
                 Util.PrintFishingInfo(rod);
             }
+            if (_paused && Conf.PauseWhenIdle)
+            {
+                Util.DrawPausedHud();
+            }
         }
         
         private void OnPostRenderGui(object sender, EventArgs args)
@@ -456,6 +492,8 @@ namespace JoysOfEfficiency
 
         private void OnDayStarted(object sender, EventArgs args)
         {
+            //Reset LastTimeOfDay
+            LastTimeOfDay = Game1.timeOfDay;
             if (!Context.IsWorldReady || !Conf.AutoAnimalDoor)
             {
                 return;
