@@ -1,5 +1,5 @@
-﻿using StardewValley.Menus;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using StardewValley.Menus;
 
 namespace JoysOfEfficiency.OptionsElements
 {

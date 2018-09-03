@@ -1,7 +1,12 @@
-﻿using JoysOfEfficiency.ModCheckers;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Text;
+using JoysOfEfficiency.ModCheckers;
+using JoysOfEfficiency.Patches;
 using JoysOfEfficiency.Utils;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
 using Netcode;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
@@ -10,15 +15,12 @@ using StardewValley.Buildings;
 using StardewValley.Locations;
 using StardewValley.Menus;
 using StardewValley.Tools;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using JoysOfEfficiency.Patches;
 
 namespace JoysOfEfficiency
 {
     using Player = Farmer;
+    using SVObject = StardewValley.Object;
+    [SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
     internal class ModEntry : Mod
     {
         public static bool IsCoGOn { get; private set; }
@@ -30,9 +32,15 @@ namespace JoysOfEfficiency
 
         private bool _unableToGift;
         private string _hoverText;
+
         private bool _dayEnded;
 
+        private bool _paused;
+
         private int _ticks;
+
+        private double _timeoutCounter;
+        private int LastTimeOfDay;
 
         public override void Entry(IModHelper helper)
         {
@@ -40,22 +48,22 @@ namespace JoysOfEfficiency
             Util.Helper = helper;
             Util.Monitor = Monitor;
             Util.ModInstance = this;
-
-
+            
             Conf = helper.ReadConfig<Config>();
 
             ControlEvents.KeyPressed += OnKeyPressed;
 
             GameEvents.UpdateTick += OnGameTick;
-            GameEvents.EighthUpdateTick += OnGameUpdate;
-
-            GraphicsEvents.OnPreRenderHudEvent += OnPreRenderHud;
+            GameEvents.EighthUpdateTick += OnGameEighthUpdate;
+            
             GraphicsEvents.OnPostRenderHudEvent += OnPostRenderHud;
+            GraphicsEvents.OnPostRenderGuiEvent += OnPostRenderGui;
+
+            MenuEvents.MenuChanged += OnMenuChanged;
             
             SaveEvents.BeforeSave += OnBeforeSave;
 
             TimeEvents.AfterDayStarted += OnDayStarted;
-
 
             Conf.CpuThresholdFishing = Util.Cap(Conf.CpuThresholdFishing, 0, 0.5f);
             Conf.HealthToEatRatio = Util.Cap(Conf.HealthToEatRatio, 0.1f, 0.8f);
@@ -68,15 +76,17 @@ namespace JoysOfEfficiency
             Conf.AutoShakeRadius = (int)Util.Cap(Conf.AutoShakeRadius, 1, 3);
             Conf.MachineRadius = (int)Util.Cap(Conf.MachineRadius, 1, 3);
             Conf.RadiusCraftingFromChests = (int) Util.Cap(Conf.RadiusCraftingFromChests, 1, 5);
+            Conf.IdleTimeout = (int) Util.Cap(Conf.IdleTimeout, 1, 300);
+            Conf.ScavengingRadius = (int) Util.Cap(Conf.ScavengingRadius, 1, 3);
+
             if(ModChecker.IsCoGLoaded(helper))
             {
                 Monitor.Log("CasksOnGround detected.");
                 IsCoGOn = true;
             }
-
             if (ModChecker.IsCCLoaded(helper))
             {
-                Monitor.Log("Convenient Chests detected. JOE's CraftingFromChests feature will be disabled.");
+                Monitor.Log("Convenient Chests detected. JOE's CraftingFromChests feature will be disabled and won't patch the game.");
                 Conf.CraftingFromChests = false;
                 IsCCOn = true;
             }
@@ -84,18 +94,65 @@ namespace JoysOfEfficiency
             {
                 HarmonyPatcher.Init();
             }
-            helper.WriteConfig(Conf);
 
+            helper.WriteConfig(Conf);
             MineIcons.Init(helper);
         }
 
-        private void OnGameTick(object senderm, EventArgs args)
+        private void OnMenuChanged(object sender, EventArgsClickableMenuChanged args)
         {
-            _hoverText = null;
+            if (Conf.AutoLootTreasures && args.NewMenu is ItemGrabMenu menu)
+            {
+                //Opened ItemGrabMenu
+                Util.LootAllAcceptableItems(menu);
+            }
+
+            if (Conf.CollectLetterAttachmentsAndQuests && args.NewMenu is LetterViewerMenu letter)
+            {
+                Util.CollectMailAttachmentsAndQuests(letter);
+            }
+        }
+        private void OnGameTick(object sender, EventArgs args)
+        {
             if (!Context.IsWorldReady)
             {
                 return;
             }
+            if (Conf.PauseWhenIdle)
+            {
+                if (Util.IsPlayerIdle())
+                {
+                    _timeoutCounter += Game1.currentGameTime.ElapsedGameTime.TotalMilliseconds;
+                    if (_timeoutCounter > Conf.IdleTimeout * 1000)
+                    {
+                        if (!_paused)
+                        {
+                            Monitor.Log("Paused game");
+                            _paused = true;
+                        }
+
+                        Game1.timeOfDay = LastTimeOfDay;
+                    }
+                }
+                else
+                {
+                    if (_paused)
+                    {
+                        _paused = false;
+                        Monitor.Log("Resumed game");
+                    }
+
+                    _timeoutCounter = 0;
+                    LastTimeOfDay = Game1.timeOfDay;
+                }
+            }
+            else
+            {
+                _paused = false;
+            }
+
+            _hoverText = null;
+
             Player player = Game1.player;
             if(Conf.AutoGate)
             {
@@ -128,9 +185,9 @@ namespace JoysOfEfficiency
                     if (player.friendshipData.ContainsKey(npc.Name) && Game1.NPCGiftTastes.ContainsKey(npc.Name))
                     {
                         Friendship friendship = player.friendshipData[npc.Name];
-                        if (friendship.GiftsThisWeek > 1 && !(player.isMarried() && player.spouse == npc.Name))
+                        if (friendship.GiftsThisWeek > 1)
                         {
-                            if (npc.isMarried() && (!Game1.IsMultiplayer || npc.getSpouse().UniqueMultiplayerID == player.UniqueMultiplayerID))
+                            if (npc.isMarried() && npc.getSpouse().UniqueMultiplayerID == player.UniqueMultiplayerID)
                             {
                                 //This character got married with the player, so ignore weekly restriction
                             }
@@ -140,7 +197,6 @@ namespace JoysOfEfficiency
                                 _unableToGift = true;
                             }
                         }
-
                         if (!_unableToGift)
                         {
                             if (friendship.GiftsToday > 0)
@@ -174,39 +230,38 @@ namespace JoysOfEfficiency
                                 return;
                             }
                         }
-
                         switch (npc.Gender)
                         {
-                            case 0:
-                                key.Append("male");
-                                break;
-                            default:
+                            case NPC.female:
                                 key.Append("female");
                                 break;
+                            default:
+                                key.Append("male");
+                                break;
                         }
-
-                        Translation translation = Helper.Translation.Get(key.ToString());
-                        _hoverText = translation?.ToString();
+                        _hoverText = Helper.Translation.Get(key.ToString());
                     }
                 }
             }
         }
 
-        private void OnGameUpdate(object sender, EventArgs args)
+        private void OnGameEighthUpdate(object sender, EventArgs args)
         {
-            if(Conf.BalancedMode)
-            {
-                Conf.MuchFasterBiting = false;
-            }
             if(Game1.currentGameTime == null)
             {
                 return;
+            }
+
+            if (Conf.CloseTreasureWhenAllLooted && Game1.activeClickableMenu is ItemGrabMenu menu)
+            {
+                Util.TryCloseItemGrabMenu(menu);
             }
 
             if (!Context.IsWorldReady || !Context.IsPlayerFree)
             {
                 return;
             }
+
             Player player = Game1.player;
             GameLocation location = Game1.currentLocation;
             IReflectionHelper reflection = Helper.Reflection;
@@ -222,10 +277,6 @@ namespace JoysOfEfficiency
                         {
                             rod.DoFunction(player.currentLocation, 1, 1, 1, player);
                         }
-                    }
-                    if (Conf.MuchFasterBiting && rod.isFishing && !rod.isNibbling && !rod.isReeling && !rod.hit && !rod.isTimingCast && !rod.pullingOutOfWater && !rod.fishCaught)
-                    {
-                        rod.timeUntilFishingBite -= 10000;
                     }
                 }
                 if (Game1.currentLocation is MineShaft shaft)
@@ -250,6 +301,10 @@ namespace JoysOfEfficiency
                     return;
                 }
 
+                if (Conf.AutoPickUpTrash)
+                {
+                    Util.ScavengeTrashCan();
+                }
                 if (Conf.AutoWaterNearbyCrops)
                 {
                     Util.WaterNearbyCrops();
@@ -319,6 +374,10 @@ namespace JoysOfEfficiency
                 {
                     Util.PetNearbyPets();
                 }
+                if (Conf.UnifyFlowerColors)
+                {
+                    Util.UnifyFlowerColors();
+                }
             }
             catch (Exception ex)
             {
@@ -332,32 +391,6 @@ namespace JoysOfEfficiency
             if (!Context.IsWorldReady)
             {
                 return;
-            }
-            if (args.KeyPressed == Keys.H)
-            {
-                Util.ShowHudMessage($"Hay:{Game1.getFarm().piecesOfHay}");
-
-                if (Game1.player.CurrentItem != null)
-                {
-                    Util.ShowHudMessage(Game1.player.CurrentTool == null
-                        ? $"ItemId:{Game1.player.CurrentItem.ParentSheetIndex}"
-                        : $"ToolId:{Game1.player.CurrentTool.CurrentParentTileIndex}");
-                }
-
-                List<Item> shippedList = Game1.getFarm().shippingBin.ToList();
-                int totalPrice = 0;
-                foreach (Item item in shippedList)
-                {
-                    totalPrice += Util.GetTruePrice(item) / 2 * item.Stack;
-                }
-                Util.ShowHudMessage($"Estimated Shipping Price: {totalPrice}G");
-                Util.ShowHudMessage($"Luck:{Game1.dailyLuck}");
-                Monitor.Log("Start outputting uncrafted recipes", LogLevel.Trace);
-                foreach (KeyValuePair<string, int> recipe in Game1.player.craftingRecipes.Pairs.Where(kv=>kv.Value == 0))
-                {
-                    if(Game1.player.knowsRecipe(recipe.Key))
-                        Monitor.Log($"Recipe of '{recipe.Key}'", LogLevel.Trace);
-                }
             }
             if (!Context.IsPlayerFree || Game1.activeClickableMenu != null)
             {
@@ -375,21 +408,29 @@ namespace JoysOfEfficiency
             }
         }
 
-        private void OnPreRenderHud(object sender, EventArgs args)
+        private void OnPostRenderHud(object sender, EventArgs args)
         {
             if (Game1.currentLocation is MineShaft shaft && Conf.MineInfoGui)
             {
                 Util.DrawMineGui(Game1.spriteBatch, Game1.smallFont, Game1.player, shaft);
             }
-        }
-
-        private void OnPostRenderHud(object sender, EventArgs args)
-        {
             if (Context.IsPlayerFree && !string.IsNullOrEmpty(_hoverText) && Game1.player.CurrentItem != null)
             {
-                Util.DrawSimpleTextbox(Game1.spriteBatch, _hoverText, Game1.dialogueFont, _unableToGift ? null : Game1.player.CurrentItem);
+                Util.DrawSimpleTextbox(Game1.spriteBatch, _hoverText, Game1.dialogueFont, false, _unableToGift ? null : Game1.player.CurrentItem);
             }
-            if (Game1.activeClickableMenu != null && Game1.activeClickableMenu is BobberBar bar)
+            if (Conf.FishingProbabilitiesInfo && Game1.player.CurrentTool is FishingRod rod && rod.isFishing)
+            {
+                Util.PrintFishingInfo(rod);
+            }
+            if (_paused && Conf.PauseWhenIdle)
+            {
+                Util.DrawPausedHud();
+            }
+        }
+        
+        private void OnPostRenderGui(object sender, EventArgs args)
+        {
+            if (Game1.activeClickableMenu is BobberBar bar)
             {
                 if (Conf.FishingInfo)
                 {
@@ -400,9 +441,9 @@ namespace JoysOfEfficiency
                     Util.AutoFishing(bar);
                 }
             }
-            if (Conf.FishingProbabilitiesInfo && Game1.player.CurrentTool is FishingRod rod && rod.isFishing)
+            if (Conf.EstimateShippingPrice && Game1.activeClickableMenu is ItemGrabMenu menu && (menu.shippingBin || Util.IsCAShippingBinMenu(menu)))
             {
-                Util.PrintFishingInfo(rod);
+                Util.DrawShippingPrice(menu, Game1.smallFont);
             }
         }
 
@@ -417,26 +458,33 @@ namespace JoysOfEfficiency
             Farm farm = Game1.getFarm();
             foreach (Building building in farm.buildings)
             {
-                if (building is Coop coop)
+                switch (building)
                 {
-                    if (coop.indoors.Value is AnimalHouse house)
+                    case Coop coop:
                     {
-                        if (house.animals.Any() && coop.animalDoorOpen.Value)
+                        if (coop.indoors.Value is AnimalHouse house)
                         {
-                            coop.animalDoorOpen.Value = false;
-                            Helper.Reflection.GetField<NetInt>(coop, "animalDoorMotion").SetValue(new NetInt(2));
+                            if (house.animals.Any() && coop.animalDoorOpen.Value)
+                            {
+                                coop.animalDoorOpen.Value = false;
+                                Helper.Reflection.GetField<NetInt>(coop, "animalDoorMotion").SetValue(new NetInt(2));
+                            }
                         }
+
+                        break;
                     }
-                }
-                else if (building is Barn barn)
-                {
-                    if (barn.indoors.Get() is AnimalHouse house)
+                    case Barn barn:
                     {
-                        if (house.animals.Any() && barn.animalDoorOpen.Value)
+                        if (barn.indoors.Value is AnimalHouse house)
                         {
-                            barn.animalDoorOpen.Value = false;
-                            Helper.Reflection.GetField<NetInt>(barn, "animalDoorMotion").SetValue(new NetInt(2));
+                            if (house.animals.Any() && barn.animalDoorOpen.Value)
+                            {
+                                barn.animalDoorOpen.Value = false;
+                                Helper.Reflection.GetField<NetInt>(barn, "animalDoorMotion").SetValue(new NetInt(2));
+                            }
                         }
+
+                        break;
                     }
                 }
             }
@@ -444,6 +492,8 @@ namespace JoysOfEfficiency
 
         private void OnDayStarted(object sender, EventArgs args)
         {
+            //Reset LastTimeOfDay
+            LastTimeOfDay = Game1.timeOfDay;
             if (!Context.IsWorldReady || !Conf.AutoAnimalDoor)
             {
                 return;
@@ -463,28 +513,33 @@ namespace JoysOfEfficiency
             Farm farm = Game1.getFarm();
             foreach (Building building in farm.buildings)
             {
-                if (building is Coop coop)
+                switch (building)
                 {
-                    Monitor.Log($"Opening coop door @[{coop.animalDoor.X},{coop.animalDoor.Y}]", LogLevel.Trace);
-                    if (coop.indoors.Get() is AnimalHouse house)
+                    case Coop coop:
                     {
-                        if (house.animals.Any() && !coop.animalDoorOpen.Value)
+                        if (coop.indoors.Value is AnimalHouse house)
                         {
-                            coop.animalDoorOpen.Value = true;
-                            Helper.Reflection.GetField<NetInt>(coop, "animalDoorMotion").SetValue(new NetInt(-2));
+                            if (house.animals.Any() && !coop.animalDoorOpen.Value)
+                            {
+                                Monitor.Log($"Opening coop door @[{coop.animalDoor.X},{coop.animalDoor.Y}]", LogLevel.Trace);
+                                coop.animalDoorOpen.Value = true;
+                                Helper.Reflection.GetField<NetInt>(coop, "animalDoorMotion").SetValue(new NetInt(-2));
+                            }
                         }
+                        break;
                     }
-                }
-                else if(building is Barn barn)
-                {
-                    Monitor.Log($"Opening barn door @[{barn.animalDoor.X},{barn.animalDoor.Y}]", LogLevel.Trace);
-                    if (barn.indoors.Value is AnimalHouse house)
+                    case Barn barn:
                     {
-                        if (house.animals.Any() && !barn.animalDoorOpen.Value)
+                        if (barn.indoors.Value is AnimalHouse house)
                         {
-                            barn.animalDoorOpen.Value = true;
-                            Helper.Reflection.GetField<NetInt>(barn, "animalDoorMotion").SetValue(new NetInt(-3));
+                            if (house.animals.Any() && !barn.animalDoorOpen.Value)
+                            {
+                                Monitor.Log($"Opening barn door @[{barn.animalDoor.X},{barn.animalDoor.Y}]", LogLevel.Trace);
+                                barn.animalDoorOpen.Value = true;
+                                Helper.Reflection.GetField<NetInt>(barn, "animalDoorMotion").SetValue(new NetInt(-3));
+                            }
                         }
+                        break;
                     }
                 }
             }

@@ -106,3 +106,6 @@ This is a changelog from 1.1.14-beta
 - Show the reason why you can't gift when using GiftInfo.
 - Added Wells support for auto-refill watering can.
 - Avoid confliction with Convenient Chests.
+
+## 1.2.5-beta
+- Updated for StardewValley 1.3.29-beta

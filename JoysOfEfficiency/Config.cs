@@ -1,5 +1,6 @@
-﻿using Microsoft.Xna.Framework.Input;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 
 namespace JoysOfEfficiency
 {
@@ -16,7 +17,6 @@ namespace JoysOfEfficiency
         public bool AutoAnimalDoor { get; set; } = true;
         public bool AutoFishing { get; set; } = false;
         public bool AutoReelRod { get; set; } = true;
-        public bool MuchFasterBiting { get; set; } = false;
         public bool FishingInfo { get; set; } = true;
         public float CpuThresholdFishing { get; set; } = 0.2f;
         public bool AutoGate { get; set; } = true;
@@ -27,7 +27,7 @@ namespace JoysOfEfficiency
         public int AutoHarvestRadius { get; set; } = 1;
         public bool AutoDestroyDeadCrops { get; set; } = true;
         public bool AutoRefillWateringCan { get; set; } = true;
-        public Keys KeyShowMenu { get; set; } = Keys.R;
+        public Keys  KeyShowMenu { get; set; } = Keys.R;
         public bool AutoCollectCollectibles { get; set; } = false;
         public int AutoCollectRadius { get; set; } = 1;
         public bool AutoShakeFruitedPlants { get; set; } = true;
@@ -47,5 +47,26 @@ namespace JoysOfEfficiency
         public int ProbBoxY { get; set; } = 400;
         public int RadiusCraftingFromChests { get; set; } = 3;
         public bool CraftingFromChests { get; set; } = false;
+        public bool EstimateShippingPrice { get; set; } = true;
+        public bool UnifyFlowerColors { get; set; } = false;
+
+        public Color JazzColor { get; set; } = Color.Aqua;
+        public Color TulipColor { get; set; } = Color.Red;
+        public Color PoppyColor { get; set; } = Color.OrangeRed;
+        public Color SummerSpangleColor { get; set; } = Color.Gold;
+        public Color FairyRoseColor { get; set; } = Color.Thistle;
+
+        public bool AutoLootTreasures { get; set; } = true;
+        public bool CloseTreasureWhenAllLooted { get; set; } = false;
+        public bool FilterBackgroundInMenu { get; set; } = true;
+        public bool CollectLetterAttachmentsAndQuests { get; set; } = false;
+
+        public bool PauseWhenIdle { get; set; } = false;
+        public int IdleTimeout { get; set; } = 180;
+        public int PauseNotificationX { get; set; } = 100;
+        public int PauseNotificationY { get; set; } = 700;
+
+        public bool AutoPickUpTrash { get; set; } = false;
+        public int ScavengingRadius { get; set; } = 2;
     }
 }
