@@ -109,3 +109,6 @@ This is a changelog from 1.1.14-beta
 
 ## 1.2.5-beta
 - Updated for StardewValley 1.3.29-beta
+
+## 1.2.6-beta
+- Fixed problem couldn't assigning KeyToggleBlacklist from Config Menu.

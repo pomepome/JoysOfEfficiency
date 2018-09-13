@@ -64,11 +64,11 @@ namespace JoysOfEfficiency
 
             _tabMiscString = translation.Get("tab.misc");
             size = _font.MeasureString(_tabMiscString);
-            _tabMisc = new Rectangle(xPositionOnScreen - (int)size.X - 20, yPositionOnScreen + 68*2, (int)size.X + 32, 64);
+            _tabMisc = new Rectangle(xPositionOnScreen - (int)size.X - 20, yPositionOnScreen + 68 * 2, (int)size.X + 32, 64);
 
             _tabControlsString = translation.Get("tab.controls");
             size = _font.MeasureString(_tabControlsString);
-            _tabControls = new Rectangle(xPositionOnScreen - (int)size.X - 20, yPositionOnScreen + 68*3, (int)size.X + 32, 64);
+            _tabControls = new Rectangle(xPositionOnScreen - (int)size.X - 20, yPositionOnScreen + 68 * 3, (int)size.X + 32, 64);
 
             {
                 //Automation Tab
@@ -196,7 +196,7 @@ namespace JoysOfEfficiency
             {
                 //Misc Tab
                 MenuTab tab = new MenuTab();
-                
+
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Crafting From Chests"));
                 tab.AddOptionsElement(new ModifiedCheckBox("CraftingFromChests", 27, ModEntry.Conf.CraftingFromChests, OnCheckboxValueChanged, i => ModEntry.IsCCOn));
@@ -209,7 +209,7 @@ namespace JoysOfEfficiency
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Pause When Idle"));
                 tab.AddOptionsElement(new ModifiedCheckBox("PauseWhenIdle", 33, ModEntry.Conf.PauseWhenIdle, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedSlider("IdleTimeout", 12, ModEntry.Conf.IdleTimeout, 1, 300, OnSliderValueChanged, ()=>!ModEntry.Conf.PauseWhenIdle, (which, value) => value + "s"));
+                tab.AddOptionsElement(new ModifiedSlider("IdleTimeout", 12, ModEntry.Conf.IdleTimeout, 1, 300, OnSliderValueChanged, () => !ModEntry.Conf.PauseWhenIdle, (which, value) => value + "s"));
 
 
 
@@ -242,6 +242,10 @@ namespace JoysOfEfficiency
             if (index == 0)
             {
                 ModEntry.Conf.KeyShowMenu = value;
+            }
+            else if (index == 1)
+            {
+                ModEntry.Conf.KeyToggleBlackList = value;
             }
             _mod.WriteConfig();
             _isListening = false;
@@ -375,7 +379,7 @@ namespace JoysOfEfficiency
             {
                 DownCursor();
             }
-            else if(b.HasFlag(Buttons.B))
+            else if (b.HasFlag(Buttons.B))
             {
                 CloseMenu();
             }
@@ -468,7 +472,7 @@ namespace JoysOfEfficiency
             drawTextureBox(b, Game1.menuTexture, new Rectangle(0, 256, 60, 60), xPositionOnScreen, yPositionOnScreen, width, height, Color.White, 1.0f, false);
             base.draw(b);
 
-            if(!CanDrawAll(0))
+            if (!CanDrawAll(0))
             {
                 _scrollBar.visible = true;
                 drawTextureBox(b, Game1.mouseCursors, new Rectangle(403, 383, 6, 6), _scrollBarRunner.X, _scrollBarRunner.Y, _scrollBarRunner.Width, _scrollBarRunner.Height, Color.White, 4f, false);
