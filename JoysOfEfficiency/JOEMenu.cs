@@ -243,6 +243,10 @@ namespace JoysOfEfficiency
             {
                 ModEntry.Conf.KeyShowMenu = value;
             }
+            else if (index == 1)
+            {
+                ModEntry.Conf.KeyToggleBlackList = value;
+            }
             _mod.WriteConfig();
             _isListening = false;
             _listener = null;

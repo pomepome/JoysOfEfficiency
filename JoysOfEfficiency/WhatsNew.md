@@ -114,3 +114,6 @@ This is a changelog from 1.0.22
 - Removed MuchFasterBiting feature and Cheats tab from the menu.
 - Added PauseWhenIdle feature.
 - Added AutoPickUpTrash feature.
+
+## 1.2.6
+- Fixed problem couldn't assigning KeyToggleBlacklist from Config Menu.
