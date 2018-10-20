@@ -112,3 +112,7 @@ This is a changelog from 1.1.14-beta
 
 ## 1.2.6-beta
 - Fixed problem couldn't assigning KeyToggleBlacklist from Config Menu.
+
+## 1.2.7-beta
+- Added AutoShearingAndMilking feature.
+- Fixed CloseTreasureWhenAllLooted may crush the dialogue in events.

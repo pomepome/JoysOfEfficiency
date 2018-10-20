@@ -62,6 +62,8 @@
   "options.ScavengingRadius": "How far tiles to search trash can",
   "options.StaminaToEatRatio": "Stamina Threshold to auto-eat",
   "options.UnifyFlowerColors": "Unify colors of flowers",
+  "options.AutoShearingAndMilking": "Auto-shear/milk mature sheep/cows",
+  "options.AnimalHarvestRadius": "Tile radius for searching animals",
   "quality.gold": "Gold",
   "quality.iridium": "Iridium",
   "quality.normal": "Normal",

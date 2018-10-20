@@ -301,6 +301,10 @@ namespace JoysOfEfficiency
                     return;
                 }
 
+                if (Conf.AutoShearingAndMilking)
+                {
+                    Util.ShearingAndMilking();
+                }
                 if (Conf.AutoPickUpTrash)
                 {
                     Util.ScavengeTrashCan();
