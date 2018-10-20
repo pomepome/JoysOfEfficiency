@@ -78,6 +78,7 @@ namespace JoysOfEfficiency
             Conf.RadiusCraftingFromChests = (int) Util.Cap(Conf.RadiusCraftingFromChests, 1, 5);
             Conf.IdleTimeout = (int) Util.Cap(Conf.IdleTimeout, 1, 300);
             Conf.ScavengingRadius = (int) Util.Cap(Conf.ScavengingRadius, 1, 3);
+            Conf.AnimalHarvestRadius = (int) Util.Cap(Conf.AnimalHarvestRadius, 1, 3);
 
             if(ModChecker.IsCoGLoaded(helper))
             {
@@ -325,6 +326,11 @@ namespace JoysOfEfficiency
                             animal.pet(player);
                         }
                     }
+                }
+
+                if (Conf.AutoShearingAndMilking)
+                {
+                    Util.ShearingAndMilking(player);
                 }
                 if(Conf.AutoPullMachineResult)
                 {

@@ -342,3 +342,15 @@ This feature searches trash can and pick up trash without being detected.
 
 
 - ScavengingRadius("Automation", int, default:2 min:1 max:3) - How far tiles can be affected by this utility.
+
+
+## Auto Shearing and Milking
+
+
+This feature let you shear/milk nearby mature sheep/cows automatically when you held shears/bucket.
+
+
+- AutoShearingAndMilking("Automation", bool, default:true) - whether this utility is enabled.
+
+
+- AnimalHarvestRadius("Automation", int, default:1 min:1 max:3) - How far tiles can be affected by this utility.

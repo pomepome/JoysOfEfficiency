@@ -90,5 +90,8 @@ namespace JoysOfEfficiency
 
         public bool AutoPickUpTrash { get; set; } = false;
         public int ScavengingRadius { get; set; } = 2;
+
+        public bool AutoShearingAndMilking { get; set; } = true;
+        public int AnimalHarvestRadius { get; set; } = 1;
     }
 }

@@ -157,7 +157,12 @@ namespace JoysOfEfficiency
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Auto Pick Up Trash"));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoPickUpTrash", 34, ModEntry.Conf.AutoPickUpTrash, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedSlider("ScavengingRadius", 13, ModEntry.Conf.ScavengingRadius, 1, 3, OnSliderValueChanged, () => !ModEntry.Conf.AutoHarvest || ModEntry.Conf.BalancedMode));
+                tab.AddOptionsElement(new ModifiedSlider("ScavengingRadius", 13, ModEntry.Conf.ScavengingRadius, 1, 3, OnSliderValueChanged, () => !ModEntry.Conf.AutoPickUpTrash || ModEntry.Conf.BalancedMode));
+
+                tab.AddOptionsElement(new EmptyLabel());
+                tab.AddOptionsElement(new LabelComponent("Auto Shearing and Milking"));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoShearingAndMilking", 35, ModEntry.Conf.AutoShearingAndMilking, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedSlider("AnimalHarvestRadius", 14, ModEntry.Conf.AnimalHarvestRadius, 1, 3, OnSliderValueChanged, () => !ModEntry.Conf.AutoShearingAndMilking || ModEntry.Conf.BalancedMode));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 _tabs.Add(tab);
@@ -287,6 +292,7 @@ namespace JoysOfEfficiency
                 case 32: ModEntry.Conf.FilterBackgroundInMenu = value; break;
                 case 33: ModEntry.Conf.PauseWhenIdle = value; break;
                 case 34: ModEntry.Conf.AutoPickUpTrash = value; break;
+                case 35: ModEntry.Conf.AutoShearingAndMilking = value; break;
                 default: return;
             }
             _mod.WriteConfig();
@@ -333,6 +339,9 @@ namespace JoysOfEfficiency
                     break;
                 case 13:
                     ModEntry.Conf.ScavengingRadius = value;
+                    break;
+                case 14:
+                    ModEntry.Conf.AnimalHarvestRadius = value;
                     break;
                 default:
                     return;
@@ -531,15 +540,13 @@ namespace JoysOfEfficiency
 
         public override void leftClickHeld(int x, int y)
         {
-            IMonitor monitor = Util.Monitor;
             if (_isScrolling && _scrollBar.visible && _scrollBarRunner.Contains(x, y))
             {
                 int maxIndex = GetLastViewableIndex();
-                int index = (int)((y - _scrollBarRunner.Top - _scrollBar.bounds.Height / 2) / ((double)(_scrollBarRunner.Height - _scrollBar.bounds.Height) / maxIndex) * 1.02);
+                int index = (int)((y - _scrollBarRunner.Top - _scrollBar.bounds.Height / 2) / ((double)(_scrollBarRunner.Height - _scrollBar.bounds.Height) / maxIndex) * 1.025);
                 index = (int)Util.Cap(index, 0, maxIndex);
                 if (_firstIndex != index)
                 {
-                    monitor.Log($"currentIndex:{_firstIndex} maxIndex:{maxIndex}");
                     Game1.playSound("shwip");
                     ChengeIndexOfScrollBar(index);
                 }
@@ -561,6 +568,7 @@ namespace JoysOfEfficiency
 
         public override void receiveKeyPress(Keys key)
         {
+            base.receiveKeyPress(key);
             if (_isListening)
             {
                 foreach (OptionsElement element in _tabs[_tabIndex].GetElements())
