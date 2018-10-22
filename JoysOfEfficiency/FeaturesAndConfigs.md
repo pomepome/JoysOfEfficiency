@@ -21,7 +21,7 @@ You can't disable this feature because it's a core feature.
 **[CONFIG]**
 
 
-- KeyShowMenu("Controls", Keys, default:"R") - The key to open config menu.
+- KeyShowMenu("Controls", SButton, default:"R") - The key to open config menu.
 
 
 - FilterBackgroundInMenu("UIs", bool, default:true) - When config menu is opened, outside of it will be darker like inventory menu.
@@ -165,7 +165,7 @@ It should work with both single-player and coop game modes﻿.
 ﻿ProtectNectarProducingFlower("Automation", bool, default:true) - this option protects flowers producing nectar not to be Auto harvested.
 AutoHarvestRadius("Automation", int, default:1) - How far tiles can be affected by this utility.
 ﻿HarvestException("Automation", List<int>) - Crop id list not to be auto harvested.﻿
-﻿KeyToggleBlackList("Controls", Keys, default:"F2") - Add/Remove crop under cursor to/from blacklist.
+﻿KeyToggleBlackList("Controls", SButton, default:"F2") - Add/Remove crop under cursor to/from blacklist.
 
 ## Auto Destroy Dead Crops
 This utility destorys dead crops automatically when he/she gets closed to it.

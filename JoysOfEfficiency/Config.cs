@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using StardewModdingAPI;
 
 namespace JoysOfEfficiency
 {
@@ -41,13 +42,13 @@ namespace JoysOfEfficiency
         public int AutoHarvestRadius { get; set; } = 1;
         public bool ProtectNectarProducingFlower { get; set; } = true;
         public List<int> HarvestException { get; set; } = new List<int>();
-        public Keys KeyToggleBlackList { get; set; } = Keys.F2;
+        public SButton ButtonToggleBlackList { get; set; } = Keys.F2.ToSButton();
 
         public bool AutoDestroyDeadCrops { get; set; } = true;
 
         public bool AutoRefillWateringCan { get; set; } = true;
 
-        public Keys  KeyShowMenu { get; set; } = Keys.R;
+        public SButton ButtonShowMenu { get; set; } = Keys.R.ToSButton();
         public bool FilterBackgroundInMenu { get; set; } = true;
 
         public bool AutoCollectCollectibles { get; set; } = false;

@@ -1,6 +1,6 @@
 ﻿{
-  "button.awaiting": "割り当てるキーを押してください...",
-  "button.conflict": "そのキーはすでに割り当てられています",
+  "button.awaiting": "割り当てるキーかボタンを押してください...",
+  "button.conflict": "そのキーかボタンはすでに割り当てられています",
   "button.esc": "Escキーを押すとキャンセルできます",
   "estimatedprice.title": "推定出荷額",
   "fishinfo.quality": "品質: ",
@@ -63,6 +63,7 @@
   "options.UnifyFlowerColors": "花の色を統一する",
   "options.AutoShearingAndMilking": "収穫可能な牛や羊から自動で採取を行う",
   "options.AnimalHarvestRadius": "動物を探す範囲",
+  "options.CollectLetterAttachmentsAndQuests": "手紙に添付されたクエストやアイテムを自動取得する",
   "quality.gold": "金",
   "quality.iridium": "イリジウム",
   "quality.normal": "普通",

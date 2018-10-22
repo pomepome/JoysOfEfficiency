@@ -51,7 +51,7 @@ namespace JoysOfEfficiency
             
             Conf = helper.ReadConfig<Config>();
 
-            ControlEvents.KeyPressed += OnKeyPressed;
+            InputEvents.ButtonPressed += OnButtonPressed;
 
             GameEvents.UpdateTick += OnGameTick;
             GameEvents.EighthUpdateTick += OnGameEighthUpdate;
@@ -392,7 +392,7 @@ namespace JoysOfEfficiency
             }
         }
 
-        private void OnKeyPressed(object sender, EventArgsKeyPressed args)
+        private void OnButtonPressed(object sender, EventArgsInput args)
         {
             if (!Context.IsWorldReady)
             {
@@ -402,13 +402,13 @@ namespace JoysOfEfficiency
             {
                 return;
             }
-            if (args.KeyPressed == Conf.KeyShowMenu)
+            if (args.Button == Conf.ButtonShowMenu)
             {
                 //Open Up Menu
                 Game1.playSound("bigSelect");
                 Game1.activeClickableMenu = new JoeMenu(1100, 548, this);
             }
-            else if (args.KeyPressed == Conf.KeyToggleBlackList)
+            else if (args.Button == Conf.ButtonToggleBlackList)
             {
                 Util.ToggleBlacklistUnderCursor();
             }

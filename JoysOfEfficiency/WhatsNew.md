@@ -121,3 +121,7 @@ This is a changelog from 1.0.22
 ##1.2.7
 - Added AutoShearingAndMilking feature.
 - Fixed CloseTreasureWhenAllLooted may crush the dialogue in events.
+
+##1.2.8
+- SButton will be used in config instead of Keys and Buttons enum.
+- Fixed CollectLetterAttachmentsAndQuests was not appeared in config menu.
