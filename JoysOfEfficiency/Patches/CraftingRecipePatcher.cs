@@ -20,7 +20,7 @@ namespace JoysOfEfficiency.Patches
                 int toConsume;
                 foreach (Item playerItem in new List<Item>(Game1.player.Items))
                 {
-                    //Search for player inventory
+                    //Search for the player inventory
                     if (playerItem != null && (playerItem.ParentSheetIndex == index || playerItem.Category == index))
                     {
                         toConsume = Math.Min(playerItem.Stack, count);
@@ -36,8 +36,8 @@ namespace JoysOfEfficiency.Patches
                 List<Chest> chests = Util.GetNearbyChests(Game1.player);
                 foreach (Chest chest in new List<Chest>(chests))
                 {
-                    //Search for chests
-                    foreach (Item chestItem in chest.items)
+                    //Search for the chests
+                    foreach (Item chestItem in new List<Item>(chest.items))
                     {
                         if (chestItem != null && (chestItem.ParentSheetIndex == index || chestItem.Category == index))
                         {

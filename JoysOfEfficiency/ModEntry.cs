@@ -3,13 +3,18 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+
 using JoysOfEfficiency.ModCheckers;
 using JoysOfEfficiency.Patches;
 using JoysOfEfficiency.Utils;
+
 using Microsoft.Xna.Framework;
+
 using Netcode;
+
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
+
 using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Locations;
@@ -19,7 +24,6 @@ using StardewValley.Tools;
 namespace JoysOfEfficiency
 {
     using Player = Farmer;
-    using SVObject = StardewValley.Object;
     [SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
     internal class ModEntry : Mod
     {
@@ -171,11 +175,14 @@ namespace JoysOfEfficiency
                 List<NPC> npcList = player.currentLocation.characters.Where(a => a != null && a.isVillager()).ToList();
                 foreach (NPC npc in npcList)
                 {
-                    RectangleE npcRect = new RectangleE(npc.position.X,
+                    RectangleE npcRect = new RectangleE(
+                        npc.position.X,
                         npc.position.Y - npc.Sprite.getHeight() - Game1.tileSize / 1.5f,
-                        npc.Sprite.getWidth() * 3 + npc.Sprite.getWidth() / 1.5f, npc.Sprite.getHeight() * 3.5f);
+                        npc.Sprite.getWidth() * 3 + npc.Sprite.getWidth() / 1.5f,
+                        npc.Sprite.getHeight() * 3.5f);
 
-                    if (!npcRect.IsInternalPoint(Game1.getMouseX() + Game1.viewport.X,
+                    if (!npcRect.IsInternalPoint(
+                        Game1.getMouseX() + Game1.viewport.X,
                         Game1.getMouseY() + Game1.viewport.Y))
                     {
                         continue;
@@ -188,49 +195,45 @@ namespace JoysOfEfficiency
                         Friendship friendship = player.friendshipData[npc.Name];
                         if (friendship.GiftsThisWeek > 1)
                         {
-                            if (npc.isMarried() && npc.getSpouse().UniqueMultiplayerID == player.UniqueMultiplayerID)
-                            {
-                                //This character got married with the player, so ignore weekly restriction
-                            }
-                            else
+                            //Week restriction
+                            if (!npc.isMarried() || npc.getSpouse().UniqueMultiplayerID != player.UniqueMultiplayerID)
                             {
                                 key.Append("gavetwogifts.");
                                 _unableToGift = true;
                             }
                         }
-                        if (!_unableToGift)
+                        if (!_unableToGift && friendship.GiftsToday > 0)
                         {
-                            if (friendship.GiftsToday > 0)
+                            //Day restriction
+                            key.Append("gavetoday.");
+                            _unableToGift = true;
+                        }
+                        else if (npc.canReceiveThisItemAsGift(player.CurrentItem))
+                        {
+                            switch (npc.getGiftTasteForThisItem(player.CurrentItem))
                             {
-                                key.Append("gavetoday.");
-                                _unableToGift = true;
-                            }
-                            else if (npc.canReceiveThisItemAsGift(player.CurrentItem))
-                            {
-                                switch (npc.getGiftTasteForThisItem(player.CurrentItem))
-                                {
-                                    case 0:
-                                        key.Append("love.");
-                                        break;
-                                    case 2:
-                                        key.Append("like.");
-                                        break;
-                                    case 4:
-                                        key.Append("dislike.");
-                                        break;
-                                    case 6:
-                                        key.Append("hate.");
-                                        break;
-                                    default:
-                                        key.Append("neutral.");
-                                        break;
-                                }
-                            }
-                            else
-                            {
-                                return;
+                                case 0:
+                                    key.Append("love.");
+                                    break;
+                                case 2:
+                                    key.Append("like.");
+                                    break;
+                                case 4:
+                                    key.Append("dislike.");
+                                    break;
+                                case 6:
+                                    key.Append("hate.");
+                                    break;
+                                default:
+                                    key.Append("neutral.");
+                                    break;
                             }
                         }
+                        else
+                        {
+                            return;
+                        }
+
                         switch (npc.Gender)
                         {
                             case NPC.female:
@@ -447,7 +450,7 @@ namespace JoysOfEfficiency
                     Util.AutoFishing(bar);
                 }
             }
-            if (Conf.EstimateShippingPrice && Game1.activeClickableMenu is ItemGrabMenu menu && (menu.shippingBin || Util.IsCAShippingBinMenu(menu)))
+            if (Conf.EstimateShippingPrice && Game1.activeClickableMenu is ItemGrabMenu menu)
             {
                 Util.DrawShippingPrice(menu, Game1.smallFont);
             }
@@ -500,6 +503,7 @@ namespace JoysOfEfficiency
         {
             //Reset LastTimeOfDay
             LastTimeOfDay = Game1.timeOfDay;
+
             if (!Context.IsWorldReady || !Conf.AutoAnimalDoor)
             {
                 return;

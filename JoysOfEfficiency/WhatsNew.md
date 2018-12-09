@@ -129,3 +129,6 @@ This is a changelog from 1.0.22
 ## 1.2.9
 - Updated for SDV 1.3.32 and SMAPI 2.8
 - Changed bee flower protection to be a area protection.
+
+## 1.2.10
+- Updated Russian Text.

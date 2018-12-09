@@ -6,7 +6,6 @@ using StardewValley.Objects;
 
 namespace JoysOfEfficiency.Patches
 {
-    using Player = Farmer;
     [SuppressMessage("ReSharper", "UnusedMember.Local")]
     internal class FarmerPatcher
     {
