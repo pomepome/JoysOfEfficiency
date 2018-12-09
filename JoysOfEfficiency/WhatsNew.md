@@ -132,3 +132,4 @@ This is a changelog from 1.0.22
 
 ## 1.2.10
 - Updated Russian Text.
+- Updated for the latest SMAPI (>=2.9) events.

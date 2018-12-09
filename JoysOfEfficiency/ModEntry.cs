@@ -54,20 +54,20 @@ namespace JoysOfEfficiency
             Util.ModInstance = this;
             
             Conf = helper.ReadConfig<Config>();
+            IModEvents Events = Helper.Events;
 
-            InputEvents.ButtonPressed += OnButtonPressed;
+            Events.Input.ButtonPressed += OnButtonPressed;
 
-            GameEvents.UpdateTick += OnGameTick;
-            GameEvents.EighthUpdateTick += OnGameEighthUpdate;
+            Events.GameLoop.UpdateTicked += OnGameUpdateEvent;
             
-            GraphicsEvents.OnPostRenderHudEvent += OnPostRenderHud;
-            GraphicsEvents.OnPostRenderGuiEvent += OnPostRenderGui;
+            Events.Display.RenderedHud += OnPostRenderHud;
+            Events.Display.RenderedActiveMenu += OnPostRenderGui;
 
-            MenuEvents.MenuChanged += OnMenuChanged;
+            Events.Display.MenuChanged += OnMenuChanged;
             
-            SaveEvents.BeforeSave += OnBeforeSave;
+            Events.GameLoop.Saving += OnBeforeSave;
 
-            TimeEvents.AfterDayStarted += OnDayStarted;
+            Events.GameLoop.DayStarted += OnDayStarted;
 
             Conf.CpuThresholdFishing = Util.Cap(Conf.CpuThresholdFishing, 0, 0.5f);
             Conf.HealthToEatRatio = Util.Cap(Conf.HealthToEatRatio, 0.1f, 0.8f);
@@ -104,7 +104,7 @@ namespace JoysOfEfficiency
             MineIcons.Init(helper);
         }
 
-        private void OnMenuChanged(object sender, EventArgsClickableMenuChanged args)
+        private void OnMenuChanged(object sender, MenuChangedEventArgs args)
         {
             if (Conf.AutoLootTreasures && args.NewMenu is ItemGrabMenu menu)
             {
@@ -117,7 +117,17 @@ namespace JoysOfEfficiency
                 Util.CollectMailAttachmentsAndQuests(letter);
             }
         }
-        private void OnGameTick(object sender, EventArgs args)
+
+        private void OnGameUpdateEvent(object sender, UpdateTickedEventArgs args)
+        {
+            OnEveryUpdate();
+            if(args.IsMultipleOf(8))
+            {
+                OnGameEighthUpdate();
+            }
+        }
+
+        private void OnEveryUpdate()
         {
             if (!Context.IsWorldReady)
             {
@@ -249,7 +259,7 @@ namespace JoysOfEfficiency
             }
         }
 
-        private void OnGameEighthUpdate(object sender, EventArgs args)
+        private void OnGameEighthUpdate()
         {
             if(Game1.currentGameTime == null)
             {
@@ -395,7 +405,7 @@ namespace JoysOfEfficiency
             }
         }
 
-        private void OnButtonPressed(object sender, EventArgsInput args)
+        private void OnButtonPressed(object sender, ButtonPressedEventArgs args)
         {
             if (!Context.IsWorldReady)
             {

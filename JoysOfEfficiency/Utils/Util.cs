@@ -42,6 +42,60 @@ namespace JoysOfEfficiency.Utils
 
         #region Public EntryPoint
 
+        public static void LootAllAcceptableItems(ItemGrabMenu menu, bool skipCheck = false)
+        {
+            if (!skipCheck)
+            {
+                if (menu.shippingBin || IsCAShippingBinMenu(menu))
+                {
+                    Monitor.Log("Don't do anything with shipping bin", LogLevel.Trace);
+                    return;
+                }
+
+                if (menu.reverseGrab)
+                {
+                    Monitor.Log("You can't get item from this menu.", LogLevel.Trace);
+                    return;
+                }
+
+                if (menu.source == ItemGrabMenu.source_chest)
+                {
+                    Monitor.Log("Don't do anything with chest player placed", LogLevel.Trace);
+                    return;
+                }
+
+                if (menu.showReceivingMenu && menu.source == ItemGrabMenu.source_none)
+                {
+                    Monitor.Log("showReceivingMenu true but is not gift or fishing chest.", LogLevel.Trace);
+                    return;
+                }
+            }
+
+            for (int i = menu.ItemsToGrabMenu.actualInventory.Count - 1; i >= 0; i--)
+            {
+                if (i >= menu.ItemsToGrabMenu.actualInventory.Count)
+                {
+                    continue;
+                }
+                Item item = menu.ItemsToGrabMenu.actualInventory[i];
+                int oldStack = item.Stack;
+                int remain = AddItemIntoInventory(item);
+                int taken = oldStack - remain;
+                if (taken > 0)
+                {
+                    Monitor.Log($"You looted {item.DisplayName}{(taken == 1 ? "" : " x" + taken)}.");
+                }
+
+                if (remain == 0)
+                {
+                    menu.ItemsToGrabMenu.actualInventory.Remove(item);
+                    continue;
+                }
+
+                menu.ItemsToGrabMenu.actualInventory[i].Stack = remain;
+            }
+        }
+        
         public static void LetAnimalsInHome()
         {
             Farm farm = getFarm();
@@ -891,7 +945,6 @@ namespace JoysOfEfficiency.Utils
             }
             return null;
         }
-
 
         public static float Cap(float f, float min, float max)
         {
