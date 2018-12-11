@@ -40,6 +40,8 @@ namespace JoysOfEfficiency.Utils
 
         private static int LastItemIndex;
 
+        private static int AutoFishingCounter;
+
         #region Public EntryPoint
 
         public static void LootAllAcceptableItems(ItemGrabMenu menu, bool skipCheck = false)
@@ -149,6 +151,12 @@ namespace JoysOfEfficiency.Utils
 
         public static void AutoFishing(BobberBar bar)
         {
+            AutoFishingCounter = (AutoFishingCounter + 1) % 3;
+            if (AutoFishingCounter > 0)
+            {
+                return;
+            }
+
             IReflectionHelper reflection = Helper.Reflection;
 
             IReflectedField<float> bobberSpeed = reflection.GetField<float>(bar, "bobberBarSpeed");
@@ -431,7 +439,7 @@ namespace JoysOfEfficiency.Utils
                 bool accepted = obj.Name == "Furnace" ? CanFurnaceAcceptItem(item, player) : Utility.isThereAnObjectHereWhichAcceptsThisItem(currentLocation, item, (int)loc.X * tileSize, (int)loc.Y * tileSize);
                 if (obj is Cask)
                 {
-                    if (ModEntry.IsCoGOn)
+                    if (ModEntry.IsCoGOn || ModEntry.IsCAOn)
                     {
                         if (obj.performObjectDropInAction(item, true, player))
                         {

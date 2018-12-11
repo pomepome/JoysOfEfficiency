@@ -12,7 +12,14 @@ namespace JoysOfEfficiency.Patches
     {
         internal static bool Prefix(ref CraftingRecipe __instance)
         {
-            Dictionary<int, int> recipeList = Util.Helper.Reflection.GetField<Dictionary<int, int>>(__instance, "recipeList").GetValue();
+            //consumeIngredients
+            ConsumeIngredients(__instance);
+            return false;
+        }
+
+        private static void ConsumeIngredients(CraftingRecipe recipe)
+        {
+            Dictionary<int, int> recipeList = Util.Helper.Reflection.GetField<Dictionary<int, int>>(recipe, "recipeList").GetValue();
             foreach (KeyValuePair<int, int> kv in recipeList)
             {
                 int index = kv.Key;
@@ -32,9 +39,8 @@ namespace JoysOfEfficiency.Patches
                         }
                     }
                 }
-
-                List<Chest> chests = Util.GetNearbyChests(Game1.player);
-                foreach (Chest chest in new List<Chest>(chests))
+                
+                foreach (Chest chest in Util.GetNearbyChests(Game1.player))
                 {
                     //Search for the chests
                     foreach (Item chestItem in new List<Item>(chest.items))
@@ -50,10 +56,8 @@ namespace JoysOfEfficiency.Patches
                             }
                         }
                     }
-                    
                 }
             }
-            return false;
         }
     }
 }

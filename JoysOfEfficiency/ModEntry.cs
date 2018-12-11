@@ -29,6 +29,7 @@ namespace JoysOfEfficiency
     {
         public static bool IsCoGOn { get; private set; }
         public static bool IsCCOn { get; private set; }
+        public static bool IsCAOn { get; private set; }
 
         public static Config Conf { get; private set; }
 
@@ -89,6 +90,13 @@ namespace JoysOfEfficiency
                 Monitor.Log("CasksOnGround detected.");
                 IsCoGOn = true;
             }
+
+            if (ModChecker.IsCALoaded(helper))
+            {
+                Monitor.Log("CasksAnywhere detected.");
+                IsCAOn = true;
+            }
+
             if (ModChecker.IsCCLoaded(helper))
             {
                 Monitor.Log("Convenient Chests detected. JOE's CraftingFromChests feature will be disabled and won't patch the game.");
