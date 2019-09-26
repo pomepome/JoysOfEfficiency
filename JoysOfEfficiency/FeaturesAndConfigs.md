@@ -62,6 +62,16 @@ AutoDigArtifactSpot, AutoDepositIngredient, and AutoPullMachineResult.***
 
 - FindCanFromInventory("Automation", bool, default:true) - Find Can from entire inventory or just held by player.
 
+## Auto Refill Watering Can
+You can refill your watering can automatically when you are beside the water source.
+
+**[CONFIG]**
+
+- AutoWaterNearbyCrops("Automation", bool, default:true) - whether this utility is enabled.  ﻿
+
+
+- AutoWaterRadius("Automation", int, default:1) - How far tiles can be  affected by this utility.  
+
 ## Gift Information Tooltip
 ![](https://i.imgur.com/NOYidaU.gif)
 

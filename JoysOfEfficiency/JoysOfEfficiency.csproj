@@ -71,12 +71,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Config.cs" />
-    <Compile Include="CustomSorter.cs" />
-    <Compile Include="JoeMenu.cs" />
-    <Compile Include="MineIcons.cs" />
+    <Compile Include="Core\Config.cs" />
+    <Compile Include="ModMenu\JoeMenu.cs" />
+    <Compile Include="Core\MineIcons.cs" />
     <Compile Include="ModCheckers\ModChecker.cs" />
-    <Compile Include="ModEntry.cs" />
+    <Compile Include="Core\ModEntry.cs" />
     <Compile Include="OptionsElements\EmptyLabel.cs" />
     <Compile Include="OptionsElements\LabelComponent.cs" />
     <Compile Include="OptionsElements\MenuTab.cs" />
@@ -93,7 +92,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="RectangleE.cs" />
+    <Compile Include="Core\RectangleE.cs" />
     <Compile Include="Utils\Util.cs" />
   </ItemGroup>
   <ItemGroup>

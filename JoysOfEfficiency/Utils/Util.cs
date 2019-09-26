@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using JoysOfEfficiency.Core;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Netcode;
@@ -460,7 +461,7 @@ namespace JoysOfEfficiency.Utils
                     continue;
 
                 obj.performObjectDropInAction(item, false, player);
-                if (obj.Name != "Furnace" || item.getStack() == 0)
+                if (!(obj.Name == "Furnace" || obj.Name == "Charcoal Kiln") || item.getStack() == 0)
                 {
                     player.reduceActiveItemByOne();
                 }
@@ -1636,6 +1637,11 @@ namespace JoysOfEfficiency.Utils
                     return false;
             }
             return true;
+        }
+
+        private static bool CanKilnAcceptThisItem(Item item)
+        {
+            return item.ParentSheetIndex == 388 && item.Stack >= 10;
         }
         private static void DrawProbBox(Dictionary<int, double> probs)
         {
