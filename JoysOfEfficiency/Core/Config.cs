@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using StardewModdingAPI;
 
-namespace JoysOfEfficiency
+namespace JoysOfEfficiency.Core
 {
     internal class Config
     {
@@ -64,9 +64,11 @@ namespace JoysOfEfficiency
         public bool AutoPullMachineResult { get; set; } = true;
         public int MachineRadius { get; set; } = 1;
 
+        //Fishing Probabilities
         public bool FishingProbabilitiesInfo { get; set; } = false;
-        public int ProbBoxX { get; set; } = 100;
-        public int ProbBoxY { get; set; } = 400;
+        public Point ProbBoxCoordinates { get; set; } = new Point(100,400);
+        public bool MorePreciseProbabilities { get; set; } = true;
+        public int TrialOfExamine { get; set; } = 10;
 
         public bool CraftingFromChests { get; set; } = false;
         public int RadiusCraftingFromChests { get; set; } = 3;

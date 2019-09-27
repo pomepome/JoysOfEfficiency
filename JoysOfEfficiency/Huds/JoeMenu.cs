@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using JoysOfEfficiency.Core;
 using JoysOfEfficiency.OptionsElements;
 using JoysOfEfficiency.Utils;
 using Microsoft.Xna.Framework;
@@ -9,7 +10,7 @@ using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Menus;
 
-namespace JoysOfEfficiency
+namespace JoysOfEfficiency.ModMenu
 {
     internal class JoeMenu : IClickableMenu
     {
@@ -181,6 +182,7 @@ namespace JoysOfEfficiency
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Config Menu"));
                 tab.AddOptionsElement(new ModifiedCheckBox("FilterBackgroundInMenu", 32, ModEntry.Conf.FilterBackgroundInMenu, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("ShowMousePositionWhenAssigningLocation", 38, ModEntry.Conf.ShowMousePositionWhenAssigningLocation, OnCheckboxValueChanged));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Mine Info GUI"));
@@ -197,7 +199,9 @@ namespace JoysOfEfficiency
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Fishing Probabilities Information"));
                 tab.AddOptionsElement(new ModifiedCheckBox("FishingProbabilitiesInfo", 26, ModEntry.Conf.FishingProbabilitiesInfo, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedClickListener(this, "ProbBoxLocation", 0, ModEntry.Conf.ProbBoxX, ModEntry.Conf.ProbBoxY, translation, OnSomewhereClicked, OnStartListeningClick));
+                tab.AddOptionsElement(new ModifiedClickListener(this, "ProbBoxLocation", 0, ModEntry.Conf.ProbBoxCoordinates.X, ModEntry.Conf.ProbBoxCoordinates.Y, translation, OnSomewhereClicked, OnStartListeningClick));
+                tab.AddOptionsElement(new ModifiedCheckBox("MorePreciseProbabilities", 37, ModEntry.Conf.MorePreciseProbabilities, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedSlider("TrialOfExamine", 15, ModEntry.Conf.TrialOfExamine, 1, 10, OnSliderValueChanged, () => !ModEntry.Conf.FishingProbabilitiesInfo && ModEntry.Conf.MorePreciseProbabilities));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Show Shipping Price"));
@@ -262,8 +266,7 @@ namespace JoysOfEfficiency
             switch (index)
             {
                 case 0:
-                    ModEntry.Conf.ProbBoxX = point.X;
-                    ModEntry.Conf.ProbBoxY = point.Y;
+                    ModEntry.Conf.ProbBoxCoordinates = point;
                     break;
                 default: return;
             }
@@ -321,6 +324,8 @@ namespace JoysOfEfficiency
                 case 34: ModEntry.Conf.AutoPickUpTrash = value; break;
                 case 35: ModEntry.Conf.AutoShearingAndMilking = value; break;
                 case 36: ModEntry.Conf.CollectLetterAttachmentsAndQuests = value; break;
+                case 37: ModEntry.Conf.MorePreciseProbabilities = value; break;
+                case 38: ModEntry.Conf.ShowMousePositionWhenAssigningLocation = value; break;
                 default: return;
             }
             _mod.WriteConfig();
@@ -343,6 +348,7 @@ namespace JoysOfEfficiency
                 case 12: ModEntry.Conf.IdleTimeout = value; break;
                 case 13: ModEntry.Conf.ScavengingRadius = value; break;
                 case 14: ModEntry.Conf.AnimalHarvestRadius = value; break;
+                case 15: ModEntry.Conf.TrialOfExamine = value; break;
                 default: return;
             }
 
@@ -362,7 +368,7 @@ namespace JoysOfEfficiency
         {
             base.update(time);
             _upCursor.visible = _firstIndex > 0;
-            _downCursor.visible = _firstIndex < GetLastViewableIndex();
+            _downCursor.visible = _firstIndex < GetLastVisibleIndex();
         }
 
         public override void gamePadButtonHeld(Buttons b)
@@ -429,6 +435,9 @@ namespace JoysOfEfficiency
             }
         }
 
+        /// <summary>
+        /// Called when down cursor button pushed.
+        /// </summary>
         private void DownCursor()
         {
             Game1.playSound("shwip");
@@ -436,6 +445,9 @@ namespace JoysOfEfficiency
             ChengeIndexOfScrollBar(_firstIndex);
         }
 
+        /// <summary>
+        /// Called when up cursor button pushed.
+        /// </summary>
         private void UpCursor()
         {
             Game1.playSound("shwip");
@@ -443,12 +455,17 @@ namespace JoysOfEfficiency
             ChengeIndexOfScrollBar(_firstIndex);
         }
 
+        /// <summary>
+        /// Mouse wheel rotated.
+        /// </summary>
+        /// <param name="direction">amount and direction of the rotation</param>
         public override void receiveScrollWheelAction(int direction)
         {
             if (_isListening || _isListeningClick)
             {
                 return;
             }
+
             //Scroll with Mouse Wheel
             if (direction > 0 && _upCursor.visible)
             {
@@ -460,43 +477,59 @@ namespace JoysOfEfficiency
             }
         }
 
+        /// <summary>
+        /// Draw components.
+        /// </summary>
+        /// <param name="b">SpriteBatch instance to draw.</param>
         public override void draw(SpriteBatch b)
         {
             if (ModEntry.Conf.FilterBackgroundInMenu)
             {
+                //Darken background.
                 b.Draw(Game1.fadeToBlackRect, new Rectangle(0, 0, Game1.viewport.Width, Game1.viewport.Height), Color.Black * 0.5f);
             }
 
             const int x = 16;
             int y = 16;
 
+            //Draw 'Automation' tab.
             drawTextureBox(b, _tabAutomation.Left, _tabAutomation.Top, _tabAutomation.Width, _tabAutomation.Height, Color.White * (_tabIndex == 0 ? 1.0f : 0.6f));
             b.DrawString(Game1.smallFont, _tabAutomationString, new Vector2(_tabAutomation.Left + 16, _tabAutomation.Top + (_tabAutomation.Height - _font.MeasureString(_tabAutomationString).Y) / 2), Color.Black * (_tabIndex == 0 ? 1.0f : 0.6f));
 
+            //Draw 'Automation' tab.
             drawTextureBox(b, _tabUIs.Left, _tabUIs.Top, _tabUIs.Width, _tabUIs.Height, Color.White * (_tabIndex == 1 ? 1.0f : 0.6f));
             b.DrawString(Game1.smallFont, _tabUIsString, new Vector2(_tabUIs.Left + 16, _tabUIs.Top + (_tabUIs.Height - _font.MeasureString(_tabUIsString).Y) / 2), Color.Black * (_tabIndex == 1 ? 1.0f : 0.6f));
 
+            //Draw 'Automation' tab.
             drawTextureBox(b, _tabMisc.Left, _tabMisc.Top, _tabMisc.Width, _tabMisc.Height, Color.White * (_tabIndex == 2 ? 1.0f : 0.6f));
             b.DrawString(Game1.smallFont, _tabMiscString, new Vector2(_tabMisc.Left + 16, _tabMisc.Top + (_tabMisc.Height - _font.MeasureString(_tabMiscString).Y) / 2), Color.Black * (_tabIndex == 2 ? 1.0f : 0.6f));
 
+            //Draw 'Automation' tab.
             drawTextureBox(b, _tabControls.Left, _tabControls.Top, _tabControls.Width, _tabControls.Height, Color.White * (_tabIndex == 3 ? 1.0f : 0.6f));
             b.DrawString(Game1.smallFont, _tabControlsString, new Vector2(_tabControls.Left + 16, _tabControls.Top + (_tabControls.Height - _font.MeasureString(_tabControlsString).Y) / 2), Color.Black * (_tabIndex == 3 ? 1.0f : 0.6f));
 
+            //Draw window frame.
             drawTextureBox(b, Game1.menuTexture, new Rectangle(0, 256, 60, 60), xPositionOnScreen, yPositionOnScreen, width, height, Color.White, 1.0f, false);
             base.draw(b);
 
             if(!CanDrawAll(0))
             {
+                // All option elements can't be drawn at once.
+                // Enabling the scroll bar.
+
                 _scrollBar.visible = true;
                 drawTextureBox(b, Game1.mouseCursors, new Rectangle(403, 383, 6, 6), _scrollBarRunner.X, _scrollBarRunner.Y, _scrollBarRunner.Width, _scrollBarRunner.Height, Color.White, 4f, false);
                 _scrollBar.draw(b);
             }
             else
             {
+                //Disabling the scroll bar.
+
                 _scrollBar.visible = false;
             }
 
             {
+                // Draw the window title (JoE Settings).
                 int x2 = (Game1.viewport.Width - 400) / 2;
                 drawTextureBox(b, x2, yPositionOnScreen - 108, 400, 100, Color.White);
 
@@ -508,14 +541,18 @@ namespace JoysOfEfficiency
 
             foreach (OptionsElement element in GetElementsToShow())
             {
+                // Draw each option elements.
                 element.draw(b, x + xPositionOnScreen, y + yPositionOnScreen);
                 y += element.bounds.Height + 16;
             }
+
+            //Draw scroll cursors.
             _upCursor.draw(b);
             _downCursor.draw(b);
 
             if (_isListening)
             {
+                //Draw the window of active ModifiedInputListener.
                 Point size = _listener.GetListeningMessageWindowSize();
                 drawTextureBox(b, (Game1.viewport.Width - size.X) / 2, (Game1.viewport.Height - size.Y) / 2, size.X, size.Y, Color.White);
                 _listener.DrawStrings(b, (Game1.viewport.Width - size.X) / 2, (Game1.viewport.Height - size.Y) / 2);
@@ -523,6 +560,7 @@ namespace JoysOfEfficiency
 
             if (_isListeningClick)
             {
+                //Draw the window of active ModifiedClickListener.
                 Point size = _clickListener.GetListeningMessageWindowSize();
                 drawTextureBox(b, (Game1.viewport.Width - size.X) / 2, (Game1.viewport.Height - size.Y) / 2, size.X, size.Y, Color.White);
                 _clickListener.DrawStrings(b, (Game1.viewport.Width - size.X) / 2, (Game1.viewport.Height - size.Y) / 2);
@@ -540,7 +578,7 @@ namespace JoysOfEfficiency
 
         private void ChengeIndexOfScrollBar(int index)
         {
-            int maxIndex = GetLastViewableIndex();
+            int maxIndex = GetLastVisibleIndex();
             _firstIndex = index;
             _scrollBar.bounds.Y = _scrollBarRunner.Top + (int)(index * ((float)(_scrollBarRunner.Height - _scrollBar.bounds.Height) / maxIndex));
             if (index == maxIndex)
@@ -553,7 +591,7 @@ namespace JoysOfEfficiency
         {
             if (_isScrolling && _scrollBar.visible && _scrollBarRunner.Contains(x, y))
             {
-                int maxIndex = GetLastViewableIndex();
+                int maxIndex = GetLastVisibleIndex();
                 int index = (int)((y - _scrollBarRunner.Top - _scrollBar.bounds.Height / 2) / ((double)(_scrollBarRunner.Height - _scrollBar.bounds.Height) / maxIndex) * 1.025);
                 index = (int)Util.Cap(index, 0, maxIndex);
                 if (_firstIndex != index)
@@ -602,6 +640,9 @@ namespace JoysOfEfficiency
             }
         }
 
+        /// <summary>
+        /// Close the menu and return to the game.
+        /// </summary>
         private static void CloseMenu()
         {
             if (Game1.activeClickableMenu is JoeMenu)
@@ -698,6 +739,10 @@ namespace JoysOfEfficiency
             }
         }
 
+        /// <summary>
+        ///  Returns which elements should be drawn.
+        /// </summary>
+        /// <returns>The elements that can be drawn</returns>
         public List<OptionsElement> GetElementsToShow()
         {
             List<OptionsElement> menuElements = _tabs[_tabIndex].GetElements();
@@ -720,6 +765,11 @@ namespace JoysOfEfficiency
             return elements;
         }
 
+        /// <summary>
+        /// Can all elements from firstIndex be drawn?
+        /// </summary>
+        /// <param name="firstIndex">first index of element that be tested firstly.</param>
+        /// <returns>If true, all elements can be drawn</returns>
         public bool CanDrawAll(int firstIndex = -1)
         {
             if (firstIndex < 0)
@@ -744,7 +794,11 @@ namespace JoysOfEfficiency
             return true;
         }
 
-        private int GetLastViewableIndex()
+        /// <summary>
+        /// Gets the index that the last element can be drawn.
+        /// </summary>
+        /// <returns>the index</returns>
+        private int GetLastVisibleIndex()
         {
             int index = 0;
             while (!CanDrawAll(index))
@@ -754,6 +808,10 @@ namespace JoysOfEfficiency
             return index;
         }
 
+        /// <summary>
+        /// Try changing tab to a specified tab. 
+        /// </summary>
+        /// <param name="which">Which tab index to change.</param>
         private void TryToChangeTab(int which)
         {
             if (_tabIndex != which)

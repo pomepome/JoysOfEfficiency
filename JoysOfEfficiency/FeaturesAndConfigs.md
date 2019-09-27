@@ -26,6 +26,7 @@ You can't disable this feature because it's a core feature.
 
 - FilterBackgroundInMenu("UIs", bool, default:true) - When config menu is opened, outside of it will be darker like inventory menu.
 
+- ShowMousePositionWhenAssigningLocation("UIs", bool, default:true) - When assigning coordinates of window, shows mouse cursor's position.
 
 ## Balanced Mode
 ﻿Did you thought following utilities are a bit cheaty?
@@ -63,23 +64,17 @@ AutoDigArtifactSpot, AutoDepositIngredient, and AutoPullMachineResult.***
 - FindCanFromInventory("Automation", bool, default:true) - Find Can from entire inventory or just held by player.
 
 ## Auto Refill Watering Can
-You can refill your watering can automatically when you are beside the water source.
+You can refill your watering can automatically from nearby water source.
 
 **[CONFIG]**
 
-- AutoWaterNearbyCrops("Automation", bool, default:true) - whether this utility is enabled.  ﻿
-
-
-- AutoWaterRadius("Automation", int, default:1) - How far tiles can be  affected by this utility.  
+- AutoRefillWateringCan("Automation", bool, default:true) - whether this utility is enabled.  ﻿
 
 ## Gift Information Tooltip
 ![](https://i.imgur.com/NOYidaU.gif)
 
 ﻿﻿﻿
 ﻿﻿With this utility, you can check how much do villagers like, dislike the gift before giving it to them.
-﻿Text will be localized to languages supported by Stardew Valley itself.
-__(English, German, Japanese, Portuguese, 
-﻿Spanish,﻿﻿ Russian, Simplified Chinese)__
 
 ﻿
 **[CONFIG]**
@@ -244,10 +239,13 @@ MachineRadius("Automation", int, default:1) - How far tiles can be affected by t
 - FishingProbabilitiesInfo("UIs", bool, default:false) - whether this utility is enabled.
 ﻿
 
-- ProbBoxX("UIs", int, default:100) - Base X location of the information box .
-﻿
+- ProbBoxCoordinates("UIs", Point, default:[100,400]) - Top-left coordinates of the window.
 
-- ProbBoxY("UIs", int, default:500) - Base Y location of the information box.
+
+- MorePreciseProbabilities("UIs", bool, default:true) - Displays more plactical and precise probabiilities.
+
+
+- TrialOfExamine("UIs", int, default:10 min:1 max:10) - Trial number of computing probabilities.
 
 ## Crafting From Chests
 This feature lets player craft using contents of nearby chests or fridge as ingredients.
@@ -348,7 +346,7 @@ It helps you not to waste in-game time when idling.
 This feature searches trash can and pick up trash without being detected.
 
 
-- PauseWhenIdle("Automation", bool, default:false) - whether this utility is enabled.
+- AutoPickUpTrash("Automation", bool, default:false) - whether this utility is enabled.
 
 
 - ScavengingRadius("Automation", int, default:2 min:1 max:3) - How far tiles can be affected by this utility.

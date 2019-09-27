@@ -142,4 +142,7 @@ This is a changelog from 1.0.22
 ## 1.2.12
 - Edited FeaturesAndConfigs.md, so you can now see full list of features.
 - Fixed Charcole Kiln consumed 1 extra wood when you used Auto Deposit Ingredients option.
-- Rearranged code folders and namespaces.
+- Rearranged folders and namespaces.
+- Fixed some configs did not documented on FeaturesAndConfigs.md .
+- Use Point type in config.json .
+- Added MorePreciseProbabilities and TrialOfExamine option to FishingProbabilitiesInfo.

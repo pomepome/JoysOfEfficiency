@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
-
+using JoysOfEfficiency.Huds;
 using JoysOfEfficiency.ModCheckers;
+using JoysOfEfficiency.ModMenu;
 using JoysOfEfficiency.Patches;
 using JoysOfEfficiency.Utils;
 
@@ -21,7 +22,7 @@ using StardewValley.Locations;
 using StardewValley.Menus;
 using StardewValley.Tools;
 
-namespace JoysOfEfficiency
+namespace JoysOfEfficiency.Core
 {
     using Player = Farmer;
     [SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
@@ -34,9 +35,7 @@ namespace JoysOfEfficiency
         public static Config Conf { get; private set; }
 
         public static IModHelper ModHelper { get; private set; }
-
-        private bool _unableToGift;
-        private string _hoverText;
+        
 
         private bool _dayEnded;
 
@@ -84,6 +83,7 @@ namespace JoysOfEfficiency
             Conf.IdleTimeout = (int) Util.Cap(Conf.IdleTimeout, 1, 300);
             Conf.ScavengingRadius = (int) Util.Cap(Conf.ScavengingRadius, 1, 3);
             Conf.AnimalHarvestRadius = (int) Util.Cap(Conf.AnimalHarvestRadius, 1, 3);
+            Conf.TrialOfExamine = (int) Util.Cap(Conf.TrialOfExamine, 1, 10);
 
             if(ModChecker.IsCoGLoaded(helper))
             {
@@ -174,97 +174,18 @@ namespace JoysOfEfficiency
                 _paused = false;
             }
 
-            _hoverText = null;
-
             Player player = Game1.player;
             if(Conf.AutoGate)
             {
                 Util.TryToggleGate(player);
             }
 
-            if (Conf.GiftInformation)
+            if (player.CurrentTool is FishingRod rod)
             {
-                _unableToGift = false;
-                if (player.CurrentItem == null || !player.CurrentItem.canBeGivenAsGift() || player.currentLocation == null || player.currentLocation.characters.Count == 0)
-                {
-                    return;
-                }
-
-                List<NPC> npcList = player.currentLocation.characters.Where(a => a != null && a.isVillager()).ToList();
-                foreach (NPC npc in npcList)
-                {
-                    RectangleE npcRect = new RectangleE(
-                        npc.position.X,
-                        npc.position.Y - npc.Sprite.getHeight() - Game1.tileSize / 1.5f,
-                        npc.Sprite.getWidth() * 3 + npc.Sprite.getWidth() / 1.5f,
-                        npc.Sprite.getHeight() * 3.5f);
-
-                    if (!npcRect.IsInternalPoint(
-                        Game1.getMouseX() + Game1.viewport.X,
-                        Game1.getMouseY() + Game1.viewport.Y))
-                    {
-                        continue;
-                    }
-
-                    //Mouse hovered on the NPC
-                    StringBuilder key = new StringBuilder("taste.");
-                    if (player.friendshipData.ContainsKey(npc.Name) && Game1.NPCGiftTastes.ContainsKey(npc.Name))
-                    {
-                        Friendship friendship = player.friendshipData[npc.Name];
-                        if (friendship.GiftsThisWeek > 1)
-                        {
-                            //Week restriction
-                            if (!npc.isMarried() || npc.getSpouse().UniqueMultiplayerID != player.UniqueMultiplayerID)
-                            {
-                                key.Append("gavetwogifts.");
-                                _unableToGift = true;
-                            }
-                        }
-                        if (!_unableToGift && friendship.GiftsToday > 0)
-                        {
-                            //Day restriction
-                            key.Append("gavetoday.");
-                            _unableToGift = true;
-                        }
-                        else if (npc.canReceiveThisItemAsGift(player.CurrentItem))
-                        {
-                            switch (npc.getGiftTasteForThisItem(player.CurrentItem))
-                            {
-                                case 0:
-                                    key.Append("love.");
-                                    break;
-                                case 2:
-                                    key.Append("like.");
-                                    break;
-                                case 4:
-                                    key.Append("dislike.");
-                                    break;
-                                case 6:
-                                    key.Append("hate.");
-                                    break;
-                                default:
-                                    key.Append("neutral.");
-                                    break;
-                            }
-                        }
-                        else
-                        {
-                            return;
-                        }
-
-                        switch (npc.Gender)
-                        {
-                            case NPC.female:
-                                key.Append("female");
-                                break;
-                            default:
-                                key.Append("male");
-                                break;
-                        }
-                        _hoverText = Helper.Translation.Get(key.ToString());
-                    }
-                }
+                FishingProbabilitiesBox.UpdateProbabilities(rod);
             }
+
+            GiftInformationTooltip.UpdateTooltip();
         }
 
         private void OnGameEighthUpdate()
@@ -318,7 +239,7 @@ namespace JoysOfEfficiency
                     Util.TryToEatIfNeeded(player);
                 }
                 _ticks = (_ticks + 1) % 8;
-                if(Conf.BalancedMode && _ticks % 8 != 0)
+                if(Conf.BalancedMode && _ticks != 0)
                 {
                     return;
                 }
@@ -441,13 +362,13 @@ namespace JoysOfEfficiency
             {
                 Util.DrawMineGui(Game1.spriteBatch, Game1.smallFont, Game1.player, shaft);
             }
-            if (Context.IsPlayerFree && !string.IsNullOrEmpty(_hoverText) && Game1.player.CurrentItem != null)
+            if (Conf.GiftInformation)
             {
-                Util.DrawSimpleTextbox(Game1.spriteBatch, _hoverText, Game1.dialogueFont, this, false, _unableToGift ? null : Game1.player.CurrentItem);
+                GiftInformationTooltip.DrawTooltip(this);
             }
             if (Conf.FishingProbabilitiesInfo && Game1.player.CurrentTool is FishingRod rod && rod.isFishing)
             {
-                Util.PrintFishingInfo(rod);
+                FishingProbabilitiesBox.PrintFishingInfo(rod);
             }
             if (_paused && Conf.PauseWhenIdle)
             {

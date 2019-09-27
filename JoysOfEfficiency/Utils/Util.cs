@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using JoysOfEfficiency.Core;
+using JoysOfEfficiency.Huds;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Netcode;
@@ -254,7 +256,7 @@ namespace JoysOfEfficiency.Utils
                 player.gainExperience(0, 5);
             }
         }
-
+        
         public static void TryCloseItemGrabMenu(ItemGrabMenu menu)
         {
             if (!menu.areAllItemsTaken() || menu.heldItem != null)
@@ -779,7 +781,7 @@ namespace JoysOfEfficiency.Utils
             int width = 0, height = 120;
 
 
-            float scale = 1.0f;
+            float scale = LocalizedContentManager.CurrentLanguageCode == LocalizedContentManager.LanguageCode.en ? 1.2f : 1.0f;
 
 
             int whitchFish = reflection.GetField<int>(bar, "whichFish").GetValue();
@@ -997,19 +999,6 @@ namespace JoysOfEfficiency.Utils
         }
 
 
-        public static void ShowHudMessageWithIcon(string message, Item icon, int number = -1, int duration = 3500)
-        {
-            if (number == -1)
-            {
-                number = icon.Stack;
-            }
-            HUDMessage hudMessage = new HUDMessage(message, number, true, Color.Black, icon)
-            {
-                timeLeft = duration
-            };
-            addHUDMessage(hudMessage);
-        }
-
         public static Rectangle Expand(Rectangle rect, int radius)
         {
             return new Rectangle(rect.Left - radius, rect.Top - radius, 2 * radius, 2 * radius);
@@ -1087,18 +1076,6 @@ namespace JoysOfEfficiency.Utils
                 return t;
             }
             return findFromInventory ? player.Items.OfType<T>().FirstOrDefault() : null;
-        }
-
-        public static void PrintFishingInfo(FishingRod rod)
-        {
-            GameLocation location = currentLocation;
-            bool flag = false;
-            Rectangle rectangle = new Rectangle(location.fishSplashPoint.X * 64, location.fishSplashPoint.Y * 64, 64, 64);
-            Rectangle value = new Rectangle((int)rod.bobber.X - 80, (int)rod.bobber.Y - 80, 64, 64);
-            flag = rectangle.Intersects(value);
-            int clearWaterDistance = Helper.Reflection.GetField<int>(rod, "clearWaterDistance").GetValue();
-            Dictionary<int, double> dict = GetFishes(currentLocation, rod.attachments[0]?.ParentSheetIndex ?? -1, clearWaterDistance + (flag ? 1 : 0), player);
-            DrawProbBox(dict);
         }
 
         public static List<T> GetObjectsWithin<T>(int radius) where T : SVObject
@@ -1639,306 +1616,6 @@ namespace JoysOfEfficiency.Utils
             return true;
         }
 
-        private static bool CanKilnAcceptThisItem(Item item)
-        {
-            return item.ParentSheetIndex == 388 && item.Stack >= 10;
-        }
-        private static void DrawProbBox(Dictionary<int, double> probs)
-        {
-            SpriteBatch b = spriteBatch;
-            Size size = GetProbBoxSize(probs);
-            IClickableMenu.drawTextureBox(spriteBatch, ModEntry.Conf.ProbBoxX, ModEntry.Conf.ProbBoxY, size.Width, size.Height, Color.White);
-            const int square = (int)(tileSize / 1.5);
-            int x = ModEntry.Conf.ProbBoxX + 8;
-            int y = ModEntry.Conf.ProbBoxY + 16;
-            SpriteFont font = dialogueFont;
-            {
-                foreach (KeyValuePair<int, double> kv in probs)
-                {
-                    string text = $"{kv.Value * 100:f1}%";
-                    SVObject fish = new SVObject(kv.Key, 1);
-
-                    fish.drawInMenu(b, new Vector2(x + 8, y), 1.0f);
-                    Utility.drawTextWithShadow(b, text, font, new Vector2(x + 32 + square, y + 16), Color.Black);
-
-                    y += square + 16;
-                }
-            }
-        }
-
-        private static Size GetProbBoxSize(Dictionary<int, double> probs)
-        {
-            int width = 16, height = 48;
-            int square = (int)(tileSize / 1.5);
-            SpriteFont font = dialogueFont;
-            {
-                foreach (KeyValuePair<int, double> kv in probs)
-                {
-                    string text = $"{kv.Value * 100:f1}%";
-                    Vector2 textSize = font.MeasureString(text);
-                    int w = square + (int)textSize.X + 64;
-                    if (w > width)
-                    {
-                        width = w;
-                    }
-                    height += square + 16;
-                }
-            }
-            return new Size(width, height);
-        }
-
-        private static Dictionary<int, double> GetFinalProbabilities(Dictionary<int, double> dict)
-        {
-            Dictionary<int, double> result = new Dictionary<int, double>();
-            double ratio = 1.0;
-            foreach (KeyValuePair<int, double> kv in dict)
-            {
-                double d = kv.Value * ratio;
-                result.Add(kv.Key, d);
-                ratio = ratio * (1 - kv.Value);
-            }
-
-            return result;
-        }
-
-        private static Dictionary<int, double> MagnifyProbabilities(Dictionary<int, double> dict, double ratio)
-        {
-            Dictionary<int, double> result = new Dictionary<int, double>();
-            foreach (KeyValuePair<int, double> kv in dict)
-                result.Add(kv.Key, kv.Value * ratio);
-
-            return result;
-        }
-
-        private static Dictionary<K, V> ConcatDictionary<K, V>(Dictionary<K, V> a, Dictionary<K, V> b)
-        {
-            return a.Concat(b).ToDictionary(x => x.Key, x => x.Value);
-        }
-
-        private static Dictionary<int, double> GetFishes(GameLocation location, int bait, int waterDepth, Player who)
-        {
-            double sum = 0;
-            Dictionary<int, double> dict;
-            switch (location)
-            {
-                case Farm _:
-                    dict = GetFishesFarm(waterDepth, who);
-                    break;
-                case MineShaft shaft:
-                    dict = GetFishesMine(shaft, bait, waterDepth, who);
-                    break;
-                case Submarine _:
-                    dict = GetFishesSubmarine();
-                    break;
-                default:
-                    dict = GetFishes(waterDepth, who);
-                    break;
-            }
-
-
-            Dictionary<int, double> dict2 =
-                GetFinalProbabilities(dict).OrderByDescending(x => x.Value)
-                    .Where(kv => !IsGarbage(kv.Key)).ToDictionary(x => x.Key, x => x.Value);
-            sum = dict2.Sum(kv => kv.Value);
-            if (1 - sum >= 0.001f)
-            {
-                dict2.Add(168, 1 - sum);
-            }
-            return dict2;
-        }
-
-        private static bool IsGarbage(int index)
-        {
-            if (index >= 167 && index <= 172)
-            {
-                return true;
-            }
-            switch (index)
-            {
-                case 152:
-                case 153:
-                case 157: return true;
-            }
-            return false;
-        }
-
-        private static Dictionary<int, double> GetFishes(int waterDepth, Player who, string locationName = null)
-        {
-            Dictionary<int, double> dict = new Dictionary<int, double>();
-
-            Dictionary<string, string> dictionary = content.Load<Dictionary<string, string>>("Data\\Locations");
-            string key = locationName ?? currentLocation.Name;
-            if (key.Equals("WitchSwamp") && !MasterPlayer.mailReceived.Contains("henchmanGone") && !player.hasItemInInventory(308, 1))
-            {
-                return new Dictionary<int, double>
-                {
-                    {308,0.25}
-                };
-            }
-
-            try
-            {
-                if (dictionary.ContainsKey(key))
-                {
-                    string[] array = dictionary[key].Split('/')[4 + Utility.getSeasonNumber(currentSeason)].Split(' ');
-                    Dictionary<string, string> dictionary2 = new Dictionary<string, string>();
-                    if (array.Length > 1)
-                    {
-                        for (int i = 0; i < array.Length; i += 2)
-                        {
-                            dictionary2.Add(array[i], array[i + 1]);
-                        }
-                    }
-
-                    string[] array2 = dictionary2.Keys.ToArray();
-                    Dictionary<int, string> dictionary3 = content.Load<Dictionary<int, string>>("Data\\Fish");
-                    //Utility.Shuffle(random, array2);
-                    foreach (string t in array2)
-                    {
-                        bool flag2 = true;
-                        string[] array3 = dictionary3[Convert.ToInt32(t)].Split('/');
-                        string[] array4 = array3[5].Split(' ');
-                        int num2 = Convert.ToInt32(dictionary2[t]);
-                        if (num2 == -1 || currentLocation.getFishingLocation(who.getTileLocation()) == num2)
-                        {
-                            int num3 = 0;
-                            while (num3 < array4.Length)
-                            {
-                                if (timeOfDay < Convert.ToInt32(array4[num3]) ||
-                                    timeOfDay >= Convert.ToInt32(array4[num3 + 1]))
-                                {
-                                    num3 += 2;
-                                    continue;
-                                }
-
-                                flag2 = false;
-                                break;
-                            }
-                        }
-
-                        if (!array3[7].Equals("both"))
-                        {
-                            if (array3[7].Equals("rainy") && !isRaining)
-                            {
-                                flag2 = true;
-                            }
-                            else if (array3[7].Equals("sunny") && isRaining)
-                            {
-                                flag2 = true;
-                            }
-                        }
-
-                        if (who.FishingLevel < Convert.ToInt32(array3[12]))
-                        {
-                            flag2 = true;
-                        }
-
-                        if (flag2)
-                            continue;
-
-                        double num4 = Convert.ToDouble(array3[10]);
-                        double num5 = Convert.ToDouble(array3[11]) * num4;
-                        num4 -= Math.Max(0, Convert.ToInt32(array3[9]) - waterDepth) * num5;
-                        num4 += who.FishingLevel / 50f;
-                        num4 = Math.Min(num4, 0.89999997615814209);
-                        int num = Convert.ToInt32(t);
-
-                        dict.Add(num, num4);
-                    }
-                }
-            }
-            catch (KeyNotFoundException knf)
-            {
-                Monitor.Log("KeyNotFound Exception occured. Ignoring...");
-                Monitor.Log(knf.ToString());
-            }
-
-            return dict;
-        }
-
-        private static Dictionary<int, double> GetFishesSubmarine()
-        {
-            return new Dictionary<int, double>
-            {
-                { 800, 0.1 },
-                { 799, 0.18 },
-                { 798, 0.28 },
-                { 154, 0.1 },
-                { 155, 0.08 },
-                { 149, 0.05 },
-                { 797, 0.01 }
-            };
-        }
-
-        private static Dictionary<int, double> GetFishesMine(MineShaft shaft, int bait, int waterDepth, Player who)
-        {
-            Dictionary<int, double> dict = new Dictionary<int, double>();
-            double num2 = 1.0;
-            num2 += 0.4 * who.FishingLevel;
-            num2 += waterDepth * 0.1;
-            double p = 0;
-            int level = shaft.getMineArea();
-            switch (level)
-            {
-                case 0:
-                case 10:
-                    num2 += bait == 689 ? 3 : 0;
-                    p = 0.02 + 0.01 * num2;
-                    dict.Add(158, p);
-                    break;
-                case 40:
-                    num2 += bait == 682 ? 3 : 0;
-                    p = 0.015 + 0.009 * num2;
-                    dict.Add(161, p);
-                    break;
-                case 80:
-                    num2 += bait == 684 ? 3 : 0;
-                    p = 0.01 + 0.008 * num2;
-                    dict.Add(162, p);
-                    break;
-            }
-
-            if (level == 10 || level == 40)
-            {
-                return ConcatDictionary(dict,
-                    MagnifyProbabilities(
-                        GetFishes(waterDepth, who, "UndergroundMine")
-                            .Where(kv => !IsGarbage(kv.Key)).ToDictionary(x => x.Key, x => x.Value),
-                        1 - p));
-            }
-
-            return dict;
-        }
-
-        private static Dictionary<int, double> GetFishesFarm(int waterDepth, Player who)
-        {
-            switch (whichFarm)
-            {
-                case 1:
-                    return ConcatDictionary(MagnifyProbabilities(GetFishes(waterDepth, who, "Forest"), 0.3), MagnifyProbabilities(GetFishes(waterDepth, who, "Town"), 0.7));
-                case 3:
-                    return MagnifyProbabilities(GetFishes(waterDepth, who, "Forest"), 0.5);
-                case 2:
-                    {
-                        double p = 0.05 + dailyLuck;
-                        return ConcatDictionary(
-                            new Dictionary<int, double> { { 734, p } },
-                            MagnifyProbabilities(
-                                GetFishes(waterDepth, who, "Forest"),
-                                (1 - p) * 0.45)
-                            );
-                    }
-                case 4:
-                    {
-                        return MagnifyProbabilities(
-                            GetFishes(waterDepth, who, "Mountain"),
-                            0.35);
-                    }
-                default:
-                    return GetFishes(waterDepth, who);
-            }
-        }
-
         private static bool Harvest(int xTile, int yTile, HoeDirt soil, JunimoHarvester junimoHarvester = null)
         {
             IReflectionHelper reflection = Helper.Reflection;
@@ -2132,21 +1809,6 @@ namespace JoysOfEfficiency.Utils
                 }
             }
             return false;
-        }
-
-        private static Vector2 GetCropLocation(Crop crop)
-        {
-            foreach (KeyValuePair<Vector2, TerrainFeature> kv in currentLocation.terrainFeatures.Pairs)
-            {
-                if (!(kv.Value is HoeDirt dirt))
-                    continue;
-
-                if (dirt.crop != null && !dirt.crop.dead.Value && dirt.crop == crop)
-                {
-                    return kv.Key;
-                }
-            }
-            return new Vector2(-1, -1);
         }
 
         /// <summary>
