@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewValley;
 
-namespace JoysOfEfficiency
+namespace JoysOfEfficiency.Huds
 {
     public class MineIcons
     {
