@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.Menus;
 
 namespace JoysOfEfficiency.Huds
 {
@@ -27,9 +28,10 @@ namespace JoysOfEfficiency.Huds
 
             Point mousePos = new Point(Game1.getMouseX(), Game1.getMouseY());
 
-            int y = Game1.options.zoomButtons ? 350 : 320;
+            int y = Game1.options.zoomButtons ? 414 : 384;
             int x = GetWidthInPlayArea() - 84;
             {
+                IClickableMenu.drawTextureBox(batch, Game1.menuTexture, new Rectangle(0, 256, 60, 60), x - 16, y - 16, 40 + 32, 40 + 32, Color.White);
                 batch.Draw(_iconPickaxe, new Vector2(x, y), null, Color.White, 0.0f, Vector2.Zero, 2.5f, SpriteEffects.None, 0.9f);
                 Rectangle rect = new Rectangle(x, y, 40, 40);
                 if (rect.Contains(mousePos))
@@ -38,10 +40,11 @@ namespace JoysOfEfficiency.Huds
                     redrawCursor = true;
                 }
 
-                x -= 48;
+                x -= 72;
             }
             if (monsterStr != null)
             {
+                IClickableMenu.drawTextureBox(batch, Game1.menuTexture, new Rectangle(0, 256, 60, 60), x - 16, y - 16, 40 + 32, 40 + 32, Color.White);
                 batch.Draw(_iconMonster, new Vector2(x, y), null, Color.White, 0.0f, Vector2.Zero, 2.5f, SpriteEffects.None, 0.9f);
                 Rectangle rect = new Rectangle(x, y, 40, 40);
                 if (rect.Contains(mousePos))
@@ -50,10 +53,11 @@ namespace JoysOfEfficiency.Huds
                     redrawCursor = true;
                 }
 
-                x -= 48;
+                x -= 72;
             }
             if (ladderStr != null)
             {
+                IClickableMenu.drawTextureBox(batch, Game1.menuTexture, new Rectangle(0, 256, 60, 60), x-16, y-16, 40 + 32, 40 + 32, Color.White);
                 batch.Draw(_iconLadder, new Vector2(x, y), null, Color.White, 0.0f, Vector2.Zero, 2.5f, SpriteEffects.None, 0.9f);
                 Rectangle rect = new Rectangle(x, y, 40, 40);
                 if (rect.Contains(mousePos))
@@ -69,7 +73,7 @@ namespace JoysOfEfficiency.Huds
 
         public static void DrawCursor(SpriteBatch batch)
         {
-            if (!Game1.options.hardwareCursor)
+            if (!Game1.options.hardwareCursor && !Game1.options.gamepadControls)
             {
                 batch.Draw(Game1.mouseCursors, new Vector2(Game1.getMouseX(), Game1.getMouseY()), Game1.getSourceRectForStandardTileSheet(Game1.mouseCursors, Game1.options.gamepadControls ? 44 : 0, 16, 16), Color.White, 0f, Vector2.Zero, Game1.pixelZoom + Game1.dialogueButtonScale / 150f, SpriteEffects.None, 1f);
             }

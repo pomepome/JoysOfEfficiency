@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using JoysOfEfficiency.Core;
 using JoysOfEfficiency.Huds;
 using Microsoft.Xna.Framework;
@@ -17,7 +16,6 @@ using StardewValley.Objects;
 using StardewValley.Quests;
 using StardewValley.TerrainFeatures;
 using StardewValley.Tools;
-using xTile.Dimensions;
 using xTile.Layers;
 using static System.String;
 using static StardewValley.Game1;
@@ -53,25 +51,25 @@ namespace JoysOfEfficiency.Utils
             {
                 if (menu.shippingBin || IsCAShippingBinMenu(menu))
                 {
-                    Monitor.Log("Don't do anything with shipping bin", LogLevel.Trace);
+                    Monitor.Log("Don't do anything with shipping bin");
                     return;
                 }
 
                 if (menu.reverseGrab)
                 {
-                    Monitor.Log("You can't get item from this menu.", LogLevel.Trace);
+                    Monitor.Log("You can't get item from this menu.");
                     return;
                 }
 
                 if (menu.source == ItemGrabMenu.source_chest)
                 {
-                    Monitor.Log("Don't do anything with chest player placed", LogLevel.Trace);
+                    Monitor.Log("Don't do anything with chest player placed");
                     return;
                 }
 
                 if (menu.showReceivingMenu && menu.source == ItemGrabMenu.source_none)
                 {
-                    Monitor.Log("showReceivingMenu true but is not gift or fishing chest.", LogLevel.Trace);
+                    Monitor.Log("showReceivingMenu true but is not gift or fishing chest.");
                     return;
                 }
             }
@@ -387,7 +385,7 @@ namespace JoysOfEfficiency.Utils
                 if (oldColor.PackedValue != crop.tintColor.Value.PackedValue)
                 {
                     SVObject obj = new SVObject(crop.indexOfHarvest.Value, 1);
-                    Monitor.Log($"changed {obj.DisplayName} @[{loc.X},{loc.Y}] to color(R:{crop.tintColor.R},G:{crop.tintColor.G},B:{crop.tintColor.B},A:{crop.tintColor.A})", LogLevel.Trace);
+                    Monitor.Log($"changed {obj.DisplayName} @[{loc.X},{loc.Y}] to color(R:{crop.tintColor.R},G:{crop.tintColor.G},B:{crop.tintColor.B},A:{crop.tintColor.A})");
                 }
             }
         }
@@ -1223,7 +1221,7 @@ namespace JoysOfEfficiency.Utils
             return null;
         }
 
-        public static List<Chest> GetNearbyChests(Player player)
+        public static List<Chest> GetNearbyChests(Player player, bool addFridge = true)
         {
             int radius = ModEntry.Conf.BalancedMode ? 1 : ModEntry.Conf.RadiusCraftingFromChests;
             List<Chest> chests = new List<Chest>();
@@ -1233,13 +1231,14 @@ namespace JoysOfEfficiency.Utils
                 {
                     chests.Add(chest);
                 }
-
-                Chest fridge = GetFridge();
-                if (fridge != null)
-                {
-                    chests.Add(fridge);
-                }
             }
+
+            Chest fridge = GetFridge();
+            if (addFridge && fridge != null)
+            {
+                chests.Add(fridge);
+            }
+
             return chests;
         }
 
@@ -1248,7 +1247,8 @@ namespace JoysOfEfficiency.Utils
             List<Item> items = new List<Item>(player.Items);
             foreach (Chest chest in GetNearbyChests(player))
             {
-                items.AddRange(chest.items);
+                if(chest != null)
+                    items.AddRange(chest.items);
             }
             return items;
         }

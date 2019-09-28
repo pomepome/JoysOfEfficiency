@@ -13,6 +13,16 @@ Config description will be like:
 
 # Features
 
+##Safe Mode
+If you have experienced CTD or game logic corruption, then try this.
+This will disable patching part of JoE, so it can lower the risk of corruption.
+
+When you enabled this, CraftingFromChests will be disabled.
+
+**[CONFIG]**
+
+- SafeMode("Not on menu" bool, default:false) - whether Safe Mode is enabled.
+
 ## Config Menu
 You can open mod configuration menu when specified key(Default:R).
 You can't disable this feature because it's a core feature.
