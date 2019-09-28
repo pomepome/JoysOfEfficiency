@@ -216,8 +216,9 @@ namespace JoysOfEfficiency.ModMenu
                 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Crafting From Chests"));
-                tab.AddOptionsElement(new ModifiedCheckBox("CraftingFromChests", 27, ModEntry.Conf.CraftingFromChests, OnCheckboxValueChanged, i => ModEntry.IsCCOn));
-                tab.AddOptionsElement(new ModifiedSlider("RadiusCraftingFromChests", 11, ModEntry.Conf.RadiusCraftingFromChests, 1, 5, OnSliderValueChanged, () => !ModEntry.Conf.CraftingFromChests || ModEntry.Conf.BalancedMode));
+
+                tab.AddOptionsElement(new ModifiedCheckBox("CraftingFromChests", 27, ModEntry.Conf.CraftingFromChests, OnCheckboxValueChanged, i => ModEntry.IsCCOn || !ModEntry.HarmonyPathed));
+                tab.AddOptionsElement(new ModifiedSlider("RadiusCraftingFromChests", 11, ModEntry.Conf.RadiusCraftingFromChests, 1, 5, OnSliderValueChanged, () => !ModEntry.Conf.CraftingFromChests || ModEntry.Conf.BalancedMode || !ModEntry.HarmonyPathed));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Unify Flower Colors"));

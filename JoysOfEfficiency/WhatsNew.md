@@ -146,3 +146,7 @@ This is a changelog from 1.0.22
 - Fixed some configs did not documented on FeaturesAndConfigs.md .
 - Use Point type in config.json .
 - Added MorePreciseProbabilities and TrialOfExamine option to FishingProbabilitiesInfo.
+
+## 1.2.13
+- Fixed indegredients were not consumed from fridge when cooking.
+- Added SafeMode.

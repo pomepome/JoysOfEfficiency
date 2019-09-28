@@ -36,6 +36,7 @@ namespace JoysOfEfficiency.Core
 
         public static IModHelper ModHelper { get; private set; }
         
+        public static bool HarmonyPathed { get; private set; }
 
         private bool _dayEnded;
 
@@ -103,11 +104,16 @@ namespace JoysOfEfficiency.Core
                 Conf.CraftingFromChests = false;
                 IsCCOn = true;
             }
+            else if(!Conf.SafeMode)
+            {
+                Monitor.Log("Start patching using Harmony...");
+                HarmonyPathed = HarmonyPatcher.Init();
+            }
             else
             {
-                HarmonyPatcher.Init();
+                Monitor.Log("SafeMode enabled, and won't patch the game.");
             }
-
+            
             helper.WriteConfig(Conf);
             MineIcons.Init(helper);
         }
@@ -468,7 +474,8 @@ namespace JoysOfEfficiency.Core
                         {
                             if (house.animals.Any() && !coop.animalDoorOpen.Value)
                             {
-                                Monitor.Log($"Opening coop door @[{coop.animalDoor.X},{coop.animalDoor.Y}]", LogLevel.Trace);
+                                Monitor.Log($"Opening coop door @[{coop.animalDoor.X},{coop.animalDoor.Y}]");
+                                
                                 coop.animalDoorOpen.Value = true;
                                 Helper.Reflection.GetField<NetInt>(coop, "animalDoorMotion").SetValue(new NetInt(-2));
                             }
@@ -481,7 +488,8 @@ namespace JoysOfEfficiency.Core
                         {
                             if (house.animals.Any() && !barn.animalDoorOpen.Value)
                             {
-                                Monitor.Log($"Opening barn door @[{barn.animalDoor.X},{barn.animalDoor.Y}]", LogLevel.Trace);
+                                Monitor.Log($"Opening barn door @[{barn.animalDoor.X},{barn.animalDoor.Y}]");
+                                
                                 barn.animalDoorOpen.Value = true;
                                 Helper.Reflection.GetField<NetInt>(barn, "animalDoorMotion").SetValue(new NetInt(-3));
                             }
