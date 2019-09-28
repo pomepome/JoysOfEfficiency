@@ -113,6 +113,7 @@ namespace JoysOfEfficiency.Core
             {
                 Monitor.Log("SafeMode enabled, and won't patch the game.");
             }
+            
             helper.WriteConfig(Conf);
             MineIcons.Init(helper);
         }
@@ -474,6 +475,7 @@ namespace JoysOfEfficiency.Core
                             if (house.animals.Any() && !coop.animalDoorOpen.Value)
                             {
                                 Monitor.Log($"Opening coop door @[{coop.animalDoor.X},{coop.animalDoor.Y}]");
+                                
                                 coop.animalDoorOpen.Value = true;
                                 Helper.Reflection.GetField<NetInt>(coop, "animalDoorMotion").SetValue(new NetInt(-2));
                             }
@@ -487,6 +489,7 @@ namespace JoysOfEfficiency.Core
                             if (house.animals.Any() && !barn.animalDoorOpen.Value)
                             {
                                 Monitor.Log($"Opening barn door @[{barn.animalDoor.X},{barn.animalDoor.Y}]");
+                                
                                 barn.animalDoorOpen.Value = true;
                                 Helper.Reflection.GetField<NetInt>(barn, "animalDoorMotion").SetValue(new NetInt(-3));
                             }

@@ -45,6 +45,7 @@ namespace JoysOfEfficiency.Huds
             if (monsterStr != null)
             {
                 IClickableMenu.drawTextureBox(batch, Game1.menuTexture, new Rectangle(0, 256, 60, 60), x - 16, y - 16, 40 + 32, 40 + 32, Color.White);
+
                 batch.Draw(_iconMonster, new Vector2(x, y), null, Color.White, 0.0f, Vector2.Zero, 2.5f, SpriteEffects.None, 0.9f);
                 Rectangle rect = new Rectangle(x, y, 40, 40);
                 if (rect.Contains(mousePos))
@@ -58,6 +59,7 @@ namespace JoysOfEfficiency.Huds
             if (ladderStr != null)
             {
                 IClickableMenu.drawTextureBox(batch, Game1.menuTexture, new Rectangle(0, 256, 60, 60), x-16, y-16, 40 + 32, 40 + 32, Color.White);
+
                 batch.Draw(_iconLadder, new Vector2(x, y), null, Color.White, 0.0f, Vector2.Zero, 2.5f, SpriteEffects.None, 0.9f);
                 Rectangle rect = new Rectangle(x, y, 40, 40);
                 if (rect.Contains(mousePos))
@@ -74,7 +76,6 @@ namespace JoysOfEfficiency.Huds
         public static void DrawCursor(SpriteBatch batch)
         {
             if (!Game1.options.hardwareCursor && !Game1.options.gamepadControls)
-            {
                 batch.Draw(Game1.mouseCursors, new Vector2(Game1.getMouseX(), Game1.getMouseY()), Game1.getSourceRectForStandardTileSheet(Game1.mouseCursors, Game1.options.gamepadControls ? 44 : 0, 16, 16), Color.White, 0f, Vector2.Zero, Game1.pixelZoom + Game1.dialogueButtonScale / 150f, SpriteEffects.None, 1f);
             }
         }

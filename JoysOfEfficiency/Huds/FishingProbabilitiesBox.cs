@@ -61,6 +61,7 @@ namespace JoysOfEfficiency.Huds
         private static Dictionary<int, double> GetFishes(GameLocation location, int bait, int waterDepth, Farmer who, int trial = 1)
         {
             Util.Monitor.Log($"Trial:{trial}");
+            
             double sum = 0;
             List<Dictionary<int, double>> dictList = new List<Dictionary<int, double>>();
             for (int i = 0; i < trial; i++)
