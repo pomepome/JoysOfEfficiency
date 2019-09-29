@@ -598,6 +598,7 @@ namespace JoysOfEfficiency.Utils
                 {
                     dirt.destroyCrop(loc, true, location);
                 }
+                
             }
             foreach (IndoorPot pot in GetObjectsWithin<IndoorPot>(1))
             {
@@ -779,7 +780,7 @@ namespace JoysOfEfficiency.Utils
             int width = 0, height = 120;
 
 
-            float scale = LocalizedContentManager.CurrentLanguageCode == LocalizedContentManager.LanguageCode.en ? 1.2f : 1.0f;
+            float scale = 1.0f;
 
 
             int whitchFish = reflection.GetField<int>(bar, "whichFish").GetValue();
@@ -789,7 +790,8 @@ namespace JoysOfEfficiency.Utils
             bool treasureCaught = reflection.GetField<bool>(bar, "treasureCaught").GetValue();
             float treasureAppearTimer = reflection.GetField<float>(bar, "treasureAppearTimer").GetValue() / 1000;
 
-            SVObject fish = new SVObject(whitchFish, 1);
+            SVObject fish = new SVObject(whitchFish, 1, quality:fishQuality);
+            int salePrice = fish.sellToStorePrice();
 
             if (LocalizedContentManager.CurrentLanguageCode == LocalizedContentManager.LanguageCode.en)
             {
@@ -803,6 +805,7 @@ namespace JoysOfEfficiency.Utils
             string incomingText = TryFormat(translation.Get("fishinfo.treasure.incoming").ToString(), treasureAppearTimer);
             string appearedText = translation.Get("fishinfo.treasure.appear").ToString();
             string caughtText = translation.Get("fishinfo.treasure.caught").ToString();
+            string priceText = TryFormat(translation.Get("fishinfo.price"), salePrice);
 
             {
                 Vector2 size = font.MeasureString(speciesText) * scale;
@@ -811,15 +814,24 @@ namespace JoysOfEfficiency.Utils
                     width = (int)size.X;
                 }
                 height += (int)size.Y;
+
                 size = font.MeasureString(sizeText) * scale;
                 if (size.X > width)
                 {
                     width = (int)size.X;
                 }
                 height += (int)size.Y;
+
                 Vector2 temp = font.MeasureString(qualityText1);
                 Vector2 temp2 = font.MeasureString(qualityText2);
                 size = new Vector2(temp.X + temp2.X, Math.Max(temp.Y, temp2.Y));
+                if (size.X > width)
+                {
+                    width = (int)size.X;
+                }
+                height += (int)size.Y;
+
+                size = font.MeasureString(priceText) * scale;
                 if (size.X > width)
                 {
                     width = (int)size.X;
@@ -876,9 +888,13 @@ namespace JoysOfEfficiency.Utils
             Vector2 vec2 = new Vector2(x + 32, y + 96);
             DrawString(batch, font, ref vec2, speciesText, Color.Black, scale);
             DrawString(batch, font, ref vec2, sizeText, Color.Black, scale);
+
             DrawString(batch, font, ref vec2, qualityText1, Color.Black, scale, true);
             DrawString(batch, font, ref vec2, qualityText2, GetColorForQuality(fishQuality), scale);
+
             vec2.X = x + 32;
+            DrawString(batch, font, ref vec2, priceText, Color.Black, scale);
+
             if (treasure)
             {
                 if (!treasureCaught)
@@ -1309,6 +1325,11 @@ namespace JoysOfEfficiency.Utils
             IClickableMenu.drawTextureBox(spriteBatch, (int)basePos.X, (int)basePos.Y, width, height, Color.White);
             Utility.drawTextWithShadow(spriteBatch, title, font, basePos + new Vector2(16, 16), Color.Black, 1.2f);
             Utility.drawTextWithShadow(spriteBatch, text, font, basePos + new Vector2(16, 16 + (int)sizeTitle.Y + 8), Color.Black, 1.2f);
+        }
+
+        public static void DrawColoredBox(SpriteBatch batch, int x, int y, int width, int height, Color color)
+        {
+            batch.Draw(fadeToBlackRect, new Rectangle(x, y, width, height), color);
         }
 
         #endregion
@@ -1871,6 +1892,11 @@ namespace JoysOfEfficiency.Utils
             }
         }
 
+        /// <summary>
+        /// Returns type of the gate
+        /// </summary>
+        /// <param name="fence">The fence</param>
+        /// <returns>true for horizontal, false for vertical, null for invalid</returns>
         private static bool? IsUpsideDown(Fence fence)
         {
             int num2 = 0;
@@ -1996,6 +2022,7 @@ namespace JoysOfEfficiency.Utils
 
             return "";
         }
+
 
         #endregion
         

@@ -13,7 +13,7 @@ Config description will be like:
 
 # Features
 
-## Safe Mode
+##Safe Mode
 If you have experienced CTD or game logic corruption, then try this.
 This will disable patching part of JoE, so it can lower the risk of corruption.
 
@@ -42,6 +42,9 @@ You can't disable this feature because it's a core feature.
 ﻿Did you thought following utilities are a bit cheaty?
 ﻿This utility lets them not to be executed so often. (almost 1 executing per seconds), and
 ﻿automation radius will be 1 tile.
+﻿
+﻿This utility affects to ***AutoWaterNearbyCrops, AutoPetNearbyAnimals, AutoHarvest, AutoCollectCollectibles, AutoShakeFruitedPlants,
+AutoDigArtifactSpot, AutoDepositIngredient, and AutoPullMachineResult.***
 
 ﻿
 **[CONFIG]**

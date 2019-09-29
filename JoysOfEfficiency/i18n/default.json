@@ -9,6 +9,7 @@
   "fishinfo.treasure.appear": "Treasure appeared!",
   "fishinfo.treasure.caught": "Treasure caught!",
   "fishinfo.treasure.incoming": "Treasure is incoming in {0:f1}s.",
+  "fishinfo.price": "Selling Price:{0}G", 
   "hud.paused": "Game paused.",
   "ladder": "Ladder has appeared!",
   "location.awaiting": "Click somewhere to designate the location you want.",

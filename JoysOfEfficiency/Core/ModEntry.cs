@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
 using JoysOfEfficiency.Huds;
 using JoysOfEfficiency.ModCheckers;
 using JoysOfEfficiency.ModMenu;
@@ -113,7 +112,6 @@ namespace JoysOfEfficiency.Core
             {
                 Monitor.Log("SafeMode enabled, and won't patch the game.");
             }
-            
             helper.WriteConfig(Conf);
             MineIcons.Init(helper);
         }
@@ -240,16 +238,21 @@ namespace JoysOfEfficiency.Core
                 {
                     return;
                 }
-                if (Conf.AutoEat)
+                if (Conf.UnifyFlowerColors)
                 {
-                    Util.TryToEatIfNeeded(player);
+                    Util.UnifyFlowerColors();
                 }
+
                 _ticks = (_ticks + 1) % 8;
                 if(Conf.BalancedMode && _ticks != 0)
                 {
                     return;
                 }
 
+                if (Conf.AutoEat)
+                {
+                    Util.TryToEatIfNeeded(player);
+                }
                 if (Conf.AutoPickUpTrash)
                 {
                     Util.ScavengeTrashCan();
@@ -328,10 +331,6 @@ namespace JoysOfEfficiency.Core
                 {
                     Util.PetNearbyPets();
                 }
-                if (Conf.UnifyFlowerColors)
-                {
-                    Util.UnifyFlowerColors();
-                }
             }
             catch (Exception ex)
             {
@@ -397,7 +396,7 @@ namespace JoysOfEfficiency.Core
             }
             if (Conf.EstimateShippingPrice && Game1.activeClickableMenu is ItemGrabMenu menu)
             {
-                Util.DrawShippingPrice(menu, Game1.smallFont);
+                Util.DrawShippingPrice(menu, Game1.dialogueFont);
             }
         }
 
@@ -475,7 +474,6 @@ namespace JoysOfEfficiency.Core
                             if (house.animals.Any() && !coop.animalDoorOpen.Value)
                             {
                                 Monitor.Log($"Opening coop door @[{coop.animalDoor.X},{coop.animalDoor.Y}]");
-                                
                                 coop.animalDoorOpen.Value = true;
                                 Helper.Reflection.GetField<NetInt>(coop, "animalDoorMotion").SetValue(new NetInt(-2));
                             }
@@ -489,7 +487,6 @@ namespace JoysOfEfficiency.Core
                             if (house.animals.Any() && !barn.animalDoorOpen.Value)
                             {
                                 Monitor.Log($"Opening barn door @[{barn.animalDoor.X},{barn.animalDoor.Y}]");
-                                
                                 barn.animalDoorOpen.Value = true;
                                 Helper.Reflection.GetField<NetInt>(barn, "animalDoorMotion").SetValue(new NetInt(-3));
                             }
