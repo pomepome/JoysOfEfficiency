@@ -150,3 +150,7 @@ This is a changelog from 1.0.22
 ## 1.2.13
 - Fixed indegredients were not consumed from fridge when cooking.
 - Added SafeMode.
+
+## 1.2.14
+- Removed redundant yellow box on screen.
+- Added selling price info on FishingInfo.

@@ -8,7 +8,7 @@ namespace JoysOfEfficiency.Core
     internal class Config
     {
         public bool SafeMode { get; set; } = false;
-      
+
         public bool MineInfoGui { get; set; } = true;
 
         public bool AutoWaterNearbyCrops { get; set; } = true;
