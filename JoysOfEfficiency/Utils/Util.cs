@@ -882,7 +882,7 @@ namespace JoysOfEfficiency.Utils
             }
             int y = (int)Cap(bar.yPositionOnScreen, 0, viewport.Height - height);
 
-            IClickableMenu.drawTextureBox(batch, menuTexture, new Rectangle(0, 256, 60, 60), x, y, width, height, Color.White);
+            DrawWindow(batch, x, y, width, height);
             fish.drawInMenu(batch, new Vector2(x + width / 2 - 32, y + 16), 1.0f, 1.0f, 0.9f, false);
 
             Vector2 vec2 = new Vector2(x + 32, y + 96);
@@ -1052,7 +1052,7 @@ namespace JoysOfEfficiency.Utils
             {
                 y = viewport.Height - bottomY;
             }
-            IClickableMenu.drawTextureBox(batch, menuTexture, new Rectangle(0, 256, 60, 60), x, y, rightX, bottomY, Color.White);
+            DrawWindow(batch, x, y, rightX, bottomY);
             if (!IsNullOrEmpty(text))
             {
                 Vector2 vector2 = new Vector2(x + tileSize / 4, y + (bottomY - stringSize.Y) / 2 + 8f);
@@ -1130,7 +1130,7 @@ namespace JoysOfEfficiency.Utils
             int width = 16 + (int)stringSize.X + 16;
             int height = 16 + (int)stringSize.Y + 16;
 
-            IClickableMenu.drawTextureBox(spriteBatch, x, y, width, height, Color.White);
+            DrawWindow(spriteBatch, x, y, width, height);
             Utility.drawTextWithShadow(spriteBatch, text, font, new Vector2(x + 16, y + 16 + 8), Color.Black);
         }
 
@@ -1322,7 +1322,7 @@ namespace JoysOfEfficiency.Utils
             int height = 16 + (int)sizeTitle.Y + 8 + (int)sizeText.Y + 16;
             Vector2 basePos = new Vector2(menu.xPositionOnScreen - width, menu.yPositionOnScreen + menu.height / 4 - height);
 
-            IClickableMenu.drawTextureBox(spriteBatch, (int)basePos.X, (int)basePos.Y, width, height, Color.White);
+            DrawWindow(spriteBatch, (int)basePos.X, (int)basePos.Y, width, height);
             Utility.drawTextWithShadow(spriteBatch, title, font, basePos + new Vector2(16, 16), Color.Black, 1.2f);
             Utility.drawTextWithShadow(spriteBatch, text, font, basePos + new Vector2(16, 16 + (int)sizeTitle.Y + 8), Color.Black, 1.2f);
         }
@@ -1330,6 +1330,11 @@ namespace JoysOfEfficiency.Utils
         public static void DrawColoredBox(SpriteBatch batch, int x, int y, int width, int height, Color color)
         {
             batch.Draw(fadeToBlackRect, new Rectangle(x, y, width, height), color);
+        }
+
+        public static void DrawWindow(SpriteBatch batch, int x, int y, int width, int height)
+        {
+            IClickableMenu.drawTextureBox(spriteBatch, x, y, width, height, Color.White);
         }
 
         #endregion

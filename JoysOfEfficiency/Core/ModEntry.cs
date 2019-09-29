@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using JoysOfEfficiency.Huds;
 using JoysOfEfficiency.ModCheckers;
-using JoysOfEfficiency.ModMenu;
 using JoysOfEfficiency.Patches;
 using JoysOfEfficiency.Utils;
 
@@ -37,6 +36,8 @@ namespace JoysOfEfficiency.Core
         
         public static bool HarmonyPathed { get; private set; }
 
+        private static bool DebugMode { get; set; }
+
         private bool _dayEnded;
 
         private bool _paused;
@@ -68,6 +69,8 @@ namespace JoysOfEfficiency.Core
             Events.GameLoop.Saving += OnBeforeSave;
 
             Events.GameLoop.DayStarted += OnDayStarted;
+
+            Helper.ConsoleCommands.Add("joedebug", "Debug command for JoE", OnDebugCommand);
 
             Conf.CpuThresholdFishing = Util.Cap(Conf.CpuThresholdFishing, 0, 0.5f);
             Conf.HealthToEatRatio = Util.Cap(Conf.HealthToEatRatio, 0.1f, 0.8f);
@@ -114,6 +117,12 @@ namespace JoysOfEfficiency.Core
             }
             helper.WriteConfig(Conf);
             MineIcons.Init(helper);
+        }
+
+        private void OnDebugCommand(string name, string[] args)
+        {
+            DebugMode = !DebugMode;
+            Game1.activeClickableMenu = new RegisterFlowerMenu(800, 600, Color.White, 376);
         }
 
         private void OnMenuChanged(object sender, MenuChangedEventArgs args)

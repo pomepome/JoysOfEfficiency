@@ -77,8 +77,11 @@
     <Compile Include="Huds\GiftInformationTooltip.cs" />
     <Compile Include="Huds\JoeMenu.cs" />
     <Compile Include="Huds\MineIcons.cs" />
+    <Compile Include="Huds\RegisterFlowerMenu.cs" />
     <Compile Include="ModCheckers\ModChecker.cs" />
     <Compile Include="Core\ModEntry.cs" />
+    <Compile Include="OptionsElements\ButtonWithLabel.cs" />
+    <Compile Include="OptionsElements\ColorBox.cs" />
     <Compile Include="OptionsElements\EmptyLabel.cs" />
     <Compile Include="OptionsElements\LabelComponent.cs" />
     <Compile Include="OptionsElements\MenuTab.cs" />

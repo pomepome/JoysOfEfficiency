@@ -1,0 +1,161 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using JoysOfEfficiency.Core;
+using JoysOfEfficiency.OptionsElements;
+using JoysOfEfficiency.Utils;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using StardewValley;
+using StardewValley.Menus;
+using StardewValley.Objects;
+using Object = StardewValley.Object;
+
+namespace JoysOfEfficiency.Huds
+{
+    internal class RegisterFlowerMenu : IClickableMenu
+    {
+        private readonly List<OptionsElement> elements = new List<OptionsElement>();
+
+        private readonly ColorBox colorPreviewBox;
+
+        private Color _currentColor;
+
+        public RegisterFlowerMenu(int width, int height, Color initialColor, int item = -1) : base(Game1.viewport.Width / 2 - width / 2,
+            Game1.viewport.Height / 2 - height / 2, width, height, true)
+        {
+            elements.Add(new EmptyLabel());
+            if (item != -1)
+            {
+                string s = string.Format(Util.Helper.Translation.Get("options.flower"), new Object(item, 1).DisplayName);
+                elements.Add(new LabelComponent(s));
+            }
+            _currentColor = initialColor;
+            elements.Add(new ModifiedSlider("R", 0, initialColor.R, 0, 255, OnSliderValueChange));
+            elements.Add(new ModifiedSlider("G", 1, initialColor.G, 0, 255, OnSliderValueChange));
+            elements.Add(new ModifiedSlider("B", 2, initialColor.B, 0, 255, OnSliderValueChange));
+
+            elements.Add(new EmptyLabel());
+
+            elements.Add(new LabelComponent(Util.Helper.Translation.Get("options.previewColor")));
+            colorPreviewBox = new ColorBox("preview", 0, initialColor);
+            elements.Add(colorPreviewBox);
+
+            elements.Add(new EmptyLabel());
+
+            elements.Add(new ButtonWithLabel(this, "register", 0, OnButtonPressed));
+        }
+
+        public override void receiveLeftClick(int x, int y, bool playSound = true)
+        {
+            base.receiveLeftClick(x, y, playSound);
+            foreach (OptionsElement element in elements)
+            {
+                if (element.bounds.Contains(x - xPositionOnScreen - element.bounds.X / 2,
+                    y - yPositionOnScreen - element.bounds.Y / 2))
+                {
+                    element.receiveLeftClick(x, y);
+                }
+                y -= element.bounds.Height + 16;
+            }
+            
+        }
+
+        public override void leftClickHeld(int x, int y)
+        {
+            base.leftClickHeld(x, y);
+            foreach (OptionsElement element in elements)
+            {
+                if (element.bounds.Contains(x - xPositionOnScreen - element.bounds.X / 2, y - yPositionOnScreen - element.bounds.Y / 2))
+                {
+                    element.leftClickHeld(x - element.bounds.X - xPositionOnScreen, y - element.bounds.Y - yPositionOnScreen);
+                }
+                y -= element.bounds.Height + 16;
+            }
+        }
+
+        public override void releaseLeftClick(int x, int y)
+        {
+            base.releaseLeftClick(x, y);
+            foreach (OptionsElement element in elements)
+            {
+                if (element.bounds.Contains(x - xPositionOnScreen - element.bounds.X / 2, y - yPositionOnScreen - element.bounds.Y / 2))
+                {
+                    element.leftClickReleased(x - element.bounds.X - xPositionOnScreen, y - element.bounds.Y - yPositionOnScreen);
+                }
+                y -= element.bounds.Height + 16;
+            }
+        }
+
+        public override void receiveKeyPress(Keys key)
+        {
+            base.receiveKeyPress(key);
+            if (key == Keys.Escape)
+            {
+                CloseMenu();
+            }
+        }
+
+        /// <summary>
+        /// Close the menu and return to the game.
+        /// </summary>
+        private static void CloseMenu()
+        {
+            if (Game1.activeClickableMenu is JoeMenu)
+            {
+                Game1.playSound("bigDeSelect");
+                Game1.exitActiveMenu();
+            }
+        }
+
+        public override void draw(SpriteBatch b)
+        {
+            if (ModEntry.Conf.FilterBackgroundInMenu)
+            {
+                //Darken background.
+                b.Draw(Game1.fadeToBlackRect, new Rectangle(0, 0, Game1.viewport.Width, Game1.viewport.Height),
+                    Color.Black * 0.5f);
+            }
+            //Draw window frame.
+            drawTextureBox(b, Game1.menuTexture, new Rectangle(0, 256, 60, 60), xPositionOnScreen, yPositionOnScreen, width, height, Color.White, 1.0f, false);
+            base.draw(b);
+
+            int x = xPositionOnScreen + 16;
+            int y = yPositionOnScreen + 16;
+
+            foreach (OptionsElement element in elements)
+            {
+                // Draw each option elements.
+                element.draw(b, x, y);
+                y += element.bounds.Height + 16;
+            }
+
+            Util.DrawCursor();
+        }
+
+        private void OnSliderValueChange(int which, int value)
+        {
+            switch (which)
+            {
+                case 0:
+                    _currentColor.R = (byte) value;
+                    break;
+                case 1:
+                    _currentColor.G = (byte) value;
+                    break;
+                case 2:
+                    _currentColor.B = (byte) value;
+                    break;
+            }
+            colorPreviewBox.SetColor(_currentColor);
+        }
+
+        private void OnButtonPressed(int which)
+        {
+            Util.Monitor.Log($"Button Pressed: {which}");
+        }
+    }
+}
