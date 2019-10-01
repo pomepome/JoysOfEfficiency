@@ -154,3 +154,6 @@ This is a changelog from 1.0.22
 ## 1.2.14
 - Removed redundant yellow box on screen.
 - Added selling price info on FishingInfo.
+
+## 1.2.15
+- Added Flower Color Registration menu.

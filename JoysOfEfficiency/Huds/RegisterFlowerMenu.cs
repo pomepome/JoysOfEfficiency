@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using JoysOfEfficiency.Core;
 using JoysOfEfficiency.OptionsElements;
 using JoysOfEfficiency.Utils;
@@ -40,6 +41,7 @@ namespace JoysOfEfficiency.Huds
             _elements.Add(_colorPreviewBox);
 
             _elements.Add(new EmptyLabel());
+
 
             _elements.Add(new ButtonWithLabel("register", 0, OnButtonPressed));
         }
@@ -150,7 +152,7 @@ namespace JoysOfEfficiency.Huds
 
         private void OnButtonPressed(int which)
         {
-            Util.Monitor.Log($"Button Pressed: {which}");
+
         }
     }
 }

@@ -10,10 +10,13 @@ namespace JoysOfEfficiency.Patches
     [SuppressMessage("ReSharper", "UnusedMember.Global")]
     internal class CraftingRecipePatcher
     {
-        internal static bool Prefix(ref CraftingRecipe instance)
+
+        [SuppressMessage("ReSharper", "InconsistentNaming")]
+        [SuppressMessage("ReSharper", "UnusedMember.Global")]
+        internal static bool Prefix(ref CraftingRecipe __instance)
         {
             //consumeIngredients
-            return ConsumeIngredients(instance);
+            return ConsumeIngredients(__instance);
         }
 
         private static bool ConsumeIngredients(CraftingRecipe recipe)
