@@ -13,7 +13,7 @@ Config description will be like:
 
 # Features
 
-##Safe Mode
+## Safe Mode
 If you have experienced CTD or game logic corruption, then try this.
 This will disable patching part of JoE, so it can lower the risk of corruption.
 
