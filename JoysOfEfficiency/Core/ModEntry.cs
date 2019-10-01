@@ -32,9 +32,7 @@ namespace JoysOfEfficiency.Core
 
         public static Config Conf { get; private set; }
 
-        public static IModHelper ModHelper { get; private set; }
-        
-        public static bool HarmonyPathed { get; private set; }
+        public static bool HarmonyPatched { get; private set; }
 
         private static bool DebugMode { get; set; }
 
@@ -49,7 +47,6 @@ namespace JoysOfEfficiency.Core
 
         public override void Entry(IModHelper helper)
         {
-            ModHelper = helper;
             Util.Helper = helper;
             Util.Monitor = Monitor;
             Util.ModInstance = this;
@@ -109,7 +106,7 @@ namespace JoysOfEfficiency.Core
             else if(!Conf.SafeMode)
             {
                 Monitor.Log("Start patching using Harmony...");
-                HarmonyPathed = HarmonyPatcher.Init();
+                HarmonyPatched = HarmonyPatcher.Init();
             }
             else
             {
@@ -122,7 +119,7 @@ namespace JoysOfEfficiency.Core
         private void OnDebugCommand(string name, string[] args)
         {
             DebugMode = !DebugMode;
-            Game1.activeClickableMenu = new RegisterFlowerMenu(800, 600, Color.White, 376);
+            Game1.activeClickableMenu = new RegisterFlowerMenu(800, 640, Color.White, 376);
         }
 
         private void OnMenuChanged(object sender, MenuChangedEventArgs args)
@@ -362,7 +359,7 @@ namespace JoysOfEfficiency.Core
             {
                 //Open Up Menu
                 Game1.playSound("bigSelect");
-                Game1.activeClickableMenu = new JoeMenu(1100, 548, this);
+                Game1.activeClickableMenu = new JoeMenu(1100, 560, this);
             }
             else if (args.Button == Conf.ButtonToggleBlackList)
             {

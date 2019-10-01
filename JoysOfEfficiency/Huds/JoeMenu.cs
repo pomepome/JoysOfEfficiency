@@ -48,7 +48,8 @@ namespace JoysOfEfficiency.Huds
         private ModifiedInputListener _listener;
         private ModifiedClickListener _clickListener;
 
-        internal JoeMenu(int width, int height, ModEntry mod) : base(Game1.viewport.Width / 2 - width / 2, Game1.viewport.Height / 2 - height / 2, width, height, true)
+        internal JoeMenu(int width, int height, ModEntry mod)
+            : base(Game1.viewport.Width / 2 - width / 2, Game1.viewport.Height / 2 - height / 2, width, height, true)
         {
             _mod = mod;
             ITranslationHelper translation = mod.Helper.Translation;
@@ -216,8 +217,8 @@ namespace JoysOfEfficiency.Huds
                 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Crafting From Chests"));
-                tab.AddOptionsElement(new ModifiedCheckBox("CraftingFromChests", 27, ModEntry.Conf.CraftingFromChests, OnCheckboxValueChanged, i => ModEntry.IsCcOn || !ModEntry.HarmonyPathed));
-                tab.AddOptionsElement(new ModifiedSlider("RadiusCraftingFromChests", 11, ModEntry.Conf.RadiusCraftingFromChests, 1, 5, OnSliderValueChanged, () => !ModEntry.Conf.CraftingFromChests || ModEntry.Conf.BalancedMode || !ModEntry.HarmonyPathed));
+                tab.AddOptionsElement(new ModifiedCheckBox("CraftingFromChests", 27, ModEntry.Conf.CraftingFromChests, OnCheckboxValueChanged, i => ModEntry.IsCcOn || !ModEntry.HarmonyPatched));
+                tab.AddOptionsElement(new ModifiedSlider("RadiusCraftingFromChests", 11, ModEntry.Conf.RadiusCraftingFromChests, 1, 5, OnSliderValueChanged, () => !ModEntry.Conf.CraftingFromChests || ModEntry.Conf.BalancedMode || !ModEntry.HarmonyPatched));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Unify Flower Colors"));
@@ -401,11 +402,11 @@ namespace JoysOfEfficiency.Huds
                 }
                 return;
             }
-            if (b.HasFlag(Buttons.DPadUp) && _upCursor.visible)
+            if ((b.HasFlag(Buttons.DPadUp) || b.HasFlag(Buttons.LeftThumbstickUp)) && _upCursor.visible)
             {
                 UpCursor();
             }
-            else if (b.HasFlag(Buttons.DPadDown) && _downCursor.visible)
+            else if ((b.HasFlag(Buttons.DPadDown) || b.HasFlag(Buttons.LeftThumbstickUp)) && _downCursor.visible)
             {
                 DownCursor();
             }
@@ -516,7 +517,6 @@ namespace JoysOfEfficiency.Huds
             {
                 // All option elements can't be drawn at once.
                 // Enabling the scroll bar.
-
                 _scrollBar.visible = true;
                 drawTextureBox(b, Game1.mouseCursors, new Rectangle(403, 383, 6, 6), _scrollBarRunner.X, _scrollBarRunner.Y, _scrollBarRunner.Width, _scrollBarRunner.Height, Color.White, 4f, false);
                 _scrollBar.draw(b);
@@ -524,7 +524,6 @@ namespace JoysOfEfficiency.Huds
             else
             {
                 //Disabling the scroll bar.
-
                 _scrollBar.visible = false;
             }
 

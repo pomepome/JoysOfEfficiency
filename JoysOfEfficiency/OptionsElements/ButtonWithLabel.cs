@@ -1,5 +1,6 @@
 ﻿using System;
 using JoysOfEfficiency.Core;
+using JoysOfEfficiency.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
@@ -18,7 +19,7 @@ namespace JoysOfEfficiency.OptionsElements
             Action<int> onButtonPressed = null, Func<int, bool> isDisabled = null) 
             : base(label, -1, -1, 9 * Game1.pixelZoom, 9 * Game1.pixelZoom, which)
         {
-            this.label = ModEntry.ModHelper.Translation.Get($"options.{label}");
+            this.label = Util.Helper.Translation.Get($"options.{label}");
             _onButtonPressed = onButtonPressed ?? (i => { });
             _isDisabled = isDisabled ?? (i => false);
         }
