@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data.SqlTypes;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Harmony;
-using JoysOfEfficiency.Core;
 using StardewModdingAPI;
 
 namespace JoysOfEfficiency.Utils

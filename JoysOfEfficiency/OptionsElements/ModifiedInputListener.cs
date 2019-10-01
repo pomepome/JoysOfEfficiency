@@ -1,6 +1,5 @@
 ﻿using System;
 using JoysOfEfficiency.Core;
-using JoysOfEfficiency.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;

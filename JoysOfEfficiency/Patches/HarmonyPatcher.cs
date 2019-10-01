@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reflection;
-using Harmony;
 using JoysOfEfficiency.Utils;
 using StardewModdingAPI;
 using StardewValley;
@@ -13,26 +11,26 @@ namespace JoysOfEfficiency.Patches
     {
         public static bool Init()
         {
-            IMonitor Mon = Util.Monitor;
+            IMonitor mon = Util.Monitor;
             try
             {
                 MethodInfo methodBase;
                 MethodInfo methodPatcher;
                 {
-                    Mon.Log("Started patching Farmer");
+                    mon.Log("Started patching Farmer");
                     methodBase = typeof(Player).GetMethod("hasItemInInventory", BindingFlags.Instance | BindingFlags.Public);
                     methodPatcher = typeof(FarmerPatcher).GetMethod("Prefix", BindingFlags.Static | BindingFlags.NonPublic);
-                    Mon.Log("Trying to patch...");
+                    mon.Log("Trying to patch...");
                     if (!HarmonyHelper.Patch(methodBase, methodPatcher))
                     {
                         return false;
                     }
                 }
                 {
-                    Mon.Log("Started patching CraftingRecipe");
+                    mon.Log("Started patching CraftingRecipe");
                     methodBase = typeof(CraftingRecipe).GetMethod("consumeIngredients", BindingFlags.Instance | BindingFlags.Public);
                     methodPatcher = typeof(CraftingRecipePatcher).GetMethod("Prefix", BindingFlags.Static | BindingFlags.NonPublic);
-                    Mon.Log("Trying to patch...");
+                    mon.Log("Trying to patch...");
                     if (!HarmonyHelper.Patch(methodBase, methodPatcher))
                     {
                         return false;

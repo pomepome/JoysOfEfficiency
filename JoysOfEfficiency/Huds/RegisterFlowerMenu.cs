@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using JoysOfEfficiency.Core;
 using JoysOfEfficiency.OptionsElements;
 using JoysOfEfficiency.Utils;
@@ -11,7 +7,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using StardewValley;
 using StardewValley.Menus;
-using StardewValley.Objects;
 using Object = StardewValley.Object;
 
 namespace JoysOfEfficiency.Huds
