@@ -39,7 +39,7 @@ namespace JoysOfEfficiency.OptionsElements
             _menu = parent;
         }
 
-        public void receiveButtonPress(Buttons button)
+        public void ReceiveButtonPress(Buttons button)
         {
             if (button.ToSButton() == _button)
             {

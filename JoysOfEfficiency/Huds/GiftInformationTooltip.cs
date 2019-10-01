@@ -51,7 +51,7 @@ namespace JoysOfEfficiency.Huds
                 if (player.friendshipData.ContainsKey(npc.Name) && Game1.NPCGiftTastes.ContainsKey(npc.Name))
                 {
                     Friendship friendship = player.friendshipData[npc.Name];
-                    if (friendship.GiftsThisWeek >= 2 && !IsNPCMarriedWithPlayer(npc, player))
+                    if (friendship.GiftsThisWeek >= 2 && !IsNpcMarriedWithPlayer(npc, player))
                     {
                          key.Append("gavetwogifts.");
                          _unableToGift = true;
@@ -109,7 +109,7 @@ namespace JoysOfEfficiency.Huds
             }
         }
 
-        private static bool IsNPCMarriedWithPlayer(NPC npc, Farmer player)
+        private static bool IsNpcMarriedWithPlayer(NPC npc, Farmer player)
         {
             return npc.isMarried() && npc.getSpouse().UniqueMultiplayerID == player.UniqueMultiplayerID;
         }

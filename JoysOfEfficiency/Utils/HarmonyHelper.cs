@@ -7,8 +7,8 @@ namespace JoysOfEfficiency.Utils
 {
     public class HarmonyHelper
     {
-        private const string uniqueId = "punyo.JOE";
-        private  static readonly HarmonyInstance harmony = HarmonyInstance.Create(uniqueId);
+        private const string UniqueId = "punyo.JOE";
+        private  static readonly HarmonyInstance Harmony = HarmonyInstance.Create(UniqueId);
 
         public static bool Patch(MethodInfo methodObjective, MethodInfo methodPatcher)
         {
@@ -26,7 +26,7 @@ namespace JoysOfEfficiency.Utils
                     return false;
                 }
 
-                harmony.Patch(methodObjective, new HarmonyMethod(methodPatcher), null);
+                Harmony.Patch(methodObjective, new HarmonyMethod(methodPatcher), null);
                 Util.Monitor.Log($"Method:{GetMethodString(methodObjective)} has been patched by {GetMethodString(methodPatcher)}");
 
                 return true;

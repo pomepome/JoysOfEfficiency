@@ -216,7 +216,7 @@ namespace JoysOfEfficiency.Huds
                 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Crafting From Chests"));
-                tab.AddOptionsElement(new ModifiedCheckBox("CraftingFromChests", 27, ModEntry.Conf.CraftingFromChests, OnCheckboxValueChanged, i => ModEntry.IsCCOn || !ModEntry.HarmonyPathed));
+                tab.AddOptionsElement(new ModifiedCheckBox("CraftingFromChests", 27, ModEntry.Conf.CraftingFromChests, OnCheckboxValueChanged, i => ModEntry.IsCcOn || !ModEntry.HarmonyPathed));
                 tab.AddOptionsElement(new ModifiedSlider("RadiusCraftingFromChests", 11, ModEntry.Conf.RadiusCraftingFromChests, 1, 5, OnSliderValueChanged, () => !ModEntry.Conf.CraftingFromChests || ModEntry.Conf.BalancedMode || !ModEntry.HarmonyPathed));
 
                 tab.AddOptionsElement(new EmptyLabel());
@@ -237,11 +237,11 @@ namespace JoysOfEfficiency.Huds
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Config Menu"));
-                tab.AddOptionsElement(new ModifiedInputListener(this, "KeyShowMenu", 0, ModEntry.Conf.ButtonShowMenu, translation, OnInputListnerChanged, OnStartListening));
+                tab.AddOptionsElement(new ModifiedInputListener(this, "KeyShowMenu", 0, ModEntry.Conf.ButtonShowMenu, translation, OnInputListenerChanged, OnStartListening));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Auto Harvest"));
-                tab.AddOptionsElement(new ModifiedInputListener(this, "KeyToggleBlackList", 1, ModEntry.Conf.ButtonToggleBlackList, translation, OnInputListnerChanged, OnStartListening));
+                tab.AddOptionsElement(new ModifiedInputListener(this, "KeyToggleBlackList", 1, ModEntry.Conf.ButtonToggleBlackList, translation, OnInputListenerChanged, OnStartListening));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 _tabs.Add(tab);
@@ -272,7 +272,7 @@ namespace JoysOfEfficiency.Huds
             }
             _mod.WriteConfig();
         }
-        private void OnInputListnerChanged(int index, SButton value)
+        private void OnInputListenerChanged(int index, SButton value)
         {
             switch (index)
             {
@@ -397,7 +397,7 @@ namespace JoysOfEfficiency.Huds
             {
                 foreach (ModifiedInputListener element in _tabs[_tabIndex].GetElements().OfType<ModifiedInputListener>())
                 {
-                    element.receiveButtonPress(b);
+                    element.ReceiveButtonPress(b);
                 }
                 return;
             }

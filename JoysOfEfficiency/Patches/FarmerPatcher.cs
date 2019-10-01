@@ -9,9 +9,9 @@ namespace JoysOfEfficiency.Patches
     [SuppressMessage("ReSharper", "UnusedMember.Local")]
     internal class FarmerPatcher
     {
-        private static bool Prefix(ref bool __result, ref int itemIndex, ref int quantity)
+        private static bool Prefix(ref bool result, ref int itemIndex, ref int quantity)
         {
-            __result = CountOfItem(itemIndex) >= quantity;
+            result = CountOfItem(itemIndex) >= quantity;
             return false;
         }
 

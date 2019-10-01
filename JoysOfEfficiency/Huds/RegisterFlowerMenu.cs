@@ -13,41 +13,41 @@ namespace JoysOfEfficiency.Huds
 {
     internal class RegisterFlowerMenu : IClickableMenu
     {
-        private readonly List<OptionsElement> elements = new List<OptionsElement>();
+        private readonly List<OptionsElement> _elements = new List<OptionsElement>();
 
-        private readonly ColorBox colorPreviewBox;
+        private readonly ColorBox _colorPreviewBox;
 
         private Color _currentColor;
 
         public RegisterFlowerMenu(int width, int height, Color initialColor, int item = -1) : base(Game1.viewport.Width / 2 - width / 2,
             Game1.viewport.Height / 2 - height / 2, width, height, true)
         {
-            elements.Add(new EmptyLabel());
+            _elements.Add(new EmptyLabel());
             if (item != -1)
             {
                 string s = string.Format(Util.Helper.Translation.Get("options.flower"), new Object(item, 1).DisplayName);
-                elements.Add(new LabelComponent(s));
+                _elements.Add(new LabelComponent(s));
             }
             _currentColor = initialColor;
-            elements.Add(new ModifiedSlider("R", 0, initialColor.R, 0, 255, OnSliderValueChange));
-            elements.Add(new ModifiedSlider("G", 1, initialColor.G, 0, 255, OnSliderValueChange));
-            elements.Add(new ModifiedSlider("B", 2, initialColor.B, 0, 255, OnSliderValueChange));
+            _elements.Add(new ModifiedSlider("R", 0, initialColor.R, 0, 255, OnSliderValueChange));
+            _elements.Add(new ModifiedSlider("G", 1, initialColor.G, 0, 255, OnSliderValueChange));
+            _elements.Add(new ModifiedSlider("B", 2, initialColor.B, 0, 255, OnSliderValueChange));
 
-            elements.Add(new EmptyLabel());
+            _elements.Add(new EmptyLabel());
 
-            elements.Add(new LabelComponent(Util.Helper.Translation.Get("options.previewColor")));
-            colorPreviewBox = new ColorBox("preview", 0, initialColor);
-            elements.Add(colorPreviewBox);
+            _elements.Add(new LabelComponent(Util.Helper.Translation.Get("options.previewColor")));
+            _colorPreviewBox = new ColorBox("preview", 0, initialColor);
+            _elements.Add(_colorPreviewBox);
 
-            elements.Add(new EmptyLabel());
+            _elements.Add(new EmptyLabel());
 
-            elements.Add(new ButtonWithLabel(this, "register", 0, OnButtonPressed));
+            _elements.Add(new ButtonWithLabel("register", 0, OnButtonPressed));
         }
 
         public override void receiveLeftClick(int x, int y, bool playSound = true)
         {
             base.receiveLeftClick(x, y, playSound);
-            foreach (OptionsElement element in elements)
+            foreach (OptionsElement element in _elements)
             {
                 if (element.bounds.Contains(x - xPositionOnScreen - element.bounds.X / 2,
                     y - yPositionOnScreen - element.bounds.Y / 2))
@@ -62,7 +62,7 @@ namespace JoysOfEfficiency.Huds
         public override void leftClickHeld(int x, int y)
         {
             base.leftClickHeld(x, y);
-            foreach (OptionsElement element in elements)
+            foreach (OptionsElement element in _elements)
             {
                 if (element.bounds.Contains(x - xPositionOnScreen - element.bounds.X / 2, y - yPositionOnScreen - element.bounds.Y / 2))
                 {
@@ -75,7 +75,7 @@ namespace JoysOfEfficiency.Huds
         public override void releaseLeftClick(int x, int y)
         {
             base.releaseLeftClick(x, y);
-            foreach (OptionsElement element in elements)
+            foreach (OptionsElement element in _elements)
             {
                 if (element.bounds.Contains(x - xPositionOnScreen - element.bounds.X / 2, y - yPositionOnScreen - element.bounds.Y / 2))
                 {
@@ -121,7 +121,7 @@ namespace JoysOfEfficiency.Huds
             int x = xPositionOnScreen + 16;
             int y = yPositionOnScreen + 16;
 
-            foreach (OptionsElement element in elements)
+            foreach (OptionsElement element in _elements)
             {
                 // Draw each option elements.
                 element.draw(b, x, y);
@@ -145,7 +145,7 @@ namespace JoysOfEfficiency.Huds
                     _currentColor.B = (byte) value;
                     break;
             }
-            colorPreviewBox.SetColor(_currentColor);
+            _colorPreviewBox.SetColor(_currentColor);
         }
 
         private void OnButtonPressed(int which)

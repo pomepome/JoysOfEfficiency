@@ -39,9 +39,9 @@ namespace JoysOfEfficiency.Utils
 
         public static string LastKilledMonster { get; private set; }
 
-        private static int LastItemIndex;
+        private static int _lastItemIndex;
 
-        private static int AutoFishingCounter;
+        private static int _autoFishingCounter;
 
         #region Public EntryPoint
 
@@ -49,7 +49,7 @@ namespace JoysOfEfficiency.Utils
         {
             if (!skipCheck)
             {
-                if (menu.shippingBin || IsCAShippingBinMenu(menu))
+                if (menu.shippingBin || IsCaShippingBinMenu(menu))
                 {
                     Monitor.Log("Don't do anything with shipping bin");
                     return;
@@ -152,8 +152,8 @@ namespace JoysOfEfficiency.Utils
 
         public static void AutoFishing(BobberBar bar)
         {
-            AutoFishingCounter = (AutoFishingCounter + 1) % 3;
-            if (AutoFishingCounter > 0)
+            _autoFishingCounter = (_autoFishingCounter + 1) % 3;
+            if (_autoFishingCounter > 0)
             {
                 return;
             }
@@ -262,7 +262,7 @@ namespace JoysOfEfficiency.Utils
                 return;
             }
 
-            if (menu.shippingBin || IsCAShippingBinMenu(menu))
+            if (menu.shippingBin || IsCaShippingBinMenu(menu))
             {
                 //It's a shipping bin.
                 return;
@@ -309,8 +309,8 @@ namespace JoysOfEfficiency.Utils
 
         public static void CollectMailAttachmentsAndQuests(LetterViewerMenu menu)
         {
-            IReflectedField<int> questIDField = Helper.Reflection.GetField<int>(menu, "questID");
-            int questID = questIDField.GetValue();
+            IReflectedField<int> questIdField = Helper.Reflection.GetField<int>(menu, "questID");
+            int questId = questIdField.GetValue();
 
             if (menu.itemsLeftToGrab())
             {
@@ -335,12 +335,12 @@ namespace JoysOfEfficiency.Utils
                 }
             }
 
-            if (questID != -1)
+            if (questId != -1)
             {
-                Monitor.Log($"You started Quest: {Quest.getQuestFromId(questID).questTitle}''.");
-                player.addQuest(questID);
+                Monitor.Log($"You started Quest: {Quest.getQuestFromId(questId).questTitle}''.");
+                player.addQuest(questId);
                 playSound("newArtifact");
-                questIDField.SetValue(-1);
+                questIdField.SetValue(-1);
             }
         }
 
@@ -440,7 +440,7 @@ namespace JoysOfEfficiency.Utils
                 bool accepted = obj.Name == "Furnace" ? CanFurnaceAcceptItem(item, player) : Utility.isThereAnObjectHereWhichAcceptsThisItem(currentLocation, item, (int)loc.X * tileSize, (int)loc.Y * tileSize);
                 if (obj is Cask)
                 {
-                    if (ModEntry.IsCoGOn || ModEntry.IsCAOn)
+                    if (ModEntry.IsCoGOn || ModEntry.IsCaOn)
                     {
                         if (obj.performObjectDropInAction(item, true, player))
                         {
@@ -1142,10 +1142,10 @@ namespace JoysOfEfficiency.Utils
                 return false;
             }
 
-            if (player.CurrentToolIndex != LastItemIndex)
+            if (player.CurrentToolIndex != _lastItemIndex)
             {
                 //When tool index changed, it's not idle.
-                LastItemIndex = player.CurrentToolIndex;
+                _lastItemIndex = player.CurrentToolIndex;
                 return false;
             }
 
@@ -1309,7 +1309,7 @@ namespace JoysOfEfficiency.Utils
 
         public static void DrawShippingPrice(IClickableMenu menu, SpriteFont font)
         {
-            if (!(menu is ItemGrabMenu grabMenu) || !(grabMenu.shippingBin || IsCAShippingBinMenu(grabMenu)))
+            if (!(menu is ItemGrabMenu grabMenu) || !(grabMenu.shippingBin || IsCaShippingBinMenu(grabMenu)))
             {
                 return;
             }
@@ -1538,7 +1538,7 @@ namespace JoysOfEfficiency.Utils
             return player.Items.Any(stack => stack.canStackWith(item) && stack.Stack < stack.maximumStackSize());
         }
 
-        private static bool IsCAShippingBinMenu(ItemGrabMenu menu)
+        private static bool IsCaShippingBinMenu(ItemGrabMenu menu)
         {
             return !menu.reverseGrab && menu.showReceivingMenu && menu.context is Farm;
         }

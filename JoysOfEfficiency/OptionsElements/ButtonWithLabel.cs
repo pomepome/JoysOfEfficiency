@@ -7,23 +7,20 @@ using StardewValley.Menus;
 
 namespace JoysOfEfficiency.OptionsElements
 {
-    class ButtonWithLabel : OptionsElement
+    internal class ButtonWithLabel : OptionsElement
     {
         private Rectangle _buttonRect = Rectangle.Empty;
-
-        private readonly IClickableMenu _menu;
 
         private readonly Action<int> _onButtonPressed;
         private readonly Func<int, bool> _isDisabled;
 
-        public ButtonWithLabel(IClickableMenu parent, string label, int which,
+        public ButtonWithLabel(string label, int which,
             Action<int> onButtonPressed = null, Func<int, bool> isDisabled = null) 
             : base(label, -1, -1, 9 * Game1.pixelZoom, 9 * Game1.pixelZoom, which)
         {
             this.label = ModEntry.ModHelper.Translation.Get($"options.{label}");
             _onButtonPressed = onButtonPressed ?? (i => { });
             _isDisabled = isDisabled ?? (i => false);
-            _menu = parent;
         }
 
         public override void receiveLeftClick(int x, int y)

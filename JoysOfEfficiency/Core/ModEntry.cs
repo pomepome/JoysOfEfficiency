@@ -27,8 +27,8 @@ namespace JoysOfEfficiency.Core
     internal class ModEntry : Mod
     {
         public static bool IsCoGOn { get; private set; }
-        public static bool IsCCOn { get; private set; }
-        public static bool IsCAOn { get; private set; }
+        public static bool IsCcOn { get; private set; }
+        public static bool IsCaOn { get; private set; }
 
         public static Config Conf { get; private set; }
 
@@ -45,7 +45,7 @@ namespace JoysOfEfficiency.Core
         private int _ticks;
 
         private double _timeoutCounter;
-        private int LastTimeOfDay;
+        private int _lastTimeOfDay;
 
         public override void Entry(IModHelper helper)
         {
@@ -55,20 +55,20 @@ namespace JoysOfEfficiency.Core
             Util.ModInstance = this;
             
             Conf = helper.ReadConfig<Config>();
-            IModEvents Events = Helper.Events;
+            IModEvents events = Helper.Events;
 
-            Events.Input.ButtonPressed += OnButtonPressed;
+            events.Input.ButtonPressed += OnButtonPressed;
 
-            Events.GameLoop.UpdateTicked += OnGameUpdateEvent;
+            events.GameLoop.UpdateTicked += OnGameUpdateEvent;
             
-            Events.Display.RenderedHud += OnPostRenderHud;
-            Events.Display.RenderedActiveMenu += OnPostRenderGui;
+            events.Display.RenderedHud += OnPostRenderHud;
+            events.Display.RenderedActiveMenu += OnPostRenderGui;
 
-            Events.Display.MenuChanged += OnMenuChanged;
+            events.Display.MenuChanged += OnMenuChanged;
             
-            Events.GameLoop.Saving += OnBeforeSave;
+            events.GameLoop.Saving += OnBeforeSave;
 
-            Events.GameLoop.DayStarted += OnDayStarted;
+            events.GameLoop.DayStarted += OnDayStarted;
 
             Helper.ConsoleCommands.Add("joedebug", "Debug command for JoE", OnDebugCommand);
 
@@ -94,17 +94,17 @@ namespace JoysOfEfficiency.Core
                 IsCoGOn = true;
             }
 
-            if (ModChecker.IsCALoaded(helper))
+            if (ModChecker.IsCaLoaded(helper))
             {
                 Monitor.Log("CasksAnywhere detected.");
-                IsCAOn = true;
+                IsCaOn = true;
             }
 
-            if (ModChecker.IsCCLoaded(helper))
+            if (ModChecker.IsCcLoaded(helper))
             {
                 Monitor.Log("Convenient Chests detected. JOE's CraftingFromChests feature will be disabled and won't patch the game.");
                 Conf.CraftingFromChests = false;
-                IsCCOn = true;
+                IsCcOn = true;
             }
             else if(!Conf.SafeMode)
             {
@@ -167,7 +167,7 @@ namespace JoysOfEfficiency.Core
                             _paused = true;
                         }
 
-                        Game1.timeOfDay = LastTimeOfDay;
+                        Game1.timeOfDay = _lastTimeOfDay;
                     }
                 }
                 else
@@ -179,7 +179,7 @@ namespace JoysOfEfficiency.Core
                     }
 
                     _timeoutCounter = 0;
-                    LastTimeOfDay = Game1.timeOfDay;
+                    _lastTimeOfDay = Game1.timeOfDay;
                 }
             }
             else
@@ -454,7 +454,7 @@ namespace JoysOfEfficiency.Core
         private void OnDayStarted(object sender, EventArgs args)
         {
             //Reset LastTimeOfDay
-            LastTimeOfDay = Game1.timeOfDay;
+            _lastTimeOfDay = Game1.timeOfDay;
 
             if (!Context.IsWorldReady || !Conf.AutoAnimalDoor)
             {

@@ -5,8 +5,9 @@ using StardewValley.Menus;
 
 namespace JoysOfEfficiency.OptionsElements
 {
-    class ColorBox : OptionsElement
+    internal class ColorBox : OptionsElement
     {
+        //Color of the inner box.
         private Color _color;
 
         public ColorBox(string name, int which, Color color, int width = 128, int height = 128)
@@ -18,19 +19,26 @@ namespace JoysOfEfficiency.OptionsElements
         public override void draw(SpriteBatch b, int slotX, int slotY)
         {
             slotX += 32;
-            int x = slotX + 12;
-            int y = slotY + 12;
-            int width = bounds.Width - 24;
-            int height = bounds.Height - 24;
-            Util.DrawWindow(b, slotX, slotY, bounds.Width, bounds.Height);
-                Util.DrawColoredBox(b, x, y, width, height, _color);
+
+            Util.DrawWindow(b, slotX, slotY, bounds.Width, bounds.Height); //Draw outer frame.
+            Util.DrawColoredBox(b, slotX + 12, slotY + 12, bounds.Width - 24, bounds.Height - 24, _color); //Draw inner box.
         }
 
+        /// <summary>
+        /// Sets color of the inner box.
+        /// </summary>
+        /// <param name="c">The color you want to change.</param>
         public void SetColor(Color c)
         {
             SetColor(c.R, c.G, c.B);
         }
 
+        /// <summary>
+        /// Sets color of the inner box.
+        /// </summary>
+        /// <param name="r">The red value you want to change.</param>
+        /// <param name="g">The green value you want to change.</param>
+        /// <param name="b">The blue value you want to change.</param>
         public void SetColor(int r, int g, int b)
         {
             _color.R = (byte) r;

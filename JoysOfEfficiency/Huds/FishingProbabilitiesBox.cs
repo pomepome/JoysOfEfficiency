@@ -19,17 +19,17 @@ namespace JoysOfEfficiency.Huds
     {
         private static Dictionary<int, double> _fishingDictionary;
 
-        private static bool _IsFirstTimeOfFishing = true;
+        private static bool _isFirstTimeOfFishing = true;
 
         public static void UpdateProbabilities(FishingRod rod)
         {
             if (rod.isFishing)
             {
-                if (_IsFirstTimeOfFishing)
+                if (_isFirstTimeOfFishing)
                 {
                     Util.Monitor.Log("Examine fishing probability");
 
-                    _IsFirstTimeOfFishing = false;
+                    _isFirstTimeOfFishing = false;
                     bool flag = false;
                     GameLocation location = Game1.currentLocation;
 
@@ -43,7 +43,7 @@ namespace JoysOfEfficiency.Huds
             }
             else
             {
-                _IsFirstTimeOfFishing = true;
+                _isFirstTimeOfFishing = true;
                 _fishingDictionary = null;
             }
         }
@@ -348,7 +348,7 @@ namespace JoysOfEfficiency.Huds
             return result;
         }
 
-        private static Dictionary<K, V> ConcatDictionary<K, V>(Dictionary<K, V> a, Dictionary<K, V> b)
+        private static Dictionary<TK, TV> ConcatDictionary<TK, TV>(Dictionary<TK, TV> a, Dictionary<TK, TV> b)
         {
             return a.Concat(b).ToDictionary(x => x.Key, x => x.Value);
         }
