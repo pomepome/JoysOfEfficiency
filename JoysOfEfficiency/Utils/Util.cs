@@ -99,16 +99,6 @@ namespace JoysOfEfficiency.Utils
             }
         }
         
-        public static void LetAnimalsInHome()
-        {
-            Farm farm = getFarm();
-            foreach (KeyValuePair<long, FarmAnimal> kv in farm.animals.Pairs.ToArray())
-            {
-                FarmAnimal animal = kv.Value;
-                Monitor.Log($"Warped {animal.displayName}({animal.shortDisplayType()}) to {animal.displayHouse}@[{animal.homeLocation.X}, {animal.homeLocation.Y}]");
-                animal.warpHome(farm, animal);
-            }
-        }
 
         public static void TryToEatIfNeeded(Player player)
         {
