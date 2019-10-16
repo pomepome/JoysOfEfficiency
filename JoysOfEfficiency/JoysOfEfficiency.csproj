@@ -73,6 +73,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\Config.cs" />
+    <Compile Include="Core\InstanceHolder.cs" />
     <Compile Include="Huds\FishingProbabilitiesBox.cs" />
     <Compile Include="Huds\GiftInformationTooltip.cs" />
     <Compile Include="Huds\JoeMenu.cs" />

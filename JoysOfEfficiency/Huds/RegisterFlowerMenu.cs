@@ -110,7 +110,7 @@ namespace JoysOfEfficiency.Huds
 
         public override void draw(SpriteBatch b)
         {
-            if (ModEntry.Conf.FilterBackgroundInMenu)
+            if (InstanceHolder.Config.FilterBackgroundInMenu)
             {
                 //Darken background.
                 b.Draw(Game1.fadeToBlackRect, new Rectangle(0, 0, Game1.viewport.Width, Game1.viewport.Height),

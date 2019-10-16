@@ -30,7 +30,7 @@ namespace JoysOfEfficiency.Core
         public static bool IsCcOn { get; private set; }
         public static bool IsCaOn { get; private set; }
 
-        public static Config Conf { get; private set; }
+        private static Config Conf => InstanceHolder.Config;
 
         public static bool HarmonyPatched { get; private set; }
 
@@ -51,7 +51,8 @@ namespace JoysOfEfficiency.Core
             Util.Monitor = Monitor;
             Util.ModInstance = this;
             
-            Conf = helper.ReadConfig<Config>();
+            Config conf = helper.ReadConfig<Config>();
+            InstanceHolder.Init(this, conf);
             IModEvents events = Helper.Events;
 
             events.Input.ButtonPressed += OnButtonPressed;

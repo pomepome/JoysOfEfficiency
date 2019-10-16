@@ -38,7 +38,7 @@ namespace JoysOfEfficiency.Huds
                     flag = rectangle.Intersects(value);
                     int clearWaterDistance = Util.Helper.Reflection.GetField<int>(rod, "clearWaterDistance").GetValue();
 
-                    _fishingDictionary = GetFishes(location, rod.attachments[0]?.ParentSheetIndex ?? -1, clearWaterDistance + (flag ? 1 : 0), Game1.player, ModEntry.Conf.MorePreciseProbabilities ? ModEntry.Conf.TrialOfExamine : 1);
+                    _fishingDictionary = GetFishes(location, rod.attachments[0]?.ParentSheetIndex ?? -1, clearWaterDistance + (flag ? 1 : 0), Game1.player, InstanceHolder.Config.MorePreciseProbabilities ? InstanceHolder.Config.TrialOfExamine : 1);
                 }
             }
             else
@@ -357,10 +357,10 @@ namespace JoysOfEfficiency.Huds
         {
             SpriteBatch b = Game1.spriteBatch;
             Size size = GetProbBoxSize(probs);
-            IClickableMenu.drawTextureBox(Game1.spriteBatch, ModEntry.Conf.ProbBoxCoordinates.X, ModEntry.Conf.ProbBoxCoordinates.Y, size.Width, size.Height, Color.White);
+            IClickableMenu.drawTextureBox(Game1.spriteBatch, InstanceHolder.Config.ProbBoxCoordinates.X, InstanceHolder.Config.ProbBoxCoordinates.Y, size.Width, size.Height, Color.White);
             const int square = (int)(Game1.tileSize / 1.5);
-            int x = ModEntry.Conf.ProbBoxCoordinates.X + 8;
-            int y = ModEntry.Conf.ProbBoxCoordinates.Y + 16;
+            int x = InstanceHolder.Config.ProbBoxCoordinates.X + 8;
+            int y = InstanceHolder.Config.ProbBoxCoordinates.Y + 16;
             SpriteFont font = Game1.dialogueFont;
             {
                 foreach (KeyValuePair<int, double> kv in probs)

@@ -108,7 +108,7 @@ namespace JoysOfEfficiency.OptionsElements
                 batch.DrawString(Font, _translation.Get("button.esc"), new Vector2(x, y), Color.Black, 0.0f, Vector2.Zero, 1.0f, SpriteEffects.None, 1.0f);
                 y += (int)size.Y + 8;
 
-                if (ModEntry.Conf.ShowMousePositionWhenAssigningLocation)
+                if (InstanceHolder.Config.ShowMousePositionWhenAssigningLocation)
                 {
                     Util.DrawSimpleTextbox(batch, $"[{Game1.getMouseX()},{Game1.getMouseY()}]", Game1.dialogueFont, this);
                 }

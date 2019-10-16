@@ -123,7 +123,7 @@ namespace JoysOfEfficiency.Utils
                     return;
                 }
             }
-            if (player.Stamina <= player.MaxStamina * ModEntry.Conf.StaminaToEatRatio || player.health <= player.maxHealth * ModEntry.Conf.HealthToEatRatio)
+            if (player.Stamina <= player.MaxStamina * InstanceHolder.Config.StaminaToEatRatio || player.health <= player.maxHealth * InstanceHolder.Config.HealthToEatRatio)
             {
                 SVObject itemToEat = null;
                 foreach (SVObject item in player.Items.OfType<SVObject>())
@@ -198,7 +198,7 @@ namespace JoysOfEfficiency.Utils
             float strength = (fishPos - (barPos + barHeight / 2)) / 16f;
             float distance = fishPos - top;
 
-            float threshold = Cap(ModEntry.Conf.CpuThresholdFishing, 0, 0.5f);
+            float threshold = Cap(InstanceHolder.Config.CpuThresholdFishing, 0, 0.5f);
             if (distance < threshold * barHeight || distance > (1 - threshold) * barHeight)
             {
                 bobberBarSpeed = strength;
@@ -208,7 +208,7 @@ namespace JoysOfEfficiency.Utils
         }
         public static void ShearingAndMilking(Player player)
         {
-            int radius = ModEntry.Conf.AnimalHarvestRadius * tileSize;
+            int radius = InstanceHolder.Config.AnimalHarvestRadius * tileSize;
             Rectangle bb = Expand(player.GetBoundingBox(), radius);
             foreach (FarmAnimal animal in GetAnimalsList(player))
             {
@@ -290,7 +290,7 @@ namespace JoysOfEfficiency.Utils
                 return;
             }
 
-            int radius = ModEntry.Conf.BalancedMode ? 1 : ModEntry.Conf.ScavengingRadius;
+            int radius = InstanceHolder.Config.BalancedMode ? 1 : InstanceHolder.Config.ScavengingRadius;
             Layer layer = currentLocation.Map.GetLayer("Buildings");
             int ox = player.getTileX(), oy = player.getTileY();
             for (int dy = -radius; dy <= radius; dy++)
@@ -360,23 +360,23 @@ namespace JoysOfEfficiency.Utils
                 {
                     case 376:
                         //Poppy
-                        crop.tintColor.Value = ModEntry.Conf.PoppyColor;
+                        crop.tintColor.Value = InstanceHolder.Config.PoppyColor;
                         break;
                     case 591:
                         //Tulip
-                        crop.tintColor.Value = ModEntry.Conf.TulipColor;
+                        crop.tintColor.Value = InstanceHolder.Config.TulipColor;
                         break;
                     case 597:
                         //Blue Jazz
-                        crop.tintColor.Value = ModEntry.Conf.JazzColor;
+                        crop.tintColor.Value = InstanceHolder.Config.JazzColor;
                         break;
                     case 593:
                         //Summer Spangle
-                        crop.tintColor.Value = ModEntry.Conf.SummerSpangleColor;
+                        crop.tintColor.Value = InstanceHolder.Config.SummerSpangleColor;
                         break;
                     case 595:
                         //Fairy Rose
-                        crop.tintColor.Value = ModEntry.Conf.FairyRoseColor;
+                        crop.tintColor.Value = InstanceHolder.Config.FairyRoseColor;
                         break;
                     default:
                         continue;
@@ -411,7 +411,7 @@ namespace JoysOfEfficiency.Utils
             GameLocation location = currentLocation;
             Player player = Game1.player;
 
-            Rectangle bb = Expand(player.GetBoundingBox(), ModEntry.Conf.AutoPetRadius * tileSize);
+            Rectangle bb = Expand(player.GetBoundingBox(), InstanceHolder.Config.AutoPetRadius * tileSize);
 
             foreach (Pet pet in location.characters.OfType<Pet>().Where(pet => pet.GetBoundingBox().Intersects(bb)))
             {
@@ -430,7 +430,7 @@ namespace JoysOfEfficiency.Utils
             {
                 return;
             }
-            foreach (SVObject obj in GetObjectsWithin<SVObject>(ModEntry.Conf.MachineRadius).Where(IsObjectMachine))
+            foreach (SVObject obj in GetObjectsWithin<SVObject>(InstanceHolder.Config.MachineRadius).Where(IsObjectMachine))
             {
                 Vector2 loc = GetLocationOf(currentLocation, obj);
                 if (obj.heldObject.Value != null)
@@ -473,7 +473,7 @@ namespace JoysOfEfficiency.Utils
         public static void PullMachineResult()
         {
             Player player = Game1.player;
-            foreach (SVObject obj in GetObjectsWithin<SVObject>(ModEntry.Conf.MachineRadius).Where(IsObjectMachine))
+            foreach (SVObject obj in GetObjectsWithin<SVObject>(InstanceHolder.Config.MachineRadius).Where(IsObjectMachine))
             {
                 if (!obj.readyForHarvest.Value || obj.heldObject.Value == null)
                     continue;
@@ -486,7 +486,7 @@ namespace JoysOfEfficiency.Utils
 
         public static void ShakeNearbyFruitedBush()
         {
-            int radius = ModEntry.Conf.AutoShakeRadius;
+            int radius = InstanceHolder.Config.AutoShakeRadius;
             foreach (Bush bush in currentLocation.largeTerrainFeatures.OfType<Bush>())
             {
                 Vector2 loc = bush.tilePosition.Value;
@@ -501,7 +501,7 @@ namespace JoysOfEfficiency.Utils
 
         public static void ShakeNearbyFruitedTree()
         {
-            foreach (KeyValuePair<Vector2, TerrainFeature> kv in GetFeaturesWithin<TerrainFeature>(ModEntry.Conf.AutoShakeRadius))
+            foreach (KeyValuePair<Vector2, TerrainFeature> kv in GetFeaturesWithin<TerrainFeature>(InstanceHolder.Config.AutoShakeRadius))
             {
                 Vector2 loc = kv.Key;
                 TerrainFeature feature = kv.Value;
@@ -553,8 +553,8 @@ namespace JoysOfEfficiency.Utils
 
         public static void DigNearbyArtifactSpots()
         {
-            int radius = ModEntry.Conf.AutoDigRadius;
-            Hoe hoe = FindToolFromInventory<Hoe>(player, ModEntry.Conf.FindHoeFromInventory);
+            int radius = InstanceHolder.Config.AutoDigRadius;
+            Hoe hoe = FindToolFromInventory<Hoe>(player, InstanceHolder.Config.FindHoeFromInventory);
             GameLocation location = player.currentLocation;
             if (hoe != null)
             {
@@ -582,7 +582,7 @@ namespace JoysOfEfficiency.Utils
 
         public static void CollectNearbyCollectibles(GameLocation location)
         {
-            foreach (SVObject obj in GetObjectsWithin<SVObject>(ModEntry.Conf.AutoCollectRadius))
+            foreach (SVObject obj in GetObjectsWithin<SVObject>(InstanceHolder.Config.AutoCollectRadius))
                 if (obj.IsSpawnedObject || obj.isAnimalProduct())
                     CollectObj(location, obj);
         }
@@ -614,9 +614,9 @@ namespace JoysOfEfficiency.Utils
         public static void HarvestNearCrops(Player player)
         {
             GameLocation location = player.currentLocation;
-            int radius = ModEntry.Conf.AutoHarvestRadius;
+            int radius = InstanceHolder.Config.AutoHarvestRadius;
 
-            if (ModEntry.Conf.ProtectNectarProducingFlower)
+            if (InstanceHolder.Config.ProtectNectarProducingFlower)
             {
                 UpdateNectarInfo();
             }
@@ -630,7 +630,7 @@ namespace JoysOfEfficiency.Utils
 
                 if (dirt.readyForHarvest())
                 {
-                    if (IsBlackListed(dirt.crop) || (ModEntry.Conf.ProtectNectarProducingFlower && IsProducingNectar(loc)))
+                    if (IsBlackListed(dirt.crop) || (InstanceHolder.Config.ProtectNectarProducingFlower && IsProducingNectar(loc)))
                         continue;
                     if (Harvest((int)loc.X, (int)loc.Y, dirt))
                     {
@@ -661,12 +661,12 @@ namespace JoysOfEfficiency.Utils
 
         public static void WaterNearbyCrops()
         {
-            WateringCan can = FindToolFromInventory<WateringCan>(player, ModEntry.Conf.FindCanFromInventory);
+            WateringCan can = FindToolFromInventory<WateringCan>(player, InstanceHolder.Config.FindCanFromInventory);
             if (can != null)
             {
                 GetMaxCan(can);
                 bool watered = false;
-                foreach (KeyValuePair<Vector2, HoeDirt> kv in GetFeaturesWithin<HoeDirt>(ModEntry.Conf.AutoWaterRadius))
+                foreach (KeyValuePair<Vector2, HoeDirt> kv in GetFeaturesWithin<HoeDirt>(InstanceHolder.Config.AutoWaterRadius))
                 {
                     HoeDirt dirt = kv.Value;
                     float consume = 2 * (1.0f / (can.UpgradeLevel / 2.0f + 1));
@@ -678,7 +678,7 @@ namespace JoysOfEfficiency.Utils
                         watered = true;
                     }
                 }
-                foreach (IndoorPot pot in GetObjectsWithin<IndoorPot>(ModEntry.Conf.AutoWaterRadius))
+                foreach (IndoorPot pot in GetObjectsWithin<IndoorPot>(InstanceHolder.Config.AutoWaterRadius))
                 {
                     if (pot.hoeDirt.Value != null)
                     {
@@ -1098,7 +1098,7 @@ namespace JoysOfEfficiency.Utils
             {
                 return new List<T>();
             }
-            if (ModEntry.Conf.BalancedMode)
+            if (InstanceHolder.Config.BalancedMode)
             {
                 radius = 1;
             }
@@ -1125,8 +1125,8 @@ namespace JoysOfEfficiency.Utils
             SpriteFont font = dialogueFont;
             string text = Helper.Translation.Get("hud.paused");
             Vector2 stringSize = font.MeasureString(text);
-            int x = ModEntry.Conf.PauseNotificationX;
-            int y = ModEntry.Conf.PauseNotificationY;
+            int x = InstanceHolder.Config.PauseNotificationX;
+            int y = InstanceHolder.Config.PauseNotificationY;
             int width = 16 + (int)stringSize.X + 16;
             int height = 16 + (int)stringSize.Y + 16;
 
@@ -1208,12 +1208,12 @@ namespace JoysOfEfficiency.Utils
 
         public static Chest GetFridge()
         {
-            if (!ModEntry.Conf.CraftingFromChests)
+            if (!InstanceHolder.Config.CraftingFromChests)
             {
                 return null;
             }
-            int radius = ModEntry.Conf.RadiusCraftingFromChests;
-            if (ModEntry.Conf.BalancedMode)
+            int radius = InstanceHolder.Config.RadiusCraftingFromChests;
+            if (InstanceHolder.Config.BalancedMode)
             {
                 radius = 1;
             }
@@ -1239,9 +1239,9 @@ namespace JoysOfEfficiency.Utils
 
         public static List<Chest> GetNearbyChests(Player player, bool addFridge = true)
         {
-            int radius = ModEntry.Conf.BalancedMode ? 1 : ModEntry.Conf.RadiusCraftingFromChests;
+            int radius = InstanceHolder.Config.BalancedMode ? 1 : InstanceHolder.Config.RadiusCraftingFromChests;
             List<Chest> chests = new List<Chest>();
-            if (ModEntry.Conf.CraftingFromChests)
+            if (InstanceHolder.Config.CraftingFromChests)
             {
                 foreach (Chest chest in GetObjectsWithin<Chest>(radius))
                 {
@@ -1847,16 +1847,16 @@ namespace JoysOfEfficiency.Utils
         private static bool IsBlackListed(Crop crop)
         {
             int index = crop.forageCrop.Value ? crop.whichForageCrop.Value : crop.indexOfHarvest.Value;
-            return ModEntry.Conf.HarvestException.Contains(index);
+            return InstanceHolder.Config.HarvestException.Contains(index);
         }
 
         private static bool ToggleBlackList(Crop crop)
         {
             int index = crop.forageCrop.Value ? crop.whichForageCrop.Value : crop.indexOfHarvest.Value;
             if (IsBlackListed(crop))
-                ModEntry.Conf.HarvestException.Remove(index);
+                InstanceHolder.Config.HarvestException.Remove(index);
             else
-                ModEntry.Conf.HarvestException.Add(index);
+                InstanceHolder.Config.HarvestException.Add(index);
 
             ModInstance.WriteConfig();
             return IsBlackListed(crop);

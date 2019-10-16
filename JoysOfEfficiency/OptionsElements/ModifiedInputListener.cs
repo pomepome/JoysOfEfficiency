@@ -46,7 +46,7 @@ namespace JoysOfEfficiency.OptionsElements
             {
                 return;
             }
-            if (button.ToSButton() == ModEntry.Conf.ButtonShowMenu)
+            if (button.ToSButton() == InstanceHolder.Config.ButtonShowMenu)
             {
                 _conflicting = true;
                 return;
@@ -74,7 +74,7 @@ namespace JoysOfEfficiency.OptionsElements
                 return;
             }
             base.receiveKeyPress(key);
-            if(Game1.options.isKeyInUse(key) || key.ToSButton() == ModEntry.Conf.ButtonShowMenu)
+            if(Game1.options.isKeyInUse(key) || key.ToSButton() == InstanceHolder.Config.ButtonShowMenu)
             {
                 _conflicting = true;
                 return;
@@ -111,11 +111,10 @@ namespace JoysOfEfficiency.OptionsElements
             }
             x += _menu.xPositionOnScreen;
             y += _buttonRect.Height / 2;
-            if(_buttonRect != null && x >= _buttonRect.Left && x <= _buttonRect.Right)
-            {
-                _onStartListening(whichOption, this);
-                _isListening = true;
-            }
+            if (x < _buttonRect.Left || x > _buttonRect.Right)
+                return;
+            _onStartListening(whichOption, this);
+            _isListening = true;
         }
 
         public void DrawStrings(SpriteBatch batch, int x, int y)
