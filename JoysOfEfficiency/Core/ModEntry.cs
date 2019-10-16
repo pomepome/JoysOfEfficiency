@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using JoysOfEfficiency.Automation;
 using JoysOfEfficiency.Huds;
 using JoysOfEfficiency.ModCheckers;
 using JoysOfEfficiency.Patches;
@@ -413,40 +414,8 @@ namespace JoysOfEfficiency.Core
             {
                 return;
             }
-            Util.LetAnimalsInHome();
-            Farm farm = Game1.getFarm();
-            foreach (Building building in farm.buildings)
-            {
-                switch (building)
-                {
-                    case Coop coop:
-                    {
-                        if (coop.indoors.Value is AnimalHouse house)
-                        {
-                            if (house.animals.Any() && coop.animalDoorOpen.Value)
-                            {
-                                coop.animalDoorOpen.Value = false;
-                                Helper.Reflection.GetField<NetInt>(coop, "animalDoorMotion").SetValue(new NetInt(2));
-                            }
-                        }
-
-                        break;
-                    }
-                    case Barn barn:
-                    {
-                        if (barn.indoors.Value is AnimalHouse house)
-                        {
-                            if (house.animals.Any() && barn.animalDoorOpen.Value)
-                            {
-                                barn.animalDoorOpen.Value = false;
-                                Helper.Reflection.GetField<NetInt>(barn, "animalDoorMotion").SetValue(new NetInt(2));
-                            }
-                        }
-
-                        break;
-                    }
-                }
-            }
+            AnimalAutomation.LetAnimalsInHome();
+            AnimalAutomation.AutoAnimalDoor();
         }
 
         private void OnDayStarted(object sender, EventArgs args)
