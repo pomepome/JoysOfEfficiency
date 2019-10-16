@@ -14,7 +14,6 @@ namespace JoysOfEfficiency.Huds
 {
     internal class JoeMenu : IClickableMenu
     {
-        private readonly ModEntry _mod;
 
         private readonly List<MenuTab> _tabs = new List<MenuTab>();
 
@@ -48,11 +47,16 @@ namespace JoysOfEfficiency.Huds
         private ModifiedInputListener _listener;
         private ModifiedClickListener _clickListener;
 
-        internal JoeMenu(int width, int height, ModEntry mod)
+        public static void OpenMenu()
+        {
+            Game1.playSound("bigSelect");
+            Game1.activeClickableMenu = new JoeMenu(1100, 560);
+        }
+
+        internal JoeMenu(int width, int height)
             : base(Game1.viewport.Width / 2 - width / 2, Game1.viewport.Height / 2 - height / 2, width, height, true)
         {
-            _mod = mod;
-            ITranslationHelper translation = mod.Helper.Translation;
+            ITranslationHelper translation = InstanceHolder.Translation;
             _upCursor = new ClickableTextureComponent("up-arrow", new Rectangle(xPositionOnScreen + this.width + Game1.tileSize / 4, yPositionOnScreen + Game1.tileSize, 11 * Game1.pixelZoom, 12 * Game1.pixelZoom), "", "", Game1.mouseCursors, new Rectangle(421, 459, 11, 12), Game1.pixelZoom);
             _downCursor = new ClickableTextureComponent("down-arrow", new Rectangle(xPositionOnScreen + this.width + Game1.tileSize / 4, yPositionOnScreen + this.height - Game1.tileSize, 11 * Game1.pixelZoom, 12 * Game1.pixelZoom), "", "", Game1.mouseCursors, new Rectangle(421, 472, 11, 12), Game1.pixelZoom);
 
@@ -201,8 +205,8 @@ namespace JoysOfEfficiency.Huds
                 tab.AddOptionsElement(new LabelComponent("Fishing Probabilities Information"));
                 tab.AddOptionsElement(new ModifiedCheckBox("FishingProbabilitiesInfo", 26, InstanceHolder.Config.FishingProbabilitiesInfo, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedClickListener(this, "ProbBoxLocation", 0, InstanceHolder.Config.ProbBoxCoordinates.X, InstanceHolder.Config.ProbBoxCoordinates.Y, translation, OnSomewhereClicked, OnStartListeningClick));
-                tab.AddOptionsElement(new ModifiedCheckBox("MorePreciseProbabilities", 37, InstanceHolder.Config.MorePreciseProbabilities, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedSlider("TrialOfExamine", 15, InstanceHolder.Config.TrialOfExamine, 1, 10, OnSliderValueChanged, () => !InstanceHolder.Config.FishingProbabilitiesInfo && InstanceHolder.Config.MorePreciseProbabilities));
+                tab.AddOptionsElement(new ModifiedCheckBox("MorePreciseProbabilities", 37, InstanceHolder.Config.MorePreciseProbabilities, OnCheckboxValueChanged, i => !InstanceHolder.Config.FishingProbabilitiesInfo));
+                tab.AddOptionsElement(new ModifiedSlider("TrialOfExamine", 15, InstanceHolder.Config.TrialOfExamine, 1, 10, OnSliderValueChanged, () => !(InstanceHolder.Config.FishingProbabilitiesInfo && InstanceHolder.Config.MorePreciseProbabilities)));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Show Shipping Price"));
@@ -271,7 +275,7 @@ namespace JoysOfEfficiency.Huds
                     break;
                 default: return;
             }
-            _mod.WriteConfig();
+            InstanceHolder.ModInstance.WriteConfig();
         }
         private void OnInputListenerChanged(int index, SButton value)
         {
@@ -283,7 +287,7 @@ namespace JoysOfEfficiency.Huds
                     InstanceHolder.Config.ButtonToggleBlackList = value; break;
                 default: return;
             }
-            _mod.WriteConfig();
+            InstanceHolder.ModInstance.WriteConfig();
             _isListening = false;
             _listener = null;
         }
@@ -329,7 +333,7 @@ namespace JoysOfEfficiency.Huds
                 case 38: InstanceHolder.Config.ShowMousePositionWhenAssigningLocation = value; break;
                 default: return;
             }
-            _mod.WriteConfig();
+            InstanceHolder.ModInstance.WriteConfig();
         }
         private void OnSliderValueChanged(int index, int value)
         {
@@ -353,7 +357,7 @@ namespace JoysOfEfficiency.Huds
                 default: return;
             }
 
-            _mod.WriteConfig();
+            InstanceHolder.ModInstance.WriteConfig();
         }
 
         private static string Format(int id, int value)

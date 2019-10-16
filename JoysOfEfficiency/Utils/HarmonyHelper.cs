@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using Harmony;
+using JoysOfEfficiency.Core;
 using StardewModdingAPI;
 
 namespace JoysOfEfficiency.Utils
@@ -16,24 +17,24 @@ namespace JoysOfEfficiency.Utils
             {
                 if (methodObjective == null)
                 {
-                    Util.Monitor.Log("Object method is null.", LogLevel.Error);
+                    InstanceHolder.Monitor.Log("Object method is null.", LogLevel.Error);
                     return false;
                 }
 
                 if (methodPatcher == null)
                 {
-                    Util.Monitor.Log("Patcher method is null.", LogLevel.Error);
+                    InstanceHolder.Monitor.Log("Patcher method is null.", LogLevel.Error);
                     return false;
                 }
 
-                Harmony.Patch(methodObjective, new HarmonyMethod(methodPatcher), null);
-                Util.Monitor.Log($"Method:{GetMethodString(methodObjective)} has been patched by {GetMethodString(methodPatcher)}");
+                Harmony.Patch(methodObjective, new HarmonyMethod(methodPatcher));
+                InstanceHolder.Monitor.Log($"Method:{GetMethodString(methodObjective)} has been patched by {GetMethodString(methodPatcher)}");
 
                 return true;
             }
             catch (Exception e)
             {
-                Util.Monitor.Log($"An Exception Occured: {e}", LogLevel.Error);
+                InstanceHolder.Monitor.Log($"An Exception Occured: {e}", LogLevel.Error);
                 return false;
             }
         }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using JoysOfEfficiency.Core;
 using JoysOfEfficiency.OptionsElements;
 using JoysOfEfficiency.Utils;
@@ -26,7 +25,7 @@ namespace JoysOfEfficiency.Huds
             _elements.Add(new EmptyLabel());
             if (item != -1)
             {
-                string s = string.Format(Util.Helper.Translation.Get("options.flower"), new Object(item, 1).DisplayName);
+                string s = string.Format(InstanceHolder.Translation.Get("options.flower"), new Object(item, 1).DisplayName);
                 _elements.Add(new LabelComponent(s));
             }
             _currentColor = initialColor;
@@ -36,7 +35,7 @@ namespace JoysOfEfficiency.Huds
 
             _elements.Add(new EmptyLabel());
 
-            _elements.Add(new LabelComponent(Util.Helper.Translation.Get("options.previewColor")));
+            _elements.Add(new LabelComponent(InstanceHolder.Translation.Get("options.previewColor")));
             _colorPreviewBox = new ColorBox("preview", 0, initialColor);
             _elements.Add(_colorPreviewBox);
 

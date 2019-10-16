@@ -27,7 +27,7 @@ namespace JoysOfEfficiency.OptionsElements
             : base(label, -1, -1, width * Game1.pixelZoom, 6 * Game1.pixelZoom, 0)
         {
             whichOption = which;
-            _label = Util.Helper.Translation.Get($"options.{label}");
+            _label = InstanceHolder.Translation.Get($"options.{label}");
             _value = initialValue - minValue;
             _minValue = minValue;
             _maxValue = maxValue - minValue;

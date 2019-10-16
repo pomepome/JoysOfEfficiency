@@ -29,7 +29,7 @@ namespace JoysOfEfficiency.OptionsElements
 
         public ModifiedInputListener(IClickableMenu parent ,string label, int which, SButton initial, ITranslationHelper translationHelper, Action<int, SButton> onButtonPressed, Action<int, ModifiedInputListener> onStartListening = null, Func<int, bool> isDisabled = null) : base(label, -1, -1, 9 * Game1.pixelZoom, 9 * Game1.pixelZoom, 0)
         {
-            this.label = Util.Helper.Translation.Get($"options.{label}");
+            this.label = InstanceHolder.Translation.Get($"options.{label}");
             _button = initial;
             _defaultButton = initial;
             _onButtonPressed = onButtonPressed;

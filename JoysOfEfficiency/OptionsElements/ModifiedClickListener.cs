@@ -28,7 +28,7 @@ namespace JoysOfEfficiency.OptionsElements
 
         public ModifiedClickListener(IClickableMenu parent ,string label, int which, int initialX, int initialY, ITranslationHelper translationHelper, Action<int, Point> onSomewhereClicked, Action<int, ModifiedClickListener> onStartListening = null) : base(label, -1, -1, 9 * Game1.pixelZoom, 9 * Game1.pixelZoom, 0)
         {
-            this.label = Util.Helper.Translation.Get($"options.{label}");
+            this.label = InstanceHolder.Translation.Get($"options.{label}");
             _point = new Point(initialX, initialY);
             _onSomewhereClicked = onSomewhereClicked;
             _translation = translationHelper;

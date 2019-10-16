@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using JoysOfEfficiency.Core;
 using JoysOfEfficiency.Utils;
 using StardewModdingAPI;
 using StardewValley;
@@ -11,7 +12,7 @@ namespace JoysOfEfficiency.Patches
     {
         public static bool Init()
         {
-            IMonitor mon = Util.Monitor;
+            IMonitor mon = InstanceHolder.Monitor;
             try
             {
                 MethodInfo methodBase;
@@ -39,7 +40,7 @@ namespace JoysOfEfficiency.Patches
             }
             catch(Exception e)
             {
-                Util.Monitor.Log(e.ToString(), LogLevel.Error);
+                InstanceHolder.Monitor.Log(e.ToString(), LogLevel.Error);
                 return false;
             }
             return true;

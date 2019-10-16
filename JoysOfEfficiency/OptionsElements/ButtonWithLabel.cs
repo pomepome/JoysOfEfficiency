@@ -19,7 +19,7 @@ namespace JoysOfEfficiency.OptionsElements
             Action<int> onButtonPressed = null, Func<int, bool> isDisabled = null) 
             : base(label, -1, -1, 9 * Game1.pixelZoom, 9 * Game1.pixelZoom, which)
         {
-            this.label = Util.Helper.Translation.Get($"options.{label}");
+            this.label = InstanceHolder.Translation.Get($"options.{label}");
             _onButtonPressed = onButtonPressed ?? (i => { });
             _isDisabled = isDisabled ?? (i => false);
         }

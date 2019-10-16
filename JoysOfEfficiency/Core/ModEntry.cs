@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using JoysOfEfficiency.Automation;
 using JoysOfEfficiency.Huds;
 using JoysOfEfficiency.ModCheckers;
@@ -9,14 +8,10 @@ using JoysOfEfficiency.Patches;
 using JoysOfEfficiency.Utils;
 
 using Microsoft.Xna.Framework;
-
-using Netcode;
-
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 
 using StardewValley;
-using StardewValley.Buildings;
 using StardewValley.Locations;
 using StardewValley.Menus;
 using StardewValley.Tools;
@@ -48,10 +43,6 @@ namespace JoysOfEfficiency.Core
 
         public override void Entry(IModHelper helper)
         {
-            Util.Helper = helper;
-            Util.Monitor = Monitor;
-            Util.ModInstance = this;
-            
             Config conf = helper.ReadConfig<Config>();
             InstanceHolder.Init(this, conf);
             IModEvents events = Helper.Events;
@@ -267,7 +258,7 @@ namespace JoysOfEfficiency.Core
                 }
                 if (Conf.AutoWaterNearbyCrops)
                 {
-                    Util.WaterNearbyCrops();
+                    HarvestAutomation.WaterNearbyCrops();
                 }
                 if (Conf.AutoPetNearbyAnimals)
                 {
@@ -301,7 +292,7 @@ namespace JoysOfEfficiency.Core
                 }
                 if (Conf.AutoHarvest)
                 {
-                    Util.HarvestNearCrops(player);
+                    HarvestAutomation.HarvestNearbyCrops(player);
                 }
                 if (Conf.AutoDestroyDeadCrops)
                 {
@@ -360,12 +351,11 @@ namespace JoysOfEfficiency.Core
             if (args.Button == Conf.ButtonShowMenu)
             {
                 //Open Up Menu
-                Game1.playSound("bigSelect");
-                Game1.activeClickableMenu = new JoeMenu(1100, 560, this);
+                JoeMenu.OpenMenu();
             }
             else if (args.Button == Conf.ButtonToggleBlackList)
             {
-                Util.ToggleBlacklistUnderCursor();
+                HarvestAutomation.ToggleBlacklistUnderCursor();
             }
         }
 
@@ -381,11 +371,11 @@ namespace JoysOfEfficiency.Core
             }
             if (Conf.FishingProbabilitiesInfo && Game1.player.CurrentTool is FishingRod rod && rod.isFishing)
             {
-                FishingProbabilitiesBox.PrintFishingInfo(rod);
+                FishingProbabilitiesBox.PrintFishingInfo();
             }
             if (_paused && Conf.PauseWhenIdle)
             {
-                Util.DrawPausedHud();
+                PausedHud.DrawPausedHud();
             }
         }
         
@@ -415,7 +405,7 @@ namespace JoysOfEfficiency.Core
                 return;
             }
             AnimalAutomation.LetAnimalsInHome();
-            AnimalAutomation.AutoAnimalDoor();
+            AnimalAutomation.AutoCloseAnimalDoor();
         }
 
         private void OnDayStarted(object sender, EventArgs args)
@@ -428,49 +418,7 @@ namespace JoysOfEfficiency.Core
                 return;
             }
             _dayEnded = false;
-            if (Game1.isRaining || Game1.isSnowing)
-            {
-                Monitor.Log("Don't open the animal door because of rainy/snowy weather.");
-                return;
-            }
-            if(Game1.IsWinter)
-            {
-                Monitor.Log("Don't open the animal door because it's winter");
-                return;
-            }
-            Farm farm = Game1.getFarm();
-            foreach (Building building in farm.buildings)
-            {
-                switch (building)
-                {
-                    case Coop coop:
-                    {
-                        if (coop.indoors.Value is AnimalHouse house)
-                        {
-                            if (house.animals.Any() && !coop.animalDoorOpen.Value)
-                            {
-                                Monitor.Log($"Opening coop door @[{coop.animalDoor.X},{coop.animalDoor.Y}]");
-                                coop.animalDoorOpen.Value = true;
-                                Helper.Reflection.GetField<NetInt>(coop, "animalDoorMotion").SetValue(new NetInt(-2));
-                            }
-                        }
-                        break;
-                    }
-                    case Barn barn:
-                    {
-                        if (barn.indoors.Value is AnimalHouse house)
-                        {
-                            if (house.animals.Any() && !barn.animalDoorOpen.Value)
-                            {
-                                Monitor.Log($"Opening barn door @[{barn.animalDoor.X},{barn.animalDoor.Y}]");
-                                barn.animalDoorOpen.Value = true;
-                                Helper.Reflection.GetField<NetInt>(barn, "animalDoorMotion").SetValue(new NetInt(-3));
-                            }
-                        }
-                        break;
-                    }
-                }
-            }
+            AnimalAutomation.AutoOpenAnimalDoor();
         }
 
         public void WriteConfig()

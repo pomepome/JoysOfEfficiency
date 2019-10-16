@@ -28,14 +28,13 @@ namespace JoysOfEfficiency.Utils
     using SVObject = Object;
     internal class Util
     {
-        public static IModHelper Helper;
-        public static IMonitor Monitor;
-        internal static ModEntry ModInstance;
+        private static IMonitor Monitor => InstanceHolder.Monitor;
+        private static IReflectionHelper Reflection => InstanceHolder.Reflection;
+        private static ITranslationHelper Translation => InstanceHolder.Translation;
         private static bool _catchingTreasure;
 
         private static readonly MineIcons Icons = new MineIcons();
         private static List<Monster> _lastMonsters = new List<Monster>();
-        private static readonly List<Vector2> FlowerLocationProducingNectar = new List<Vector2>();
 
         public static string LastKilledMonster { get; private set; }
 
@@ -148,18 +147,17 @@ namespace JoysOfEfficiency.Utils
                 return;
             }
 
-            IReflectionHelper reflection = Helper.Reflection;
 
-            IReflectedField<float> bobberSpeed = reflection.GetField<float>(bar, "bobberBarSpeed");
+            IReflectedField<float> bobberSpeed = Reflection.GetField<float>(bar, "bobberBarSpeed");
 
-            float barPos = reflection.GetField<float>(bar, "bobberBarPos").GetValue();
-            int barHeight = reflection.GetField<int>(bar, "bobberBarHeight").GetValue();
-            float fishPos = reflection.GetField<float>(bar, "bobberPosition").GetValue();
-            float treasurePos = reflection.GetField<float>(bar, "treasurePosition").GetValue();
-            float distanceFromCatching = reflection.GetField<float>(bar, "distanceFromCatching").GetValue();
-            bool treasureCaught = reflection.GetField<bool>(bar, "treasureCaught").GetValue();
-            bool treasure = reflection.GetField<bool>(bar, "treasure").GetValue();
-            float treasureApeearTimer = reflection.GetField<float>(bar, "treasureAppearTimer").GetValue();
+            float barPos = Reflection.GetField<float>(bar, "bobberBarPos").GetValue();
+            int barHeight = Reflection.GetField<int>(bar, "bobberBarHeight").GetValue();
+            float fishPos = Reflection.GetField<float>(bar, "bobberPosition").GetValue();
+            float treasurePos = Reflection.GetField<float>(bar, "treasurePosition").GetValue();
+            float distanceFromCatching = Reflection.GetField<float>(bar, "distanceFromCatching").GetValue();
+            bool treasureCaught = Reflection.GetField<bool>(bar, "treasureCaught").GetValue();
+            bool treasure = Reflection.GetField<bool>(bar, "treasure").GetValue();
+            float treasureApeearTimer = Reflection.GetField<float>(bar, "treasureAppearTimer").GetValue();
             float bobberBarSpeed = bobberSpeed.GetValue();
 
             float top = barPos;
@@ -180,12 +178,12 @@ namespace JoysOfEfficiency.Utils
                 }
             }
 
-            if (fishPos > barPos + barHeight / 2)
+            if (fishPos > barPos + (barHeight << 1))
             {
                 return;
             }
 
-            float strength = (fishPos - (barPos + barHeight / 2)) / 16f;
+            float strength = (fishPos - (barPos + (barHeight << 1))) / 16f;
             float distance = fishPos - top;
 
             float threshold = Cap(InstanceHolder.Config.CpuThresholdFishing, 0, 0.5f);
@@ -299,7 +297,7 @@ namespace JoysOfEfficiency.Utils
 
         public static void CollectMailAttachmentsAndQuests(LetterViewerMenu menu)
         {
-            IReflectedField<int> questIdField = Helper.Reflection.GetField<int>(menu, "questID");
+            IReflectedField<int> questIdField = Reflection.GetField<int>(menu, "questID");
             int questId = questIdField.GetValue();
 
             if (menu.itemsLeftToGrab())
@@ -380,22 +378,7 @@ namespace JoysOfEfficiency.Utils
             }
         }
 
-        public static void UpdateNectarInfo()
-        {
-            FlowerLocationProducingNectar.Clear();
-            foreach (KeyValuePair<Vector2, SVObject> kv in currentLocation.Objects.Pairs.Where(pair => pair.Value.Name == "Bee House"))
-            {
-                Vector2 houseLoc = kv.Key;
-                foreach (Vector2 flowerLoc in GetAreaOfCollectingNector(houseLoc))
-                {
-                    if ((int)flowerLoc.X < 0 && (int)flowerLoc.Y < 0 && !FlowerLocationProducingNectar.Contains(flowerLoc))
-                    {
-                        FlowerLocationProducingNectar.Add(flowerLoc);
-                    }
-                }
-            }
-        }
-
+        
         public static void PetNearbyPets()
         {
             GameLocation location = currentLocation;
@@ -405,7 +388,7 @@ namespace JoysOfEfficiency.Utils
 
             foreach (Pet pet in location.characters.OfType<Pet>().Where(pet => pet.GetBoundingBox().Intersects(bb)))
             {
-                bool wasPet = Helper.Reflection.GetField<bool>(pet, "wasPetToday").GetValue();
+                bool wasPet = Reflection.GetField<bool>(pet, "wasPetToday").GetValue();
                 if (!wasPet)
                 {
                     pet.checkAction(player, location); // Pet pet... lol
@@ -528,7 +511,7 @@ namespace JoysOfEfficiency.Utils
                                 num2 = 408;
                             }
                             if (num2 != -1)
-                                Helper.Reflection.GetMethod(tree, "shake").Invoke(loc, false);
+                                Reflection.GetMethod(tree, "shake").Invoke(loc, false);
                         }
                         break;
                     case FruitTree ftree:
@@ -601,128 +584,10 @@ namespace JoysOfEfficiency.Utils
             }
         }
 
-        public static void HarvestNearCrops(Player player)
-        {
-            GameLocation location = player.currentLocation;
-            int radius = InstanceHolder.Config.AutoHarvestRadius;
-
-            if (InstanceHolder.Config.ProtectNectarProducingFlower)
-            {
-                UpdateNectarInfo();
-            }
-
-            foreach (KeyValuePair<Vector2, HoeDirt> kv in GetFeaturesWithin<HoeDirt>(radius))
-            {
-                Vector2 loc = kv.Key;
-                HoeDirt dirt = kv.Value;
-                if (dirt.crop == null)
-                    continue;
-
-                if (dirt.readyForHarvest())
-                {
-                    if (IsBlackListed(dirt.crop) || (InstanceHolder.Config.ProtectNectarProducingFlower && IsProducingNectar(loc)))
-                        continue;
-                    if (Harvest((int)loc.X, (int)loc.Y, dirt))
-                    {
-                        if (dirt.crop.regrowAfterHarvest.Value == -1 || dirt.crop.forageCrop.Value)
-                        {
-                            //destroy crop if it does not regrow.
-                            dirt.destroyCrop(loc, true, location);
-                        }
-                    }
-                }
-            }
-            foreach (IndoorPot pot in GetObjectsWithin<IndoorPot>(radius))
-            {
-                HoeDirt dirt = pot.hoeDirt.Value;
-                if (dirt?.crop == null || !dirt.readyForHarvest())
-                    continue;
-                Vector2 tileLoc = GetLocationOf(location, pot);
-                if (dirt.crop.harvest((int)tileLoc.X, (int)tileLoc.Y, dirt))
-                {
-                    if (dirt.crop.regrowAfterHarvest.Value == -1 || dirt.crop.forageCrop.Value)
-                    {
-                        //destroy crop if it does not regrow.
-                        dirt.destroyCrop(tileLoc, true, location);
-                    }
-                }
-            }
-        }
-
-        public static void WaterNearbyCrops()
-        {
-            WateringCan can = FindToolFromInventory<WateringCan>(player, InstanceHolder.Config.FindCanFromInventory);
-            if (can != null)
-            {
-                GetMaxCan(can);
-                bool watered = false;
-                foreach (KeyValuePair<Vector2, HoeDirt> kv in GetFeaturesWithin<HoeDirt>(InstanceHolder.Config.AutoWaterRadius))
-                {
-                    HoeDirt dirt = kv.Value;
-                    float consume = 2 * (1.0f / (can.UpgradeLevel / 2.0f + 1));
-                    if (dirt.crop != null && !dirt.crop.dead.Value && dirt.state.Value == 0 && player.Stamina >= consume && can.WaterLeft > 0)
-                    {
-                        dirt.state.Value = 1;
-                        player.Stamina -= consume;
-                        can.WaterLeft--;
-                        watered = true;
-                    }
-                }
-                foreach (IndoorPot pot in GetObjectsWithin<IndoorPot>(InstanceHolder.Config.AutoWaterRadius))
-                {
-                    if (pot.hoeDirt.Value != null)
-                    {
-                        HoeDirt dirt = pot.hoeDirt.Value;
-                        float consume = 2 * (1.0f / (can.UpgradeLevel / 2.0f + 1));
-                        if (dirt.crop != null && !dirt.crop.dead.Value && dirt.state.Value != 1 && player.Stamina >= consume && can.WaterLeft > 0)
-                        {
-                            dirt.state.Value = 1;
-                            pot.showNextIndex.Value = true;
-                            player.Stamina -= consume;
-                            can.WaterLeft--;
-                            watered = true;
-                        }
-                    }
-                }
-                if (watered)
-                {
-                    playSound("slosh");
-                }
-            }
-        }
-
-        public static void ToggleBlacklistUnderCursor()
-        {
-            GameLocation location = currentLocation;
-            Vector2 tile = currentCursorTile;
-            if (!location.terrainFeatures.TryGetValue(tile, out TerrainFeature terrain))
-                return;
-            if (!(terrain is HoeDirt dirt))
-                return;
-
-            if (dirt.crop == null)
-            {
-                ShowHudMessage("There is no crop under the cursor");
-            }
-            else
-            {
-                string name = dirt.crop.forageCrop.Value ? new SVObject(dirt.crop.whichForageCrop.Value, 1).Name : new SVObject(dirt.crop.indexOfHarvest.Value, 1).Name;
-                if (name == "")
-                {
-                    return;
-                }
-
-                string text = ToggleBlackList(dirt.crop)
-                    ? $"{name} has been added to AutoHarvest exception"
-                    : $"{name} has been removed from AutoHarvest exception";
-                ShowHudMessage(text, 1000);
-                Monitor.Log(text);
-            }
-        }
+        
         
         public static void DrawMineGui(SpriteBatch batch, SpriteFont font, Player player, MineShaft shaft)
         {
-            ITranslationHelper translation = Helper.Translation;
             int stonesLeft = CountActualStones(shaft);
             Vector2 ladderPos = FindLadder(shaft);
             bool ladder = ladderPos != Vector2.Zero;
@@ -741,22 +606,22 @@ namespace JoysOfEfficiency.Utils
             if (LastKilledMonster != null)
             {
                 int kills = stats.getMonstersKilled(LastKilledMonster);
-                tallyStr = Format(translation.Get("monsters.tally"), LastKilledMonster, kills);
+                tallyStr = Format(Translation.Get("monsters.tally"), LastKilledMonster, kills);
             }
 
             string stonesStr;
             if (stonesLeft == 0)
             {
-                stonesStr = translation.Get("stones.none");
+                stonesStr = Translation.Get("stones.none");
             }
             else
             {
                 bool single = stonesLeft == 1;
-                stonesStr = single ? translation.Get("stones.one") : Format(translation.Get("stones.many"), stonesLeft);
+                stonesStr = single ? Translation.Get("stones.one") : Format(Translation.Get("stones.many"), stonesLeft);
             }
             if (ladder)
             {
-                ladderStr = translation.Get("ladder");
+                ladderStr = Translation.Get("ladder");
             }
             Icons.Draw(stonesStr, tallyStr, ladderStr);
 
@@ -764,21 +629,18 @@ namespace JoysOfEfficiency.Utils
 
         public static void DrawFishingInfoBox(SpriteBatch batch, BobberBar bar, SpriteFont font)
         {
-            IReflectionHelper reflection = Helper.Reflection;
-            ITranslationHelper translation = Helper.Translation;
-
             int width = 0, height = 120;
 
 
             float scale = 1.0f;
 
 
-            int whitchFish = reflection.GetField<int>(bar, "whichFish").GetValue();
-            int fishSize = reflection.GetField<int>(bar, "fishSize").GetValue();
-            int fishQuality = reflection.GetField<int>(bar, "fishQuality").GetValue();
-            bool treasure = reflection.GetField<bool>(bar, "treasure").GetValue();
-            bool treasureCaught = reflection.GetField<bool>(bar, "treasureCaught").GetValue();
-            float treasureAppearTimer = reflection.GetField<float>(bar, "treasureAppearTimer").GetValue() / 1000;
+            int whitchFish = Reflection.GetField<int>(bar, "whichFish").GetValue();
+            int fishSize = Reflection.GetField<int>(bar, "fishSize").GetValue();
+            int fishQuality = Reflection.GetField<int>(bar, "fishQuality").GetValue();
+            bool treasure = Reflection.GetField<bool>(bar, "treasure").GetValue();
+            bool treasureCaught = Reflection.GetField<bool>(bar, "treasureCaught").GetValue();
+            float treasureAppearTimer = Reflection.GetField<float>(bar, "treasureAppearTimer").GetValue() / 1000;
 
             SVObject fish = new SVObject(whitchFish, 1, quality:fishQuality);
             int salePrice = fish.sellToStorePrice();
@@ -788,14 +650,14 @@ namespace JoysOfEfficiency.Utils
                 scale = 0.7f;
             }
 
-            string speciesText = TryFormat(translation.Get("fishinfo.species").ToString(), fish.DisplayName);
-            string sizeText = TryFormat(translation.Get("fishinfo.size").ToString(), GetFinalSize(fishSize));
-            string qualityText1 = translation.Get("fishinfo.quality").ToString();
-            string qualityText2 = translation.Get(GetKeyForQuality(fishQuality)).ToString();
-            string incomingText = TryFormat(translation.Get("fishinfo.treasure.incoming").ToString(), treasureAppearTimer);
-            string appearedText = translation.Get("fishinfo.treasure.appear").ToString();
-            string caughtText = translation.Get("fishinfo.treasure.caught").ToString();
-            string priceText = TryFormat(translation.Get("fishinfo.price"), salePrice);
+            string speciesText = TryFormat(Translation.Get("fishinfo.species").ToString(), fish.DisplayName);
+            string sizeText = TryFormat(Translation.Get("fishinfo.size").ToString(), GetFinalSize(fishSize));
+            string qualityText1 = Translation.Get("fishinfo.quality").ToString();
+            string qualityText2 = Translation.Get(GetKeyForQuality(fishQuality)).ToString();
+            string incomingText = TryFormat(Translation.Get("fishinfo.treasure.incoming").ToString(), treasureAppearTimer);
+            string appearedText = Translation.Get("fishinfo.treasure.appear").ToString();
+            string caughtText = Translation.Get("fishinfo.treasure.caught").ToString();
+            string priceText = TryFormat(Translation.Get("fishinfo.price"), salePrice);
 
             {
                 Vector2 size = font.MeasureString(speciesText) * scale;
@@ -872,7 +734,7 @@ namespace JoysOfEfficiency.Utils
             }
             int y = (int)Cap(bar.yPositionOnScreen, 0, viewport.Height - height);
 
-            DrawWindow(batch, x, y, width, height);
+            DrawWindow( x, y, width, height);
             fish.drawInMenu(batch, new Vector2(x + width / 2 - 32, y + 16), 1.0f, 1.0f, 0.9f, false);
 
             Vector2 vec2 = new Vector2(x + 32, y + 96);
@@ -1042,7 +904,7 @@ namespace JoysOfEfficiency.Utils
             {
                 y = viewport.Height - bottomY;
             }
-            DrawWindow(batch, x, y, rightX, bottomY);
+            DrawWindow(x, y, rightX, bottomY);
             if (!IsNullOrEmpty(text))
             {
                 Vector2 vector2 = new Vector2(x + tileSize / 4, y + (bottomY - stringSize.Y) / 2 + 8f);
@@ -1108,20 +970,6 @@ namespace JoysOfEfficiency.Utils
                 }
             }
             return list;
-        }
-
-        public static void DrawPausedHud()
-        {
-            SpriteFont font = dialogueFont;
-            string text = Helper.Translation.Get("hud.paused");
-            Vector2 stringSize = font.MeasureString(text);
-            int x = InstanceHolder.Config.PauseNotificationX;
-            int y = InstanceHolder.Config.PauseNotificationY;
-            int width = 16 + (int)stringSize.X + 16;
-            int height = 16 + (int)stringSize.Y + 16;
-
-            DrawWindow(spriteBatch, x, y, width, height);
-            Utility.drawTextWithShadow(spriteBatch, text, font, new Vector2(x + 16, y + 16 + 8), Color.Black);
         }
 
         public static bool IsPlayerIdle()
@@ -1304,7 +1152,7 @@ namespace JoysOfEfficiency.Utils
                 return;
             }
             int shippingPrice = getFarm().shippingBin.Sum(item => GetTruePrice(item) / 2 * item.Stack);
-            string title = Helper.Translation.Get("estimatedprice.title");
+            string title = Translation.Get("estimatedprice.title");
             string text = $" {shippingPrice}G";
             Vector2 sizeTitle = font.MeasureString(title) * 1.2f;
             Vector2 sizeText = font.MeasureString(text) * 1.2f;
@@ -1312,7 +1160,7 @@ namespace JoysOfEfficiency.Utils
             int height = 16 + (int)sizeTitle.Y + 8 + (int)sizeText.Y + 16;
             Vector2 basePos = new Vector2(menu.xPositionOnScreen - width, menu.yPositionOnScreen + menu.height / 4 - height);
 
-            DrawWindow(spriteBatch, (int)basePos.X, (int)basePos.Y, width, height);
+            DrawWindow( (int)basePos.X, (int)basePos.Y, width, height);
             Utility.drawTextWithShadow(spriteBatch, title, font, basePos + new Vector2(16, 16), Color.Black, 1.2f);
             Utility.drawTextWithShadow(spriteBatch, text, font, basePos + new Vector2(16, 16 + (int)sizeTitle.Y + 8), Color.Black, 1.2f);
         }
@@ -1322,7 +1170,7 @@ namespace JoysOfEfficiency.Utils
             batch.Draw(fadeToBlackRect, new Rectangle(x, y, width, height), color);
         }
 
-        public static void DrawWindow(SpriteBatch batch, int x, int y, int width, int height)
+        public static void DrawWindow(int x, int y, int width, int height)
         {
             IClickableMenu.drawTextureBox(spriteBatch, x, y, width, height, Color.White);
         }
@@ -1331,7 +1179,7 @@ namespace JoysOfEfficiency.Utils
 
         #region Private Utility
 
-        private static Dictionary<Vector2, T> GetFeaturesWithin<T>(int radius) where T : TerrainFeature
+        public static Dictionary<Vector2, T> GetFeaturesWithin<T>(int radius) where T : TerrainFeature
         {
             if (!Context.IsWorldReady)
             {
@@ -1373,7 +1221,7 @@ namespace JoysOfEfficiency.Utils
             return Vector2.Zero;
         }
 
-        private static Vector2 GetLocationOf(GameLocation location, SVObject obj)
+        public static Vector2 GetLocationOf(GameLocation location, SVObject obj)
         {
             return location.Objects.Pairs.Any(kv => kv.Value == obj) ? location.Objects.Pairs.First(kv => kv.Value == obj).Key : new Vector2(-1, -1);
         }
@@ -1434,7 +1282,7 @@ namespace JoysOfEfficiency.Utils
         }
         private static bool GetEssential(ItemGrabMenu menu)
         {
-            return Helper.Reflection.GetField<bool>(menu, "essential").GetValue();
+            return Reflection.GetField<bool>(menu, "essential").GetValue();
         }
 
         private static void CollectTrashCan(int x, int y)
@@ -1445,7 +1293,7 @@ namespace JoysOfEfficiency.Utils
             }
 
             NetArray<bool, NetBool> garbageChecked =
-                Helper.Reflection.GetField<NetArray<bool, NetBool>>(town, "garbageChecked").GetValue();
+                Reflection.GetField<NetArray<bool, NetBool>>(town, "garbageChecked").GetValue();
 
             string text = currentLocation.doesTileHaveProperty(x, y, "Action", "Buildings");
             int num = text != null ? Convert.ToInt32(text.Split(' ')[1]) : -1;
@@ -1566,45 +1414,10 @@ namespace JoysOfEfficiency.Utils
 
         private static int GetTruePrice(Item item)
         {
-            int truePrice = 0;
-
-            if (item is SVObject objectItem)
-            {
-                truePrice = objectItem.sellToStorePrice() * 2;
-            }
-            else
-            {
-                truePrice = item.salePrice();
-            }
-
-            return truePrice;
+            return item is SVObject obj ? obj.sellToStorePrice() * 2 : item.salePrice();
         }
 
-        private static List<Vector2> GetAreaOfCollectingNector(Vector2 homePoint)
-        {
-            List<Vector2> cropLocations = new List<Vector2>();
-            Queue<Vector2> vector2Queue = new Queue<Vector2>();
-            HashSet<Vector2> vector2Set = new HashSet<Vector2>();
-            vector2Queue.Enqueue(homePoint);
-            for (int index1 = 0; index1 <= 150 && vector2Queue.Count > 0; ++index1)
-            {
-                Vector2 index2 = vector2Queue.Dequeue();
-                if (currentLocation.terrainFeatures.ContainsKey(index2) &&
-                    currentLocation.terrainFeatures[index2] is HoeDirt dirt && dirt.crop != null &&
-                    dirt.crop.programColored.Value && !dirt.crop.dead.Value && dirt.crop.currentPhase.Value >= dirt.crop.phaseDays.Count - 1)
-                {
-                    cropLocations.Add(index2);
-                }
-                foreach (Vector2 adjacentTileLocation in Utility.getAdjacentTileLocations(index2))
-                {
-                    if (!vector2Set.Contains(adjacentTileLocation))
-                        vector2Queue.Enqueue(adjacentTileLocation);
-                }
-                vector2Set.Add(index2);
-            }
-
-            return cropLocations;
-        }
+        
 
         private static int CountActualStones(MineShaft shaft)
         {
@@ -1632,11 +1445,9 @@ namespace JoysOfEfficiency.Utils
             return true;
         }
 
-        private static bool Harvest(int xTile, int yTile, HoeDirt soil, JunimoHarvester junimoHarvester = null)
+        public static bool Harvest(int xTile, int yTile, HoeDirt soil, JunimoHarvester junimoHarvester = null)
         {
-            IReflectionHelper reflection = Helper.Reflection;
-
-            Multiplayer multiplayer = reflection.GetField<Multiplayer>(typeof(Game1), "multiplayer").GetValue();
+            Multiplayer multiplayer = Reflection.GetField<Multiplayer>(typeof(Game1), "multiplayer").GetValue();
             Crop crop = soil.crop;
             if (crop.dead.Value)
             {
@@ -1827,31 +1638,7 @@ namespace JoysOfEfficiency.Utils
             return false;
         }
 
-        /// <summary>
-        /// Is the dirt's crop is a flower and producing nectar
-        /// </summary>
-        /// <param name="location">HoeDirt location to evaluate</param>
-        /// <returns>Result</returns>
-        private static bool IsProducingNectar(Vector2 location) => FlowerLocationProducingNectar.Contains(location);
-
-        private static bool IsBlackListed(Crop crop)
-        {
-            int index = crop.forageCrop.Value ? crop.whichForageCrop.Value : crop.indexOfHarvest.Value;
-            return InstanceHolder.Config.HarvestException.Contains(index);
-        }
-
-        private static bool ToggleBlackList(Crop crop)
-        {
-            int index = crop.forageCrop.Value ? crop.whichForageCrop.Value : crop.indexOfHarvest.Value;
-            if (IsBlackListed(crop))
-                InstanceHolder.Config.HarvestException.Remove(index);
-            else
-                InstanceHolder.Config.HarvestException.Add(index);
-
-            ModInstance.WriteConfig();
-            return IsBlackListed(crop);
-        }
-
+        
         private static bool IsObjectMachine(SVObject obj)
         {
             if (obj is CrabPot)

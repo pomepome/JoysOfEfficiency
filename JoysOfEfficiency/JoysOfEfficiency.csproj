@@ -72,12 +72,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Automation\AnimalAutomation.cs" />
+    <Compile Include="Automation\HarvestAutomation.cs" />
     <Compile Include="Core\Config.cs" />
     <Compile Include="Core\InstanceHolder.cs" />
     <Compile Include="Huds\FishingProbabilitiesBox.cs" />
     <Compile Include="Huds\GiftInformationTooltip.cs" />
     <Compile Include="Huds\JoeMenu.cs" />
     <Compile Include="Huds\MineIcons.cs" />
+    <Compile Include="Huds\PausedHud.cs" />
     <Compile Include="Huds\RegisterFlowerMenu.cs" />
     <Compile Include="ModCheckers\ModChecker.cs" />
     <Compile Include="Core\ModEntry.cs" />

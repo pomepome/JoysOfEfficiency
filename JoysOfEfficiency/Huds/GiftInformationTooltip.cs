@@ -97,7 +97,7 @@ namespace JoysOfEfficiency.Huds
                         key.Append("male");
                         break;
                 }
-                _hoverText = Util.Helper.Translation.Get(key.ToString());
+                _hoverText = InstanceHolder.Translation.Get(key.ToString());
             }
         }
 
