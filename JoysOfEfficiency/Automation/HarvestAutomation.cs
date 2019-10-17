@@ -180,7 +180,7 @@ namespace JoysOfEfficiency.Automation
             else
                 InstanceHolder.Config.HarvestException.Add(index);
 
-            InstanceHolder.ModInstance.WriteConfig();
+            InstanceHolder.WriteConfig();
             return IsBlackListed(crop);
         }
 

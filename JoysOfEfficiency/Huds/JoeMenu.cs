@@ -275,7 +275,7 @@ namespace JoysOfEfficiency.Huds
                     break;
                 default: return;
             }
-            InstanceHolder.ModInstance.WriteConfig();
+            InstanceHolder.WriteConfig();
         }
         private void OnInputListenerChanged(int index, SButton value)
         {
@@ -287,7 +287,7 @@ namespace JoysOfEfficiency.Huds
                     InstanceHolder.Config.ButtonToggleBlackList = value; break;
                 default: return;
             }
-            InstanceHolder.ModInstance.WriteConfig();
+            InstanceHolder.WriteConfig();
             _isListening = false;
             _listener = null;
         }
@@ -333,7 +333,7 @@ namespace JoysOfEfficiency.Huds
                 case 38: InstanceHolder.Config.ShowMousePositionWhenAssigningLocation = value; break;
                 default: return;
             }
-            InstanceHolder.ModInstance.WriteConfig();
+            InstanceHolder.WriteConfig();
         }
         private void OnSliderValueChanged(int index, int value)
         {
@@ -357,7 +357,7 @@ namespace JoysOfEfficiency.Huds
                 default: return;
             }
 
-            InstanceHolder.ModInstance.WriteConfig();
+            InstanceHolder.WriteConfig();
         }
 
         private static string Format(int id, int value)

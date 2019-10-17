@@ -75,7 +75,13 @@
     <Compile Include="Automation\AnimalAutomation.cs" />
     <Compile Include="Automation\HarvestAutomation.cs" />
     <Compile Include="Core\Config.cs" />
+    <Compile Include="EventHandler\GraphicsEvents.cs" />
+    <Compile Include="EventHandler\InputEvents.cs" />
     <Compile Include="Core\InstanceHolder.cs" />
+    <Compile Include="EventHandler\EventHolder.cs" />
+    <Compile Include="EventHandler\MenuEvents.cs" />
+    <Compile Include="EventHandler\SaveEvents.cs" />
+    <Compile Include="EventHandler\UpdateEvents.cs" />
     <Compile Include="Huds\FishingProbabilitiesBox.cs" />
     <Compile Include="Huds\GiftInformationTooltip.cs" />
     <Compile Include="Huds\JoeMenu.cs" />

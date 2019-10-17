@@ -27,7 +27,7 @@ namespace JoysOfEfficiency.Patches
             {
                 int index = kv.Key;
                 int count = kv.Value;
-                int toConsume = 0;
+                int toConsume;
                 foreach (Item playerItem in new List<Item>(Game1.player.Items))
                 {
                     //Search for the player inventory
@@ -43,7 +43,7 @@ namespace JoysOfEfficiency.Patches
                     }
                 }
 
-                foreach (Chest chest in Util.GetNearbyChests(Game1.player, !recipe.isCookingRecipe))
+                foreach (Chest chest in Util.GetNearbyChests(!recipe.isCookingRecipe))
                 {
                     //Search for the chests
                     foreach (Item chestItem in new List<Item>(chest.items))

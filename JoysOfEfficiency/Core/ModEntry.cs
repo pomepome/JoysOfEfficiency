@@ -1,25 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using JoysOfEfficiency.Automation;
+﻿using JoysOfEfficiency.EventHandler;
 using JoysOfEfficiency.Huds;
 using JoysOfEfficiency.ModCheckers;
 using JoysOfEfficiency.Patches;
 using JoysOfEfficiency.Utils;
 
 using Microsoft.Xna.Framework;
+
 using StardewModdingAPI;
-using StardewModdingAPI.Events;
 
 using StardewValley;
-using StardewValley.Locations;
-using StardewValley.Menus;
-using StardewValley.Tools;
 
 namespace JoysOfEfficiency.Core
 {
     using Player = Farmer;
-    [SuppressMessage("ReSharper", "MemberCanBeMadeStatic.Local")]
+
+
+    /// <summary>
+    /// This class is a representation of the mod itself.
+    /// </summary>
     internal class ModEntry : Mod
     {
         public static bool IsCoGOn { get; private set; }
@@ -32,36 +30,26 @@ namespace JoysOfEfficiency.Core
 
         private static bool DebugMode { get; set; }
 
-        private bool _dayEnded;
-
-        private bool _paused;
-
-        private int _ticks;
-
-        private double _timeoutCounter;
-        private int _lastTimeOfDay;
-
+        /// <summary>
+        /// Called firstly when SMAPI finished loading of the mod.
+        /// </summary>
+        /// <param name="helper"></param>
         public override void Entry(IModHelper helper)
         {
-            Config conf = helper.ReadConfig<Config>();
+            // Loads configuration from file.
+            Config conf = Helper.ReadConfig<Config>();
+
+            // Initialize InstanceHolder.
             InstanceHolder.Init(this, conf);
-            IModEvents events = Helper.Events;
 
-            events.Input.ButtonPressed += OnButtonPressed;
-
-            events.GameLoop.UpdateTicked += OnGameUpdateEvent;
+            // Register events.
+            EventHolder.RegisterEvents(Helper.Events);
             
-            events.Display.RenderedHud += OnPostRenderHud;
-            events.Display.RenderedActiveMenu += OnPostRenderGui;
 
-            events.Display.MenuChanged += OnMenuChanged;
-            
-            events.GameLoop.Saving += OnBeforeSave;
-
-            events.GameLoop.DayStarted += OnDayStarted;
-
+            // Registration commands.
             Helper.ConsoleCommands.Add("joedebug", "Debug command for JoE", OnDebugCommand);
 
+            // Limit config values.
             Conf.CpuThresholdFishing = Util.Cap(Conf.CpuThresholdFishing, 0, 0.5f);
             Conf.HealthToEatRatio = Util.Cap(Conf.HealthToEatRatio, 0.1f, 0.8f);
             Conf.StaminaToEatRatio = Util.Cap(Conf.StaminaToEatRatio, 0.1f, 0.8f);
@@ -78,6 +66,7 @@ namespace JoysOfEfficiency.Core
             Conf.AnimalHarvestRadius = (int) Util.Cap(Conf.AnimalHarvestRadius, 1, 3);
             Conf.TrialOfExamine = (int) Util.Cap(Conf.TrialOfExamine, 1, 10);
 
+            // Check mod compatibilities.
             if(ModChecker.IsCoGLoaded(helper))
             {
                 Monitor.Log("CasksOnGround detected.");
@@ -92,7 +81,7 @@ namespace JoysOfEfficiency.Core
 
             if (ModChecker.IsCcLoaded(helper))
             {
-                Monitor.Log("Convenient Chests detected. JOE's CraftingFromChests feature will be disabled and won't patch the game.");
+                Monitor.Log("Convenient Chests detected. JoE's CraftingFromChests feature will be disabled and won't patch the game.");
                 Conf.CraftingFromChests = false;
                 IsCcOn = true;
             }
@@ -113,317 +102,6 @@ namespace JoysOfEfficiency.Core
         {
             DebugMode = !DebugMode;
             Game1.activeClickableMenu = new RegisterFlowerMenu(800, 640, Color.White, 376);
-        }
-
-        private void OnMenuChanged(object sender, MenuChangedEventArgs args)
-        {
-            if (Conf.AutoLootTreasures && args.NewMenu is ItemGrabMenu menu)
-            {
-                //Opened ItemGrabMenu
-                Util.LootAllAcceptableItems(menu);
-            }
-
-            if (Conf.CollectLetterAttachmentsAndQuests && args.NewMenu is LetterViewerMenu letter)
-            {
-                Util.CollectMailAttachmentsAndQuests(letter);
-            }
-        }
-
-        private void OnGameUpdateEvent(object sender, UpdateTickedEventArgs args)
-        {
-            OnEveryUpdate();
-            if(args.IsMultipleOf(8))
-            {
-                OnGameEighthUpdate();
-            }
-        }
-
-        private void OnEveryUpdate()
-        {
-            if (!Context.IsWorldReady)
-            {
-                return;
-            }
-            if (Conf.PauseWhenIdle)
-            {
-                if (Util.IsPlayerIdle())
-                {
-                    _timeoutCounter += Game1.currentGameTime.ElapsedGameTime.TotalMilliseconds;
-                    if (_timeoutCounter > Conf.IdleTimeout * 1000)
-                    {
-                        if (!_paused)
-                        {
-                            Monitor.Log("Paused game");
-                            _paused = true;
-                        }
-
-                        Game1.timeOfDay = _lastTimeOfDay;
-                    }
-                }
-                else
-                {
-                    if (_paused)
-                    {
-                        _paused = false;
-                        Monitor.Log("Resumed game");
-                    }
-
-                    _timeoutCounter = 0;
-                    _lastTimeOfDay = Game1.timeOfDay;
-                }
-            }
-            else
-            {
-                _paused = false;
-            }
-
-            Player player = Game1.player;
-            if(Conf.AutoGate)
-            {
-                Util.TryToggleGate(player);
-            }
-
-            if (player.CurrentTool is FishingRod rod)
-            {
-                FishingProbabilitiesBox.UpdateProbabilities(rod);
-            }
-
-            GiftInformationTooltip.UpdateTooltip();
-        }
-
-        private void OnGameEighthUpdate()
-        {
-            if(Game1.currentGameTime == null)
-            {
-                return;
-            }
-
-            if (Conf.CloseTreasureWhenAllLooted && Game1.activeClickableMenu is ItemGrabMenu menu)
-            {
-                Util.TryCloseItemGrabMenu(menu);
-            }
-
-            if (!Context.IsWorldReady || !Context.IsPlayerFree)
-            {
-                return;
-            }
-
-            Player player = Game1.player;
-            GameLocation location = Game1.currentLocation;
-            IReflectionHelper reflection = Helper.Reflection;
-            try
-            {
-                if (player.CurrentTool is FishingRod rod && Game1.activeClickableMenu == null)
-                {
-                    IReflectedField<int> whichFish = reflection.GetField<int>(rod, "whichFish");
-
-                    if (rod.isNibbling && rod.isFishing && whichFish.GetValue() == -1 && !rod.isReeling && !rod.hit && !rod.isTimingCast && !rod.pullingOutOfWater && !rod.fishCaught)
-                    {
-                        if (Conf.AutoReelRod)
-                        {
-                            rod.DoFunction(player.currentLocation, 1, 1, 1, player);
-                        }
-                    }
-                }
-                if (Game1.currentLocation is MineShaft shaft)
-                {
-                    bool isFallingDownShaft = Helper.Reflection.GetField<bool>(shaft, "isFallingDownShaft").GetValue();
-                    if (isFallingDownShaft)
-                    {
-                        return;
-                    }
-                }
-                if (!Context.CanPlayerMove)
-                {
-                    return;
-                }
-                if (Conf.UnifyFlowerColors)
-                {
-                    Util.UnifyFlowerColors();
-                }
-
-                _ticks = (_ticks + 1) % 8;
-                if(Conf.BalancedMode && _ticks != 0)
-                {
-                    return;
-                }
-
-                if (Conf.AutoEat)
-                {
-                    Util.TryToEatIfNeeded(player);
-                }
-                if (Conf.AutoPickUpTrash)
-                {
-                    Util.ScavengeTrashCan();
-                }
-                if (Conf.AutoWaterNearbyCrops)
-                {
-                    HarvestAutomation.WaterNearbyCrops();
-                }
-                if (Conf.AutoPetNearbyAnimals)
-                {
-                    int radius = Conf.AutoPetRadius * Game1.tileSize;
-                    Rectangle bb = Util.Expand(player.GetBoundingBox(), radius);
-                    List<FarmAnimal> animalList = Util.GetAnimalsList(player);
-                    foreach (FarmAnimal animal in animalList)
-                    {
-                        if (bb.Contains((int)animal.Position.X, (int)animal.Position.Y) && !animal.wasPet.Value)
-                        {
-                            if (Game1.timeOfDay >= 1900 && !animal.isMoving())
-                            {
-                                continue;
-                            }
-                            animal.pet(player);
-                        }
-                    }
-                }
-
-                if (Conf.AutoShearingAndMilking)
-                {
-                    Util.ShearingAndMilking(player);
-                }
-                if(Conf.AutoPullMachineResult)
-                {
-                    Util.PullMachineResult();
-                }
-                if(Conf.AutoDepositIngredient)
-                {
-                    Util.DepositIngredientsToMachines();
-                }
-                if (Conf.AutoHarvest)
-                {
-                    HarvestAutomation.HarvestNearbyCrops(player);
-                }
-                if (Conf.AutoDestroyDeadCrops)
-                {
-                    Util.DestroyNearDeadCrops(player);
-                }
-                if (Conf.AutoRefillWateringCan)
-                {
-                    WateringCan can = Util.FindToolFromInventory<WateringCan>(Conf.FindCanFromInventory);
-                    if (can != null && can.WaterLeft < Util.GetMaxCan(can) && Util.IsThereAnyWaterNear(player.currentLocation, player.getTileLocation()))
-                    {
-                        can.WaterLeft = can.waterCanMax;
-                        Game1.playSound("slosh");
-                        DelayedAction.playSoundAfterDelay("glug", 250);
-                    }
-                }
-                if (Conf.AutoCollectCollectibles)
-                {
-                    Util.CollectNearbyCollectibles(location);
-                }
-                if (Conf.AutoDigArtifactSpot)
-                {
-                    Util.DigNearbyArtifactSpots();
-                }
-                if (Conf.AutoShakeFruitedPlants)
-                {
-                    Util.ShakeNearbyFruitedTree();
-                    Util.ShakeNearbyFruitedBush();
-                }
-                if(Conf.AutoAnimalDoor && !_dayEnded && Game1.timeOfDay >= 1900)
-                {
-                    _dayEnded = true;
-                    OnBeforeSave(null, null);
-                }
-                if(Conf.AutoPetNearbyPets)
-                {
-                    Util.PetNearbyPets();
-                }
-            }
-            catch (Exception ex)
-            {
-                Monitor.Log(ex.Source);
-                Monitor.Log(ex.ToString());
-            }
-        }
-
-        private void OnButtonPressed(object sender, ButtonPressedEventArgs args)
-        {
-            if (!Context.IsWorldReady)
-            {
-                return;
-            }
-            if (!Context.IsPlayerFree || Game1.activeClickableMenu != null)
-            {
-                return;
-            }
-            if (args.Button == Conf.ButtonShowMenu)
-            {
-                //Open Up Menu
-                JoeMenu.OpenMenu();
-            }
-            else if (args.Button == Conf.ButtonToggleBlackList)
-            {
-                HarvestAutomation.ToggleBlacklistUnderCursor();
-            }
-        }
-
-        private void OnPostRenderHud(object sender, EventArgs args)
-        {
-            if (Game1.currentLocation is MineShaft shaft && Conf.MineInfoGui)
-            {
-                Util.DrawMineGui(Game1.spriteBatch, Game1.smallFont, Game1.player, shaft);
-            }
-            if (Conf.GiftInformation)
-            {
-                GiftInformationTooltip.DrawTooltip(this);
-            }
-            if (Conf.FishingProbabilitiesInfo && Game1.player.CurrentTool is FishingRod rod && rod.isFishing)
-            {
-                FishingProbabilitiesBox.PrintFishingInfo();
-            }
-            if (_paused && Conf.PauseWhenIdle)
-            {
-                PausedHud.DrawPausedHud();
-            }
-        }
-        
-        private void OnPostRenderGui(object sender, EventArgs args)
-        {
-            if (Game1.activeClickableMenu is BobberBar bar)
-            {
-                if (Conf.FishingInfo)
-                {
-                    Util.DrawFishingInfoBox(Game1.spriteBatch, bar, Game1.dialogueFont);
-                }
-                if (Conf.AutoFishing)
-                {
-                    Util.AutoFishing(bar);
-                }
-            }
-            if (Conf.EstimateShippingPrice && Game1.activeClickableMenu is ItemGrabMenu menu)
-            {
-                Util.DrawShippingPrice(menu, Game1.dialogueFont);
-            }
-        }
-
-        private void OnBeforeSave(object sender, EventArgs args)
-        {
-            if(!Context.IsWorldReady || !Conf.AutoAnimalDoor)
-            {
-                return;
-            }
-            AnimalAutomation.LetAnimalsInHome();
-            AnimalAutomation.AutoCloseAnimalDoor();
-        }
-
-        private void OnDayStarted(object sender, EventArgs args)
-        {
-            //Reset LastTimeOfDay
-            _lastTimeOfDay = Game1.timeOfDay;
-
-            if (!Context.IsWorldReady || !Conf.AutoAnimalDoor)
-            {
-                return;
-            }
-            _dayEnded = false;
-            AnimalAutomation.AutoOpenAnimalDoor();
-        }
-
-        public void WriteConfig()
-        {
-            Helper.WriteConfig(Conf);
         }
     }
 }

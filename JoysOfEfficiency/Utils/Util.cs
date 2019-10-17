@@ -586,7 +586,7 @@ namespace JoysOfEfficiency.Utils
 
         
         
-        public static void DrawMineGui(SpriteBatch batch, SpriteFont font, Player player, MineShaft shaft)
+        public static void DrawMineGui(MineShaft shaft)
         {
             int stonesLeft = CountActualStones(shaft);
             Vector2 ladderPos = FindLadder(shaft);
@@ -1055,27 +1055,28 @@ namespace JoysOfEfficiency.Utils
             {
                 radius = 1;
             }
-            if (currentLocation is FarmHouse house && house.upgradeLevel >= 1)
+
+            if (!(currentLocation is FarmHouse house) || house.upgradeLevel < 1)
+                return null;
+
+            Layer layer = house.Map.GetLayer("Buildings");
+            for (int dx = -radius; dx <= radius; dx++)
             {
-                Layer layer = house.Map.GetLayer("Buildings");
-                for (int dx = -radius; dx <= radius; dx++)
+                for (int dy = -radius; dy <= radius; dy++)
                 {
-                    for (int dy = -radius; dy <= radius; dy++)
+                    int x = player.getTileX() + dx;
+                    int y = player.getTileY() + dy;
+                    if (x >= 0 && y >= 0 && x < layer.TileWidth && y < layer.TileHeight && layer.Tiles[x, y]?.TileIndex == 173)
                     {
-                        int x = player.getTileX() + dx;
-                        int y = player.getTileY() + dy;
-                        if (x >= 0 && y >= 0 && x < layer.TileWidth && y < layer.TileHeight && layer.Tiles[x, y]?.TileIndex == 173)
-                        {
-                            //It's the fridge sprite
-                            return house.fridge.Value;
-                        }
+                        //It's the fridge sprite
+                        return house.fridge.Value;
                     }
                 }
             }
             return null;
         }
 
-        public static List<Chest> GetNearbyChests(Player player, bool addFridge = true)
+        public static List<Chest> GetNearbyChests(bool addFridge = true)
         {
             int radius = InstanceHolder.Config.BalancedMode ? 1 : InstanceHolder.Config.RadiusCraftingFromChests;
             List<Chest> chests = new List<Chest>();
@@ -1099,7 +1100,7 @@ namespace JoysOfEfficiency.Utils
         public static List<Item> GetNearbyItems(Player player)
         {
             List<Item> items = new List<Item>(player.Items);
-            foreach (Chest chest in GetNearbyChests(player))
+            foreach (Chest chest in GetNearbyChests())
             {
                 if(chest != null)
                     items.AddRange(chest.items);
