@@ -1,9 +1,7 @@
 ﻿using StardewValley;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using JoysOfEfficiency.Core;
 using JoysOfEfficiency.Utils;
 using Microsoft.Xna.Framework;
@@ -53,7 +51,7 @@ namespace JoysOfEfficiency.Huds
                 if (player.friendshipData.ContainsKey(npc.Name) && Game1.NPCGiftTastes.ContainsKey(npc.Name))
                 {
                     Friendship friendship = player.friendshipData[npc.Name];
-                    if (friendship.GiftsThisWeek >= 2 && !IsNPCMarriedWithPlayer(npc, player))
+                    if (friendship.GiftsThisWeek >= 2 && !IsNpcMarriedWithPlayer(npc, player))
                     {
                          key.Append("gavetwogifts.");
                          _unableToGift = true;
@@ -99,19 +97,19 @@ namespace JoysOfEfficiency.Huds
                         key.Append("male");
                         break;
                 }
-                _hoverText = Util.Helper.Translation.Get(key.ToString());
+                _hoverText = InstanceHolder.Translation.Get(key.ToString());
             }
         }
 
-        internal static void DrawTooltip(ModEntry modInstance)
+        internal static void DrawTooltip()
         {
             if (Context.IsPlayerFree && !string.IsNullOrEmpty(_hoverText) && Game1.player.CurrentItem != null)
             {
-                Util.DrawSimpleTextbox(Game1.spriteBatch, _hoverText, Game1.dialogueFont, modInstance, false, _unableToGift ? null : Game1.player.CurrentItem);
+                Util.DrawSimpleTextbox(Game1.spriteBatch, _hoverText, Game1.dialogueFont,null, false, _unableToGift ? null : Game1.player.CurrentItem);
             }
         }
 
-        private static bool IsNPCMarriedWithPlayer(NPC npc, Farmer player)
+        private static bool IsNpcMarriedWithPlayer(NPC npc, Farmer player)
         {
             return npc.isMarried() && npc.getSpouse().UniqueMultiplayerID == player.UniqueMultiplayerID;
         }

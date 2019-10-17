@@ -9,7 +9,7 @@
   "fishinfo.treasure.appear": "Treasure appeared!",
   "fishinfo.treasure.caught": "Treasure caught!",
   "fishinfo.treasure.incoming": "Treasure is incoming in {0:f1}s.",
-  "fishinfo.price": "Selling Price:{0}G", 
+  "fishinfo.price": "Selling Price:{0}G",
   "hud.paused": "Game paused.",
   "ladder": "Ladder has appeared!",
   "location.awaiting": "Click somewhere to designate the location you want.",
@@ -70,6 +70,17 @@
   "options.StaminaToEatRatio": "Stamina Threshold to auto-eat",
   "options.UnifyFlowerColors": "Unify colors of flowers",
   "options.ShowMousePositionWhenAssigningLocation": "Show mouse position when assigning coordinates",
+
+  //RegisterFlowerMenu strings
+  "options.flower": "Flower:{0}",
+  "options.R": "R",
+  "options.G": "G",
+  "options.B": "B",
+  "options.previewColor": "Preview Color:",
+  "options.register": "Register",
+
+  //Quality strings
+
   "quality.gold": "Gold",
   "quality.iridium": "Iridium",
   "quality.normal": "Normal",
