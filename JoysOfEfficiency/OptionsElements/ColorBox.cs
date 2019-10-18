@@ -20,8 +20,12 @@ namespace JoysOfEfficiency.OptionsElements
         {
             slotX += 32;
 
-            Util.DrawWindow(b, slotX, slotY, bounds.Width, bounds.Height); //Draw outer frame.
-            Util.DrawColoredBox(b, slotX + 12, slotY + 12, bounds.Width - 24, bounds.Height - 24, _color); //Draw inner box.
+            Util.DrawWindow(slotX, slotY, bounds.Width, bounds.Height); //Draw outer frame.
+            Util.DrawColoredBox(
+                b,
+                slotX + 12, slotY + 12,
+                bounds.Width - 24, bounds.Height - 24,
+                _color); //Draw inner box.
         }
 
         /// <summary>

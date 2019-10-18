@@ -29,7 +29,7 @@ namespace JoysOfEfficiency.OptionsElements
 
         public ModifiedInputListener(IClickableMenu parent ,string label, int which, SButton initial, ITranslationHelper translationHelper, Action<int, SButton> onButtonPressed, Action<int, ModifiedInputListener> onStartListening = null, Func<int, bool> isDisabled = null) : base(label, -1, -1, 9 * Game1.pixelZoom, 9 * Game1.pixelZoom, 0)
         {
-            this.label = Util.Helper.Translation.Get($"options.{label}");
+            this.label = InstanceHolder.Translation.Get($"options.{label}");
             _button = initial;
             _defaultButton = initial;
             _onButtonPressed = onButtonPressed;
@@ -46,7 +46,7 @@ namespace JoysOfEfficiency.OptionsElements
             {
                 return;
             }
-            if (button.ToSButton() == ModEntry.Conf.ButtonShowMenu)
+            if (button.ToSButton() == InstanceHolder.Config.ButtonShowMenu)
             {
                 _conflicting = true;
                 return;
@@ -74,7 +74,7 @@ namespace JoysOfEfficiency.OptionsElements
                 return;
             }
             base.receiveKeyPress(key);
-            if(Game1.options.isKeyInUse(key) || key.ToSButton() == ModEntry.Conf.ButtonShowMenu)
+            if(Game1.options.isKeyInUse(key) || key.ToSButton() == InstanceHolder.Config.ButtonShowMenu)
             {
                 _conflicting = true;
                 return;
@@ -111,11 +111,10 @@ namespace JoysOfEfficiency.OptionsElements
             }
             x += _menu.xPositionOnScreen;
             y += _buttonRect.Height / 2;
-            if(_buttonRect != null && x >= _buttonRect.Left && x <= _buttonRect.Right)
-            {
-                _onStartListening(whichOption, this);
-                _isListening = true;
-            }
+            if (x < _buttonRect.Left || x > _buttonRect.Right)
+                return;
+            _onStartListening(whichOption, this);
+            _isListening = true;
         }
 
         public void DrawStrings(SpriteBatch batch, int x, int y)

@@ -1,4 +1,5 @@
 ﻿using System;
+using JoysOfEfficiency.Core;
 using JoysOfEfficiency.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -15,7 +16,7 @@ namespace JoysOfEfficiency.OptionsElements
         private readonly Func<int, bool> _isDisabled;
         public ModifiedCheckBox(string label, int which, bool initial, Action<int, bool> callback = null, Func<int,bool> isDisabled = null) : base(label, -1, -1, 9 * Game1.pixelZoom, 9 * Game1.pixelZoom, 0)
         {
-            this.label = Util.Helper.Translation.Get($"options.{label}");
+            this.label = InstanceHolder.Translation.Get($"options.{label}");
             IsChecked = initial;
             _valueChanged = callback;
             whichOption = which;

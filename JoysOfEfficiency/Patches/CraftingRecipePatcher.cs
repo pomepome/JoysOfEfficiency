@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using JoysOfEfficiency.Core;
 using JoysOfEfficiency.Utils;
 using StardewValley;
 using StardewValley.Objects;
@@ -21,12 +22,12 @@ namespace JoysOfEfficiency.Patches
 
         private static bool ConsumeIngredients(CraftingRecipe recipe)
         {
-            Dictionary<int, int> recipeList = Util.Helper.Reflection.GetField<Dictionary<int, int>>(recipe, "recipeList").GetValue();
+            Dictionary<int, int> recipeList = InstanceHolder.Reflection.GetField<Dictionary<int, int>>(recipe, "recipeList").GetValue();
             foreach (KeyValuePair<int, int> kv in recipeList)
             {
                 int index = kv.Key;
                 int count = kv.Value;
-                int toConsume = 0;
+                int toConsume;
                 foreach (Item playerItem in new List<Item>(Game1.player.Items))
                 {
                     //Search for the player inventory
@@ -42,7 +43,7 @@ namespace JoysOfEfficiency.Patches
                     }
                 }
 
-                foreach (Chest chest in Util.GetNearbyChests(Game1.player, !recipe.isCookingRecipe))
+                foreach (Chest chest in Util.GetNearbyChests(!recipe.isCookingRecipe))
                 {
                     //Search for the chests
                     foreach (Item chestItem in new List<Item>(chest.items))

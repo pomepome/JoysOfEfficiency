@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using JoysOfEfficiency.Core;
-using JoysOfEfficiency.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewValley;
@@ -27,18 +26,17 @@ namespace JoysOfEfficiency.Huds
             {
                 if (_isFirstTimeOfFishing)
                 {
-                    Util.Monitor.Log("Examine fishing probability");
+                    InstanceHolder.Monitor.Log("Examine fishing probability");
 
                     _isFirstTimeOfFishing = false;
-                    bool flag = false;
                     GameLocation location = Game1.currentLocation;
 
                     Rectangle rectangle = new Rectangle(location.fishSplashPoint.X * 64, location.fishSplashPoint.Y * 64, 64, 64);
                     Rectangle value = new Rectangle((int)rod.bobber.X - 80, (int)rod.bobber.Y - 80, 64, 64);
-                    flag = rectangle.Intersects(value);
-                    int clearWaterDistance = Util.Helper.Reflection.GetField<int>(rod, "clearWaterDistance").GetValue();
+                    bool flag = rectangle.Intersects(value);
+                    int clearWaterDistance = InstanceHolder.Reflection.GetField<int>(rod, "clearWaterDistance").GetValue();
 
-                    _fishingDictionary = GetFishes(location, rod.attachments[0]?.ParentSheetIndex ?? -1, clearWaterDistance + (flag ? 1 : 0), Game1.player, ModEntry.Conf.MorePreciseProbabilities ? ModEntry.Conf.TrialOfExamine : 1);
+                    _fishingDictionary = GetFishes(location, rod.attachments[0]?.ParentSheetIndex ?? -1, clearWaterDistance + (flag ? 1 : 0), Game1.player, InstanceHolder.Config.MorePreciseProbabilities ? InstanceHolder.Config.TrialOfExamine : 1);
                 }
             }
             else
@@ -48,7 +46,7 @@ namespace JoysOfEfficiency.Huds
             }
         }
 
-        public static void PrintFishingInfo(FishingRod rod)
+        public static void PrintFishingInfo()
         {
             if (_fishingDictionary == null)
             {
@@ -59,8 +57,7 @@ namespace JoysOfEfficiency.Huds
 
         private static Dictionary<int, double> GetFishes(GameLocation location, int bait, int waterDepth, Farmer who, int trial = 1)
         {
-            Util.Monitor.Log($"Trial:{trial}");
-            double sum = 0;
+            InstanceHolder.Monitor.Log($"Trial:{trial}");
             List<Dictionary<int, double>> dictList = new List<Dictionary<int, double>>();
             for (int i = 0; i < trial; i++)
             {
@@ -86,7 +83,7 @@ namespace JoysOfEfficiency.Huds
             Dictionary<int, double> dict2 =
                 dict.OrderByDescending(x => x.Value)
                     .Where(kv => !IsGarbage(kv.Key)).ToDictionary(x => x.Key, x => x.Value);
-            sum = dict2.Sum(kv => kv.Value);
+            double sum = dict2.Sum(kv => kv.Value);
             if (1 - sum >= 0.0001)
             {
                 dict2.Add(168, 1 - sum);
@@ -181,8 +178,8 @@ namespace JoysOfEfficiency.Huds
             }
             catch (KeyNotFoundException knf)
             {
-                Util.Monitor.Log("KeyNotFoundException occured.");
-                Util.Monitor.Log(knf.ToString());
+                InstanceHolder.Monitor.Log("KeyNotFoundException occured.");
+                InstanceHolder.Monitor.Log(knf.ToString());
             }
 
             return dict;
@@ -357,10 +354,10 @@ namespace JoysOfEfficiency.Huds
         {
             SpriteBatch b = Game1.spriteBatch;
             Size size = GetProbBoxSize(probs);
-            IClickableMenu.drawTextureBox(Game1.spriteBatch, ModEntry.Conf.ProbBoxCoordinates.X, ModEntry.Conf.ProbBoxCoordinates.Y, size.Width, size.Height, Color.White);
+            IClickableMenu.drawTextureBox(Game1.spriteBatch, InstanceHolder.Config.ProbBoxCoordinates.X, InstanceHolder.Config.ProbBoxCoordinates.Y, size.Width, size.Height, Color.White);
             const int square = (int)(Game1.tileSize / 1.5);
-            int x = ModEntry.Conf.ProbBoxCoordinates.X + 8;
-            int y = ModEntry.Conf.ProbBoxCoordinates.Y + 16;
+            int x = InstanceHolder.Config.ProbBoxCoordinates.X + 8;
+            int y = InstanceHolder.Config.ProbBoxCoordinates.Y + 16;
             SpriteFont font = Game1.dialogueFont;
             {
                 foreach (KeyValuePair<int, double> kv in probs)

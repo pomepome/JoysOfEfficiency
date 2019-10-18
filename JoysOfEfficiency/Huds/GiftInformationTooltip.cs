@@ -97,15 +97,15 @@ namespace JoysOfEfficiency.Huds
                         key.Append("male");
                         break;
                 }
-                _hoverText = Util.Helper.Translation.Get(key.ToString());
+                _hoverText = InstanceHolder.Translation.Get(key.ToString());
             }
         }
 
-        internal static void DrawTooltip(ModEntry modInstance)
+        internal static void DrawTooltip()
         {
             if (Context.IsPlayerFree && !string.IsNullOrEmpty(_hoverText) && Game1.player.CurrentItem != null)
             {
-                Util.DrawSimpleTextbox(Game1.spriteBatch, _hoverText, Game1.dialogueFont, modInstance, false, _unableToGift ? null : Game1.player.CurrentItem);
+                Util.DrawSimpleTextbox(Game1.spriteBatch, _hoverText, Game1.dialogueFont,null, false, _unableToGift ? null : Game1.player.CurrentItem);
             }
         }
 
