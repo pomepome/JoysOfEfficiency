@@ -1,4 +1,5 @@
 ﻿using System;
+using JoysOfEfficiency.Automation;
 using JoysOfEfficiency.Core;
 using JoysOfEfficiency.Huds;
 using JoysOfEfficiency.Utils;
@@ -17,7 +18,7 @@ namespace JoysOfEfficiency.EventHandler
         {
             if (Game1.currentLocation is MineShaft shaft && Conf.MineInfoGui)
             {
-                Util.DrawMineGui(shaft);
+                MineHud.DrawMineGui(shaft);
             }
             if (Conf.GiftInformation)
             {
@@ -39,11 +40,11 @@ namespace JoysOfEfficiency.EventHandler
             {
                 if (Conf.FishingInfo)
                 {
-                    Util.DrawFishingInfoBox(Game1.spriteBatch, bar, Game1.dialogueFont);
+                    FishInformationHud.DrawFishingInfoBox(Game1.spriteBatch, bar, Game1.dialogueFont);
                 }
                 if (Conf.AutoFishing)
                 {
-                    Util.AutoFishing(bar);
+                    AutoFisher.AutoFishing(bar);
                 }
             }
             if (Conf.EstimateShippingPrice && Game1.activeClickableMenu is ItemGrabMenu menu)

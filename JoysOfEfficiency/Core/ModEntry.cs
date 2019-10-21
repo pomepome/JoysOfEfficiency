@@ -98,7 +98,7 @@ namespace JoysOfEfficiency.Core
             MineIcons.Init(helper);
         }
 
-        private void OnDebugCommand(string name, string[] args)
+        private static void OnDebugCommand(string name, string[] args)
         {
             DebugMode = !DebugMode;
             Game1.activeClickableMenu = new RegisterFlowerMenu(800, 640, Color.White, 376);

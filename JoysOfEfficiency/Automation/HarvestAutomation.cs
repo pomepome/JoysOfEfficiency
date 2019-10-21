@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using JoysOfEfficiency.Core;
 using JoysOfEfficiency.Utils;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.Characters;
 using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
 using StardewValley.Tools;
@@ -14,6 +16,7 @@ namespace JoysOfEfficiency.Automation
 {
     internal class HarvestAutomation
     {
+        private static IReflectionHelper Reflection => InstanceHolder.Reflection;
         private static IMonitor Monitor => InstanceHolder.Monitor;
         private static Config Config => InstanceHolder.Config;
 
@@ -58,7 +61,7 @@ namespace JoysOfEfficiency.Automation
                 {
                     if (IsBlackListed(dirt.crop) || (InstanceHolder.Config.ProtectNectarProducingFlower && IsProducingNectar(loc)))
                         continue;
-                    if (Util.Harvest((int)loc.X, (int)loc.Y, dirt))
+                    if (Harvest((int)loc.X, (int)loc.Y, dirt))
                     {
                         if (dirt.crop.regrowAfterHarvest.Value == -1 || dirt.crop.forageCrop.Value)
                         {
@@ -159,6 +162,31 @@ namespace JoysOfEfficiency.Automation
                 Monitor.Log(text);
             }
         }
+
+        public static void DestroyNearDeadCrops(Farmer player)
+        {
+            GameLocation location = player.currentLocation;
+            foreach (KeyValuePair<Vector2, HoeDirt> kv in Util.GetFeaturesWithin<HoeDirt>(1))
+            {
+                Vector2 loc = kv.Key;
+                HoeDirt dirt = kv.Value;
+                if (dirt.crop != null && dirt.crop.dead.Value)
+                {
+                    dirt.destroyCrop(loc, true, location);
+                }
+
+            }
+            foreach (IndoorPot pot in Util.GetObjectsWithin<IndoorPot>(1))
+            {
+                Vector2 loc = Util.GetLocationOf(location, pot);
+                HoeDirt dirt = pot.hoeDirt.Value;
+                if (dirt?.crop != null && dirt.crop.dead.Value)
+                {
+                    dirt.destroyCrop(loc, true, location);
+                }
+            }
+        }
+
         /// <summary>
         /// Is the dirt's crop is a flower and producing nectar
         /// </summary>
@@ -208,6 +236,206 @@ namespace JoysOfEfficiency.Automation
             }
 
             return cropLocations;
+        }
+        private static bool Harvest(int xTile, int yTile, HoeDirt soil, JunimoHarvester junimoHarvester = null)
+        {
+            Multiplayer multiplayer = Reflection.GetField<Multiplayer>(typeof(Game1), "multiplayer").GetValue();
+            Crop crop = soil.crop;
+
+            Farmer player = Game1.player;
+            Random random = Game1.random;
+            Stats stats = Game1.stats;
+            GameLocation currentLocation = Game1.currentLocation;
+            ulong uniqueIdForThisGame = Game1.uniqueIDForThisGame;
+            double dailyLuck = Game1.dailyLuck;
+
+            if (crop.dead.Value)
+            {
+                return false;
+            }
+            if (crop.forageCrop.Value)
+            {
+                SVObject o = null;
+                const int experience2 = 3;
+                int num = crop.whichForageCrop.Value;
+                if (num == 1)
+                {
+                    o = new SVObject(399, 1);
+                }
+                if (player.professions.Contains(16))
+                {
+                    if (o != null) o.Quality = 4;
+                }
+                else if (random.NextDouble() < player.ForagingLevel / 30f)
+                {
+                    if (o != null) o.Quality = 2;
+                }
+                else if (random.NextDouble() < player.ForagingLevel / 15f)
+                {
+                    if (o != null) o.Quality = 1;
+                }
+
+                if (o == null)
+                    return false;
+
+                stats.ItemsForaged += (uint)o.Stack;
+                if (junimoHarvester != null)
+                {
+                    junimoHarvester.tryToAddItemToHut(o);
+                    return true;
+                }
+
+                if (player.addItemToInventoryBool(o))
+                {
+                    Vector2 initialTile2 = new Vector2(xTile, yTile);
+                    player.animateOnce(279 + player.FacingDirection);
+                    player.canMove = false;
+                    player.currentLocation.playSound("harvest");
+                    DelayedAction.playSoundAfterDelay("coin", 260);
+                    if (crop.regrowAfterHarvest.Value == -1)
+                    {
+                        multiplayer.broadcastSprites(currentLocation,
+                            new TemporaryAnimatedSprite(17, new Vector2(initialTile2.X * 64f, initialTile2.Y * 64f),
+                                Color.White, 7, random.NextDouble() < 0.5, 125f));
+                        multiplayer.broadcastSprites(currentLocation,
+                            new TemporaryAnimatedSprite(14, new Vector2(initialTile2.X * 64f, initialTile2.Y * 64f),
+                                Color.White, 7, random.NextDouble() < 0.5, 50f));
+                    }
+
+                    player.gainExperience(2, experience2);
+                    return true;
+                }
+            }
+            else if (crop.currentPhase.Value >= crop.phaseDays.Count - 1 && (!crop.fullyGrown.Value || crop.dayOfCurrentPhase.Value <= 0))
+            {
+                int numToHarvest = 1;
+                int cropQuality = 0;
+                int fertilizerQualityLevel = 0;
+                if (crop.indexOfHarvest.Value == 0)
+                {
+                    return true;
+                }
+                Random r = new Random(xTile * 7 + yTile * 11 + (int)stats.DaysPlayed + (int)uniqueIdForThisGame);
+
+                switch (soil.fertilizer.Value)
+                {
+                    case 368:
+                        fertilizerQualityLevel = 1;
+                        break;
+                    case 369:
+                        fertilizerQualityLevel = 2;
+                        break;
+                }
+
+                double chanceForGoldQuality = 0.2 * (player.FarmingLevel / 10.0) + 0.2 * fertilizerQualityLevel * ((player.FarmingLevel + 2.0) / 12.0) + 0.01;
+                double chanceForSilverQuality = Math.Min(0.75, chanceForGoldQuality * 2.0);
+                if (r.NextDouble() < chanceForGoldQuality)
+                {
+                    cropQuality = 2;
+                }
+                else if (r.NextDouble() < chanceForSilverQuality)
+                {
+                    cropQuality = 1;
+                }
+                if (crop.minHarvest.Value > 1 || crop.maxHarvest.Value > 1)
+                {
+                    numToHarvest = r.Next(crop.minHarvest.Value, Math.Min(crop.minHarvest.Value + 1, crop.maxHarvest.Value + 1 + player.FarmingLevel / crop.maxHarvestIncreasePerFarmingLevel.Value));
+                }
+                if (crop.chanceForExtraCrops.Value > 0.0)
+                {
+                    while (r.NextDouble() < Math.Min(0.9, crop.chanceForExtraCrops.Value))
+                    {
+                        numToHarvest++;
+                    }
+                }
+                if (crop.harvestMethod.Value == 1)
+                {
+                    for (int j = 0; j < numToHarvest; j++)
+                    {
+                        Game1.createObjectDebris(crop.indexOfHarvest.Value, xTile, yTile, -1, cropQuality);
+                    }
+                    if (crop.regrowAfterHarvest.Value == -1)
+                    {
+                        return true;
+                    }
+                    crop.dayOfCurrentPhase.Value = crop.regrowAfterHarvest.Value;
+                    crop.fullyGrown.Value = true;
+                }
+                else if (player.addItemToInventoryBool(crop.programColored.Value ? new ColoredObject(crop.indexOfHarvest.Value, 1, crop.tintColor.Value)
+                {
+                    Quality = cropQuality
+                }
+                : new SVObject(crop.indexOfHarvest.Value, 1, false, -1, cropQuality)))
+                {
+                    Vector2 initialTile = new Vector2(xTile, yTile);
+                    if (junimoHarvester == null)
+                    {
+                        player.animateOnce(279 + player.FacingDirection);
+                        player.canMove = false;
+                    }
+                    else
+                    {
+                        junimoHarvester.tryToAddItemToHut(crop.programColored.Value ? new ColoredObject(crop.indexOfHarvest.Value, 1, crop.tintColor.Value)
+                        {
+                            Quality = cropQuality
+                        } : new SVObject(crop.indexOfHarvest.Value, 1, false, -1, cropQuality));
+                    }
+                    if (r.NextDouble() < player.LuckLevel / 1500f + dailyLuck / 1200.0 + 9.9999997473787516E-05)
+                    {
+                        numToHarvest *= 2;
+                        if (junimoHarvester == null)
+                        {
+                            player.currentLocation.playSound("dwoop");
+                        }
+                        else if (Utility.isOnScreen(junimoHarvester.getTileLocationPoint(), 64, junimoHarvester.currentLocation))
+                        {
+                            junimoHarvester.currentLocation.playSound("dwoop");
+                        }
+                    }
+                    else if (crop.harvestMethod.Value == 0)
+                    {
+                        if (junimoHarvester == null)
+                        {
+                            player.currentLocation.playSound("harvest");
+                        }
+                        if (junimoHarvester == null)
+                        {
+                            DelayedAction.playSoundAfterDelay("coin", 260, player.currentLocation);
+                        }
+                        else if (Utility.isOnScreen(junimoHarvester.getTileLocationPoint(), 64, junimoHarvester.currentLocation))
+                        {
+                            DelayedAction.playSoundAfterDelay("coin", 260, junimoHarvester.currentLocation);
+                        }
+                        if (crop.regrowAfterHarvest.Value == -1)
+                        {
+                            multiplayer.broadcastSprites(currentLocation, new TemporaryAnimatedSprite(17, new Vector2(initialTile.X * 64f, initialTile.Y * 64f), Color.White, 7, random.NextDouble() < 0.5, 125f));
+                            multiplayer.broadcastSprites(currentLocation, new TemporaryAnimatedSprite(14, new Vector2(initialTile.X * 64f, initialTile.Y * 64f), Color.White, 7, random.NextDouble() < 0.5, 50f));
+                        }
+                    }
+                    if (crop.indexOfHarvest.Value == 421)
+                    {
+                        crop.indexOfHarvest.Value = 431;
+                        numToHarvest = r.Next(1, 4);
+                    }
+                    for (int i = 0; i < numToHarvest - 1; i++)
+                    {
+                        Game1.createObjectDebris(crop.indexOfHarvest.Value, xTile, yTile);
+                    }
+                    int price = Convert.ToInt32(Game1.objectInformation[crop.indexOfHarvest.Value].Split('/')[1]);
+                    float experience = (float)(16.0 * Math.Log(0.018 * price + 1.0, 2.7182818284590451));
+                    if (junimoHarvester == null)
+                    {
+                        player.gainExperience(0, (int)Math.Round(experience));
+                    }
+                    if (crop.regrowAfterHarvest.Value == -1)
+                    {
+                        return true;
+                    }
+                    crop.dayOfCurrentPhase.Value = crop.regrowAfterHarvest.Value;
+                    crop.fullyGrown.Value = true;
+                }
+            }
+            return false;
         }
     }
 }

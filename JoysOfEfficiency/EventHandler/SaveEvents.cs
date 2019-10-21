@@ -1,10 +1,10 @@
 ﻿using System;
 using JoysOfEfficiency.Automation;
-using JoysOfEfficiency.EventHandler;
+using JoysOfEfficiency.Core;
 using StardewModdingAPI;
 using StardewValley;
 
-namespace JoysOfEfficiency.Core
+namespace JoysOfEfficiency.EventHandler
 {
     internal class SaveEvents
     {

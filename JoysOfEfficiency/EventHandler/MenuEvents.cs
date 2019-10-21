@@ -1,8 +1,9 @@
-﻿using JoysOfEfficiency.Utils;
+﻿using JoysOfEfficiency.Automation;
+using JoysOfEfficiency.Core;
 using StardewModdingAPI.Events;
 using StardewValley.Menus;
 
-namespace JoysOfEfficiency.Core
+namespace JoysOfEfficiency.EventHandler
 {
     internal class MenuEvents
     {
@@ -12,12 +13,12 @@ namespace JoysOfEfficiency.Core
             if (Conf.AutoLootTreasures && args.NewMenu is ItemGrabMenu menu)
             {
                 //Opened ItemGrabMenu
-                Util.LootAllAcceptableItems(menu);
+                InventoryAutomation.LootAllAcceptableItems(menu);
             }
 
             if (Conf.CollectLetterAttachmentsAndQuests && args.NewMenu is LetterViewerMenu letter)
             {
-                Util.CollectMailAttachmentsAndQuests(letter);
+                MailAutomation.CollectMailAttachmentsAndQuests(letter);
             }
         }
     }

@@ -1,7 +1,4 @@
-﻿using System.Diagnostics;
-using StardewModdingAPI.Events;
-using MenuEvents = JoysOfEfficiency.Core.MenuEvents;
-using SaveEvents = JoysOfEfficiency.Core.SaveEvents;
+﻿using StardewModdingAPI.Events;
 
 namespace JoysOfEfficiency.EventHandler
 {

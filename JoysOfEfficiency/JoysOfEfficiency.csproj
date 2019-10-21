@@ -73,7 +73,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Automation\AnimalAutomation.cs" />
+    <Compile Include="Automation\AutoFisher.cs" />
+    <Compile Include="Automation\FlowerColorUnifier.cs" />
+    <Compile Include="Automation\FoodAutomation.cs" />
     <Compile Include="Automation\HarvestAutomation.cs" />
+    <Compile Include="Automation\InventoryAutomation.cs" />
+    <Compile Include="Automation\MachineOperator.cs" />
+    <Compile Include="Automation\MailAutomation.cs" />
     <Compile Include="Core\Config.cs" />
     <Compile Include="EventHandler\GraphicsEvents.cs" />
     <Compile Include="EventHandler\InputEvents.cs" />
@@ -82,9 +88,11 @@
     <Compile Include="EventHandler\MenuEvents.cs" />
     <Compile Include="EventHandler\SaveEvents.cs" />
     <Compile Include="EventHandler\UpdateEvents.cs" />
+    <Compile Include="Huds\FishInformationHud.cs" />
     <Compile Include="Huds\FishingProbabilitiesBox.cs" />
     <Compile Include="Huds\GiftInformationTooltip.cs" />
     <Compile Include="Huds\JoeMenu.cs" />
+    <Compile Include="Huds\MineHud.cs" />
     <Compile Include="Huds\MineIcons.cs" />
     <Compile Include="Huds\PausedHud.cs" />
     <Compile Include="Huds\RegisterFlowerMenu.cs" />
@@ -109,6 +117,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Utils\HarmonyHelper.cs" />
+    <Compile Include="Automation\TrashCanScavenger.cs" />
     <Compile Include="Utils\Util.cs" />
   </ItemGroup>
   <ItemGroup>

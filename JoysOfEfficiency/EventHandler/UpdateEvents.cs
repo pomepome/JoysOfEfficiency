@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using JoysOfEfficiency.Automation;
 using JoysOfEfficiency.Core;
 using JoysOfEfficiency.Huds;
@@ -14,7 +13,7 @@ using StardewValley.Tools;
 
 namespace JoysOfEfficiency.EventHandler
 {
-    class UpdateEvents
+    internal class UpdateEvents
     {
         public static bool Paused => EventHolder.Update._paused;
 
@@ -28,8 +27,8 @@ namespace JoysOfEfficiency.EventHandler
 
         private double _timeoutCounter;
 
-        private Config Conf => InstanceHolder.Config;
-        private IMonitor Monitor => InstanceHolder.Monitor;
+        private static Config Conf => InstanceHolder.Config;
+        private static IMonitor Monitor => InstanceHolder.Monitor;
 
         public void OnGameUpdateEvent(object sender, UpdateTickedEventArgs args)
         {
@@ -102,7 +101,7 @@ namespace JoysOfEfficiency.EventHandler
 
             if (Conf.CloseTreasureWhenAllLooted && Game1.activeClickableMenu is ItemGrabMenu menu)
             {
-                Util.TryCloseItemGrabMenu(menu);
+                InventoryAutomation.TryCloseItemGrabMenu(menu);
             }
 
             if (!Context.IsWorldReady || !Context.IsPlayerFree)
@@ -141,7 +140,7 @@ namespace JoysOfEfficiency.EventHandler
                 }
                 if (Conf.UnifyFlowerColors)
                 {
-                    Util.UnifyFlowerColors();
+                    FlowerColorUnifier.UnifyFlowerColors();
                 }
 
                 _ticks = (_ticks + 1) % 8;
@@ -152,11 +151,11 @@ namespace JoysOfEfficiency.EventHandler
 
                 if (Conf.AutoEat)
                 {
-                    Util.TryToEatIfNeeded(player);
+                    FoodAutomation.TryToEatIfNeeded(player);
                 }
                 if (Conf.AutoPickUpTrash)
                 {
-                    Util.ScavengeTrashCan();
+                    TrashCanScavenger.ScavengeTrashCan();
                 }
                 if (Conf.AutoWaterNearbyCrops)
                 {
@@ -166,23 +165,22 @@ namespace JoysOfEfficiency.EventHandler
                 {
                     int radius = Conf.AutoPetRadius * Game1.tileSize;
                     Rectangle bb = Util.Expand(player.GetBoundingBox(), radius);
-                    List<FarmAnimal> animalList = Util.GetAnimalsList(player);
-                    foreach (FarmAnimal animal in animalList)
+                    foreach (FarmAnimal animal in Util.GetAnimalsList(player))
                     {
-                        if (bb.Contains((int)animal.Position.X, (int)animal.Position.Y) && !animal.wasPet.Value)
+                        if (!bb.Contains((int) animal.Position.X, (int) animal.Position.Y) || animal.wasPet.Value)
+                            continue;
+
+                        if (Game1.timeOfDay >= 1900 && !animal.isMoving())
                         {
-                            if (Game1.timeOfDay >= 1900 && !animal.isMoving())
-                            {
-                                continue;
-                            }
-                            animal.pet(player);
+                            continue;
                         }
+                        animal.pet(player);
                     }
                 }
 
                 if (Conf.AutoShearingAndMilking)
                 {
-                    Util.ShearingAndMilking(player);
+                    AnimalAutomation.ShearingAndMilking(player);
                 }
                 if (Conf.AutoPullMachineResult)
                 {
@@ -198,7 +196,7 @@ namespace JoysOfEfficiency.EventHandler
                 }
                 if (Conf.AutoDestroyDeadCrops)
                 {
-                    Util.DestroyNearDeadCrops(player);
+                    HarvestAutomation.DestroyNearDeadCrops(player);
                 }
                 if (Conf.AutoRefillWateringCan)
                 {
