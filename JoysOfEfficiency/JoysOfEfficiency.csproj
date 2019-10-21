@@ -116,6 +116,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Automation\AnimalAutomation.cs" />
     <Compile Include="Utils\HarmonyHelper.cs" />
     <Compile Include="Automation\TrashCanScavenger.cs" />
     <Compile Include="Utils\Util.cs" />
