@@ -72,7 +72,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Automation\AnimalAutomation.cs" />
     <Compile Include="Automation\AutoFisher.cs" />
     <Compile Include="Automation\FlowerColorUnifier.cs" />
     <Compile Include="Automation\FoodAutomation.cs" />

@@ -184,11 +184,11 @@ namespace JoysOfEfficiency.EventHandler
                 }
                 if (Conf.AutoPullMachineResult)
                 {
-                    Util.PullMachineResult();
+                    MachineOperator.PullMachineResult();
                 }
                 if (Conf.AutoDepositIngredient)
                 {
-                    Util.DepositIngredientsToMachines();
+                    MachineOperator.DepositIngredientsToMachines();
                 }
                 if (Conf.AutoHarvest)
                 {
