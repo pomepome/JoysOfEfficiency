@@ -84,6 +84,9 @@ namespace JoysOfEfficiency.Core
         public Color SummerSpangleColor { get; set; } = Color.Gold;
         public Color FairyRoseColor { get; set; } = Color.Thistle;
 
+        public SButton KeyShowFlowerColorRegistration { get; set; } = SButton.L;
+        public Dictionary<int, Color> CustomizedFlowerColors { get; set; } = new Dictionary<int, Color>();
+
         public bool AutoLootTreasures { get; set; } = true;
         public bool CloseTreasureWhenAllLooted { get; set; } = false;
 

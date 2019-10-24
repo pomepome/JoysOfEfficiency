@@ -1,5 +1,6 @@
 ﻿using JoysOfEfficiency.EventHandler;
 using JoysOfEfficiency.Huds;
+using JoysOfEfficiency.Menus;
 using JoysOfEfficiency.ModCheckers;
 using JoysOfEfficiency.Patches;
 using JoysOfEfficiency.Utils;

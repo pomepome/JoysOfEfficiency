@@ -9,10 +9,13 @@ using StardewValley;
 using StardewValley.Menus;
 using Object = StardewValley.Object;
 
-namespace JoysOfEfficiency.Huds
+namespace JoysOfEfficiency.Menus
 {
     internal class RegisterFlowerMenu : IClickableMenu
     {
+        // ReSharper disable once InconsistentNaming
+        private const int MARGIN_COMPONENTS = 8;
+
         private readonly List<OptionsElement> _elements = new List<OptionsElement>();
 
         private readonly ColorBox _colorPreviewBox;
@@ -55,7 +58,7 @@ namespace JoysOfEfficiency.Huds
                 {
                     element.receiveLeftClick(x, y);
                 }
-                y -= element.bounds.Height + 16;
+                y -= element.bounds.Height + MARGIN_COMPONENTS;
             }
             
         }
@@ -69,7 +72,7 @@ namespace JoysOfEfficiency.Huds
                 {
                     element.leftClickHeld(x - element.bounds.X - xPositionOnScreen, y - element.bounds.Y - yPositionOnScreen);
                 }
-                y -= element.bounds.Height + 16;
+                y -= element.bounds.Height + MARGIN_COMPONENTS;
             }
         }
 
@@ -82,7 +85,7 @@ namespace JoysOfEfficiency.Huds
                 {
                     element.leftClickReleased(x - element.bounds.X - xPositionOnScreen, y - element.bounds.Y - yPositionOnScreen);
                 }
-                y -= element.bounds.Height + 16;
+                y -= element.bounds.Height + MARGIN_COMPONENTS;
             }
         }
 
@@ -100,11 +103,13 @@ namespace JoysOfEfficiency.Huds
         /// </summary>
         private static void CloseMenu()
         {
-            if (Game1.activeClickableMenu is JoeMenu)
+            if (!(Game1.activeClickableMenu is JoeMenu))
             {
-                Game1.playSound("bigDeSelect");
-                Game1.exitActiveMenu();
+                return;
             }
+
+            Game1.playSound("bigDeSelect");
+            Game1.exitActiveMenu();
         }
 
         public override void draw(SpriteBatch b)
@@ -126,7 +131,7 @@ namespace JoysOfEfficiency.Huds
             {
                 // Draw each option elements.
                 element.draw(b, x, y);
-                y += element.bounds.Height + 16;
+                y += element.bounds.Height + MARGIN_COMPONENTS;
             }
 
             Util.DrawCursor();

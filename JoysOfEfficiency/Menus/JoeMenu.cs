@@ -10,7 +10,7 @@ using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Menus;
 
-namespace JoysOfEfficiency.Huds
+namespace JoysOfEfficiency.Menus
 {
     internal class JoeMenu : IClickableMenu
     {

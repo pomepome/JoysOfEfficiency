@@ -90,11 +90,11 @@
     <Compile Include="Huds\FishInformationHud.cs" />
     <Compile Include="Huds\FishingProbabilitiesBox.cs" />
     <Compile Include="Huds\GiftInformationTooltip.cs" />
-    <Compile Include="Huds\JoeMenu.cs" />
     <Compile Include="Huds\MineHud.cs" />
     <Compile Include="Huds\MineIcons.cs" />
     <Compile Include="Huds\PausedHud.cs" />
-    <Compile Include="Huds\RegisterFlowerMenu.cs" />
+    <Compile Include="Menus\JoeMenu.cs" />
+    <Compile Include="Menus\RegisterFlowerMenu.cs" />
     <Compile Include="ModCheckers\ModChecker.cs" />
     <Compile Include="Core\ModEntry.cs" />
     <Compile Include="OptionsElements\ButtonWithLabel.cs" />

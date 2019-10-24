@@ -1,20 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 using JoysOfEfficiency.Core;
+
 using Microsoft.Xna.Framework;
+
 using StardewModdingAPI;
+
 using StardewValley;
 using StardewValley.TerrainFeatures;
-using SVObject = StardewValley.Object;
+using Object = StardewValley.Object;
 
 namespace JoysOfEfficiency.Automation
 {
+    using SVObject = Object;
     internal class FlowerColorUnifier
     {
         private static IMonitor Monitor => InstanceHolder.Monitor;
+        private static Config Config => InstanceHolder.Config;
         public static void UnifyFlowerColors()
         {
             foreach (KeyValuePair<Vector2, TerrainFeature> featurePair in Game1.currentLocation.terrainFeatures.Pairs.Where(kv => kv.Value is HoeDirt))
@@ -31,34 +35,50 @@ namespace JoysOfEfficiency.Automation
                 {
                     case 376:
                         //Poppy
-                        crop.tintColor.Value = InstanceHolder.Config.PoppyColor;
+                        crop.tintColor.Value = Config.PoppyColor;
                         break;
                     case 591:
                         //Tulip
-                        crop.tintColor.Value = InstanceHolder.Config.TulipColor;
+                        crop.tintColor.Value = Config.TulipColor;
                         break;
                     case 597:
                         //Blue Jazz
-                        crop.tintColor.Value = InstanceHolder.Config.JazzColor;
+                        crop.tintColor.Value = Config.JazzColor;
                         break;
                     case 593:
                         //Summer Spangle
-                        crop.tintColor.Value = InstanceHolder.Config.SummerSpangleColor;
+                        crop.tintColor.Value = Config.SummerSpangleColor;
                         break;
                     case 595:
                         //Fairy Rose
-                        crop.tintColor.Value = InstanceHolder.Config.FairyRoseColor;
+                        crop.tintColor.Value = Config.FairyRoseColor;
                         break;
                     default:
-                        continue;
+                        Color? color = GetCustomizedFlowerColor(crop.indexOfHarvest.Value);
+                        if (color != null)
+                        {
+                            crop.tintColor.Value = color.Value;
+                            break;
+                        }
+                        else
+                        {
+                            continue;   
+                        }
                 }
 
-                if (oldColor.PackedValue != crop.tintColor.Value.PackedValue)
+                if (oldColor.PackedValue == crop.tintColor.Value.PackedValue)
                 {
-                    SVObject obj = new SVObject(crop.indexOfHarvest.Value, 1);
-                    Monitor.Log($"changed {obj.DisplayName} @[{loc.X},{loc.Y}] to color(R:{crop.tintColor.R},G:{crop.tintColor.G},B:{crop.tintColor.B},A:{crop.tintColor.A})");
+                    continue;
                 }
+
+                SVObject obj = new SVObject(crop.indexOfHarvest.Value, 1);
+                Monitor.Log($"changed {obj.DisplayName} @[{loc.X},{loc.Y}] to color(R:{crop.tintColor.R},G:{crop.tintColor.G},B:{crop.tintColor.B},A:{crop.tintColor.A})");
             }
+        }
+
+        private static Color? GetCustomizedFlowerColor(int indexOfHarvest)
+        {
+            return Config.CustomizedFlowerColors.TryGetValue(indexOfHarvest, out Color color) ? (Color?)color : null;
         }
     }
 }
