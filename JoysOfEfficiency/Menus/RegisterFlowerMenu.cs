@@ -22,7 +22,7 @@ namespace JoysOfEfficiency.Menus
 
         private Color _currentColor;
 
-        public RegisterFlowerMenu(int width, int height, Color initialColor, int item = -1) : base(Game1.viewport.Width / 2 - width / 2,
+        public RegisterFlowerMenu(int width, int height, Color initialColor, int item, string labelOfButton = "register") : base(Game1.viewport.Width / 2 - width / 2,
             Game1.viewport.Height / 2 - height / 2, width, height, true)
         {
             _elements.Add(new EmptyLabel());
@@ -45,7 +45,7 @@ namespace JoysOfEfficiency.Menus
             _elements.Add(new EmptyLabel());
 
 
-            _elements.Add(new ButtonWithLabel("register", 0, OnButtonPressed));
+            _elements.Add(new ButtonWithLabel(labelOfButton, 0, OnButtonPressed));
         }
 
         public override void receiveLeftClick(int x, int y, bool playSound = true)
