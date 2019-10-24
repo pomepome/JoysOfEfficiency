@@ -1,6 +1,6 @@
 ﻿using JoysOfEfficiency.Automation;
 using JoysOfEfficiency.Core;
-using JoysOfEfficiency.Huds;
+using JoysOfEfficiency.Menus;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -28,6 +28,10 @@ namespace JoysOfEfficiency.EventHandler
             else if (args.Button == Conf.ButtonToggleBlackList)
             {
                 HarvestAutomation.ToggleBlacklistUnderCursor();
+            }
+            else if (args.Button == Conf.ButtonToggleFlowerColorUnification)
+            {
+                FlowerColorUnifier.ToggleFlowerColorUnification();
             }
         }
     }

@@ -1,32 +1,50 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using JoysOfEfficiency.Core;
 using JoysOfEfficiency.OptionsElements;
 using JoysOfEfficiency.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Menus;
-using Object = StardewValley.Object;
 
-namespace JoysOfEfficiency.Huds
+namespace JoysOfEfficiency.Menus
 {
     internal class RegisterFlowerMenu : IClickableMenu
     {
+        private static IMonitor Monitor => InstanceHolder.Monitor;
+
+        // ReSharper disable once InconsistentNaming
+        private const int MARGIN_COMPONENTS = 8;
+
         private readonly List<OptionsElement> _elements = new List<OptionsElement>();
 
         private readonly ColorBox _colorPreviewBox;
 
         private Color _currentColor;
 
-        public RegisterFlowerMenu(int width, int height, Color initialColor, int item = -1) : base(Game1.viewport.Width / 2 - width / 2,
+        private readonly int _itemIndex;
+
+        private readonly Action<int, Color> _onButtonPressed;
+
+        public RegisterFlowerMenu(int width, int height, Color initialColor, int item, Action<int, Color> buttonCallBack = null) : base(Game1.viewport.Width / 2 - width / 2,
             Game1.viewport.Height / 2 - height / 2, width, height, true)
         {
+            _onButtonPressed = buttonCallBack ?? ((i, c) =>
+            {
+                Monitor.Log($"({i}): {c}");
+                exitThisMenu();
+            });
+
+
             _elements.Add(new EmptyLabel());
             if (item != -1)
             {
-                string s = string.Format(InstanceHolder.Translation.Get("options.flower"), new Object(item, 1).DisplayName);
+                string s = string.Format(InstanceHolder.Translation.Get("options.flower"), Util.GetItemName(item));
                 _elements.Add(new LabelComponent(s));
+                _itemIndex = item;
             }
             _currentColor = initialColor;
             _elements.Add(new ModifiedSlider("R", 0, initialColor.R, 0, 255, OnSliderValueChange));
@@ -55,7 +73,7 @@ namespace JoysOfEfficiency.Huds
                 {
                     element.receiveLeftClick(x, y);
                 }
-                y -= element.bounds.Height + 16;
+                y -= element.bounds.Height + MARGIN_COMPONENTS;
             }
             
         }
@@ -69,7 +87,7 @@ namespace JoysOfEfficiency.Huds
                 {
                     element.leftClickHeld(x - element.bounds.X - xPositionOnScreen, y - element.bounds.Y - yPositionOnScreen);
                 }
-                y -= element.bounds.Height + 16;
+                y -= element.bounds.Height + MARGIN_COMPONENTS;
             }
         }
 
@@ -82,7 +100,7 @@ namespace JoysOfEfficiency.Huds
                 {
                     element.leftClickReleased(x - element.bounds.X - xPositionOnScreen, y - element.bounds.Y - yPositionOnScreen);
                 }
-                y -= element.bounds.Height + 16;
+                y -= element.bounds.Height + MARGIN_COMPONENTS;
             }
         }
 
@@ -100,11 +118,13 @@ namespace JoysOfEfficiency.Huds
         /// </summary>
         private static void CloseMenu()
         {
-            if (Game1.activeClickableMenu is JoeMenu)
+            if (!(Game1.activeClickableMenu is JoeMenu))
             {
-                Game1.playSound("bigDeSelect");
-                Game1.exitActiveMenu();
+                return;
             }
+
+            Game1.playSound("bigDeSelect");
+            Game1.exitActiveMenu();
         }
 
         public override void draw(SpriteBatch b)
@@ -126,7 +146,7 @@ namespace JoysOfEfficiency.Huds
             {
                 // Draw each option elements.
                 element.draw(b, x, y);
-                y += element.bounds.Height + 16;
+                y += element.bounds.Height + MARGIN_COMPONENTS;
             }
 
             Util.DrawCursor();
@@ -151,7 +171,8 @@ namespace JoysOfEfficiency.Huds
 
         private void OnButtonPressed(int which)
         {
-
+            _onButtonPressed(_itemIndex, _currentColor);
+            exitThisMenu();
         }
     }
 }

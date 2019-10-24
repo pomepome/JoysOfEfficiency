@@ -1,6 +1,5 @@
 ﻿using System;
 using JoysOfEfficiency.Core;
-using JoysOfEfficiency.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -51,13 +50,15 @@ namespace JoysOfEfficiency.OptionsElements
                 _conflicting = true;
                 return;
             }
-            if (_isListening)
+
+            if (!_isListening)
             {
-                _button = button.ToSButton();
-                _conflicting = false;
-                _isListening = false;
-                _onButtonPressed(whichOption, button.ToSButton());
+                return;
             }
+            _button = button.ToSButton();
+            _conflicting = false;
+            _isListening = false;
+            _onButtonPressed(whichOption, button.ToSButton());
         }
 
         public override void receiveKeyPress(Keys key)

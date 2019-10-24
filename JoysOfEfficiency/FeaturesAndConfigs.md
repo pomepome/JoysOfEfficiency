@@ -276,7 +276,7 @@ This utility shows estimated total shipping price when you opened shipping box.
 - EstimateShippingPrice("UIs", bool, default:true) - whether this utility is enabled.
 
 ## Unify Flower Colors
-This utility unifies flower colors to reduce occupying space according to its species.
+This utility unifies flower colors to reduce occupied spaces according to its species.
 In config file, you can change the color using "R, G, B, A" format.
 
 **[CONFIG]**
@@ -298,6 +298,11 @@ In config file, you can change the color using "R, G, B, A" format.
 
 - FairyRoseColor("Misc", Color, default:{216, 191, 216, 255}) - The color of Fairy Rose.
 
+
+- ButtonToggleFlowerColorUnification("Controls", SButton, default: 'L') - The button to register/unregister flowers to unify their colors.
+
+
+- CustomizedFlowerColors("Misc", Dictionary<int, Color>) - Customized flower colors for unification.
 
 ## Auto Loot Treasures
 

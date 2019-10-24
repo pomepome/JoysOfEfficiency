@@ -1,5 +1,7 @@
-﻿using JoysOfEfficiency.EventHandler;
+﻿using System;
+using JoysOfEfficiency.EventHandler;
 using JoysOfEfficiency.Huds;
+using JoysOfEfficiency.Menus;
 using JoysOfEfficiency.ModCheckers;
 using JoysOfEfficiency.Patches;
 using JoysOfEfficiency.Utils;
@@ -28,7 +30,7 @@ namespace JoysOfEfficiency.Core
 
         public static bool HarmonyPatched { get; private set; }
 
-        private static bool DebugMode { get; set; }
+        public static bool DebugMode { get; private set; }
 
         /// <summary>
         /// Called firstly when SMAPI finished loading of the mod.
@@ -98,7 +100,7 @@ namespace JoysOfEfficiency.Core
             MineIcons.Init(helper);
         }
 
-        private void OnDebugCommand(string name, string[] args)
+        private static void OnDebugCommand(string name, string[] args)
         {
             DebugMode = !DebugMode;
             Game1.activeClickableMenu = new RegisterFlowerMenu(800, 640, Color.White, 376);

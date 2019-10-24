@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using JoysOfEfficiency.Automation;
 using JoysOfEfficiency.Core;
 using JoysOfEfficiency.Huds;
 using JoysOfEfficiency.Utils;
-using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -14,7 +12,7 @@ using StardewValley.Tools;
 
 namespace JoysOfEfficiency.EventHandler
 {
-    class UpdateEvents
+    internal class UpdateEvents
     {
         public static bool Paused => EventHolder.Update._paused;
 
@@ -28,8 +26,8 @@ namespace JoysOfEfficiency.EventHandler
 
         private double _timeoutCounter;
 
-        private Config Conf => InstanceHolder.Config;
-        private IMonitor Monitor => InstanceHolder.Monitor;
+        private static Config Conf => InstanceHolder.Config;
+        private static IMonitor Monitor => InstanceHolder.Monitor;
 
         public void OnGameUpdateEvent(object sender, UpdateTickedEventArgs args)
         {
@@ -82,7 +80,7 @@ namespace JoysOfEfficiency.EventHandler
             Farmer player = Game1.player;
             if (Conf.AutoGate)
             {
-                Util.TryToggleGate(player);
+                FenceGateAutomation.TryToggleGate(player);
             }
 
             if (player.CurrentTool is FishingRod rod)
@@ -102,7 +100,7 @@ namespace JoysOfEfficiency.EventHandler
 
             if (Conf.CloseTreasureWhenAllLooted && Game1.activeClickableMenu is ItemGrabMenu menu)
             {
-                Util.TryCloseItemGrabMenu(menu);
+                InventoryAutomation.TryCloseItemGrabMenu(menu);
             }
 
             if (!Context.IsWorldReady || !Context.IsPlayerFree)
@@ -112,20 +110,11 @@ namespace JoysOfEfficiency.EventHandler
 
             Farmer player = Game1.player;
             GameLocation location = Game1.currentLocation;
-            IReflectionHelper reflection = InstanceHolder.Reflection;
             try
             {
-                if (player.CurrentTool is FishingRod rod && Game1.activeClickableMenu == null)
+                if (Conf.AutoReelRod)
                 {
-                    IReflectedField<int> whichFish = reflection.GetField<int>(rod, "whichFish");
-
-                    if (rod.isNibbling && rod.isFishing && whichFish.GetValue() == -1 && !rod.isReeling && !rod.hit && !rod.isTimingCast && !rod.pullingOutOfWater && !rod.fishCaught)
-                    {
-                        if (Conf.AutoReelRod)
-                        {
-                            rod.DoFunction(player.currentLocation, 1, 1, 1, player);
-                        }
-                    }
+                    AutoFisher.AutoReelRod();
                 }
                 if (Game1.currentLocation is MineShaft shaft)
                 {
@@ -141,7 +130,7 @@ namespace JoysOfEfficiency.EventHandler
                 }
                 if (Conf.UnifyFlowerColors)
                 {
-                    Util.UnifyFlowerColors();
+                    FlowerColorUnifier.UnifyFlowerColors();
                 }
 
                 _ticks = (_ticks + 1) % 8;
@@ -152,11 +141,11 @@ namespace JoysOfEfficiency.EventHandler
 
                 if (Conf.AutoEat)
                 {
-                    Util.TryToEatIfNeeded(player);
+                    FoodAutomation.TryToEatIfNeeded(player);
                 }
                 if (Conf.AutoPickUpTrash)
                 {
-                    Util.ScavengeTrashCan();
+                    TrashCanScavenger.ScavengeTrashCan();
                 }
                 if (Conf.AutoWaterNearbyCrops)
                 {
@@ -164,33 +153,20 @@ namespace JoysOfEfficiency.EventHandler
                 }
                 if (Conf.AutoPetNearbyAnimals)
                 {
-                    int radius = Conf.AutoPetRadius * Game1.tileSize;
-                    Rectangle bb = Util.Expand(player.GetBoundingBox(), radius);
-                    List<FarmAnimal> animalList = Util.GetAnimalsList(player);
-                    foreach (FarmAnimal animal in animalList)
-                    {
-                        if (bb.Contains((int)animal.Position.X, (int)animal.Position.Y) && !animal.wasPet.Value)
-                        {
-                            if (Game1.timeOfDay >= 1900 && !animal.isMoving())
-                            {
-                                continue;
-                            }
-                            animal.pet(player);
-                        }
-                    }
+                    AnimalAutomation.PetNearbyAnimals();
                 }
 
                 if (Conf.AutoShearingAndMilking)
                 {
-                    Util.ShearingAndMilking(player);
+                    AnimalAutomation.ShearingAndMilking(player);
                 }
                 if (Conf.AutoPullMachineResult)
                 {
-                    Util.PullMachineResult();
+                    MachineOperator.PullMachineResult();
                 }
                 if (Conf.AutoDepositIngredient)
                 {
-                    Util.DepositIngredientsToMachines();
+                    MachineOperator.DepositIngredientsToMachines();
                 }
                 if (Conf.AutoHarvest)
                 {
@@ -198,30 +174,24 @@ namespace JoysOfEfficiency.EventHandler
                 }
                 if (Conf.AutoDestroyDeadCrops)
                 {
-                    Util.DestroyNearDeadCrops(player);
+                    HarvestAutomation.DestroyNearDeadCrops(player);
                 }
                 if (Conf.AutoRefillWateringCan)
                 {
-                    WateringCan can = Util.FindToolFromInventory<WateringCan>(Conf.FindCanFromInventory);
-                    if (can != null && can.WaterLeft < Util.GetMaxCan(can) && Util.IsThereAnyWaterNear(player.currentLocation, player.getTileLocation()))
-                    {
-                        can.WaterLeft = can.waterCanMax;
-                        Game1.playSound("slosh");
-                        DelayedAction.playSoundAfterDelay("glug", 250);
-                    }
+                    WateringCanRefiller.RefillWateringCan();
                 }
                 if (Conf.AutoCollectCollectibles)
                 {
-                    Util.CollectNearbyCollectibles(location);
+                    CollectibleCollector.CollectNearbyCollectibles(location);
                 }
                 if (Conf.AutoDigArtifactSpot)
                 {
-                    Util.DigNearbyArtifactSpots();
+                    ArtifactSpotDigger.DigNearbyArtifactSpots();
                 }
                 if (Conf.AutoShakeFruitedPlants)
                 {
-                    Util.ShakeNearbyFruitedTree();
-                    Util.ShakeNearbyFruitedBush();
+                    HarvestAutomation.ShakeNearbyFruitedTree();
+                    HarvestAutomation.ShakeNearbyFruitedBush();
                 }
                 if (Conf.AutoAnimalDoor && !DayEnded && Game1.timeOfDay >= 1900)
                 {
@@ -230,7 +200,7 @@ namespace JoysOfEfficiency.EventHandler
                 }
                 if (Conf.AutoPetNearbyPets)
                 {
-                    Util.PetNearbyPets();
+                    AnimalAutomation.PetNearbyPets();
                 }
             }
             catch (Exception ex)

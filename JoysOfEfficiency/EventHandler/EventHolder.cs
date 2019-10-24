@@ -1,7 +1,5 @@
-﻿using System.Diagnostics;
+﻿using JoysOfEfficiency.Huds;
 using StardewModdingAPI.Events;
-using MenuEvents = JoysOfEfficiency.Core.MenuEvents;
-using SaveEvents = JoysOfEfficiency.Core.SaveEvents;
 
 namespace JoysOfEfficiency.EventHandler
 {
@@ -19,13 +17,16 @@ namespace JoysOfEfficiency.EventHandler
 
             events.GameLoop.UpdateTicked += Update.OnGameUpdateEvent;
 
-            events.Display.RenderedHud += Graphics.OnPostRenderHud;
+            events.Display.RenderingHud += Graphics.OnRenderHud;
             events.Display.RenderedActiveMenu += Graphics.OnPostRenderGui;
 
             events.Display.MenuChanged += Menu.OnMenuChanged;
 
             events.GameLoop.Saving += Save.OnBeforeSave;
             events.GameLoop.DayStarted += Save.OnDayStarted;
+
+            events.Display.RenderingHud += FpsCounter.OnHudDraw;
+            events.Display.RenderedHud += FpsCounter.PostHudDraw;
         }
     }
 }
