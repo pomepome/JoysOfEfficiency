@@ -14,6 +14,7 @@ namespace JoysOfEfficiency.Menus
 {
     internal class JoeMenu : IClickableMenu
     {
+        private static Config Config => InstanceHolder.Config;
 
         private readonly List<MenuTab> _tabs = new List<MenuTab>();
 
@@ -84,98 +85,98 @@ namespace JoysOfEfficiency.Menus
                 MenuTab tab = new MenuTab();
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Balanced Mode"));
-                tab.AddOptionsElement(new ModifiedCheckBox("BalancedMode", 20, InstanceHolder.Config.BalancedMode, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("BalancedMode", 20, Config.BalancedMode, OnCheckboxValueChanged));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Auto Water Nearby Crops"));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoWaterNearbyCrops", 2, InstanceHolder.Config.AutoWaterNearbyCrops, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedSlider("AutoWaterRadius", 3, InstanceHolder.Config.AutoWaterRadius, 1, 3, OnSliderValueChanged, () => !InstanceHolder.Config.AutoWaterNearbyCrops || InstanceHolder.Config.BalancedMode));
-                tab.AddOptionsElement(new ModifiedCheckBox("FindCanFromInventory", 16, InstanceHolder.Config.FindCanFromInventory, OnCheckboxValueChanged, i => !(InstanceHolder.Config.AutoWaterNearbyCrops || InstanceHolder.Config.AutoRefillWateringCan)));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoWaterNearbyCrops", 2, Config.AutoWaterNearbyCrops, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedSlider("AutoWaterRadius", 3, Config.AutoWaterRadius, 1, 3, OnSliderValueChanged, () => !Config.AutoWaterNearbyCrops || Config.BalancedMode));
+                tab.AddOptionsElement(new ModifiedCheckBox("FindCanFromInventory", 16, Config.FindCanFromInventory, OnCheckboxValueChanged, i => !(Config.AutoWaterNearbyCrops || Config.AutoRefillWateringCan)));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Auto Pet Nearby Animals/Pets"));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoPetNearbyAnimals", 3, InstanceHolder.Config.AutoPetNearbyAnimals, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoPetNearbyPets", 24, InstanceHolder.Config.AutoPetNearbyPets, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedSlider("AutoPetRadius", 4, InstanceHolder.Config.AutoPetRadius, 1, 3, OnSliderValueChanged, () => !InstanceHolder.Config.AutoPetNearbyAnimals || InstanceHolder.Config.BalancedMode));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoPetNearbyAnimals", 3, Config.AutoPetNearbyAnimals, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoPetNearbyPets", 24, Config.AutoPetNearbyPets, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedSlider("AutoPetRadius", 4, Config.AutoPetRadius, 1, 3, OnSliderValueChanged, () => !Config.AutoPetNearbyAnimals || Config.BalancedMode));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Auto Animal Door"));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoAnimalDoor", 4, InstanceHolder.Config.AutoAnimalDoor, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoAnimalDoor", 4, Config.AutoAnimalDoor, OnCheckboxValueChanged));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Auto Fishing"));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoFishing", 5, InstanceHolder.Config.AutoFishing, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedSlider("CPUThresholdFishing", 0, (int)(InstanceHolder.Config.CpuThresholdFishing * 10), 0, 5, OnSliderValueChanged, () => !InstanceHolder.Config.AutoFishing, Format));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoFishing", 5, Config.AutoFishing, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedSlider("CPUThresholdFishing", 0, (int)(Config.CpuThresholdFishing * 10), 0, 5, OnSliderValueChanged, () => !Config.AutoFishing, Format));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Fishing Tweaks"));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoReelRod", 6, InstanceHolder.Config.AutoReelRod, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoReelRod", 6, Config.AutoReelRod, OnCheckboxValueChanged));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Auto Gate"));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoGate", 9, InstanceHolder.Config.AutoGate, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoGate", 9, Config.AutoGate, OnCheckboxValueChanged));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Auto Eat"));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoEat", 10, InstanceHolder.Config.AutoEat, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedSlider("StaminaToEatRatio", 1, (int)(InstanceHolder.Config.StaminaToEatRatio * 10), 1, 8, OnSliderValueChanged, () => !InstanceHolder.Config.AutoEat, Format));
-                tab.AddOptionsElement(new ModifiedSlider("HealthToEatRatio", 2, (int)(InstanceHolder.Config.HealthToEatRatio * 10), 1, 8, OnSliderValueChanged, () => !InstanceHolder.Config.AutoEat, Format));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoEat", 10, Config.AutoEat, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedSlider("StaminaToEatRatio", 1, (int)(Config.StaminaToEatRatio * 10), 1, 8, OnSliderValueChanged, () => !Config.AutoEat, Format));
+                tab.AddOptionsElement(new ModifiedSlider("HealthToEatRatio", 2, (int)(Config.HealthToEatRatio * 10), 1, 8, OnSliderValueChanged, () => !Config.AutoEat, Format));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Auto Harvest"));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoHarvest", 11, InstanceHolder.Config.AutoHarvest, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedSlider("AutoHarvestRadius", 5, InstanceHolder.Config.AutoHarvestRadius, 1, 3, OnSliderValueChanged, () => !InstanceHolder.Config.AutoHarvest || InstanceHolder.Config.BalancedMode));
-                tab.AddOptionsElement(new ModifiedCheckBox("ProtectNectarProducingFlower", 25, InstanceHolder.Config.ProtectNectarProducingFlower, OnCheckboxValueChanged, i => !InstanceHolder.Config.AutoHarvest));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoHarvest", 11, Config.AutoHarvest, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedSlider("AutoHarvestRadius", 5, Config.AutoHarvestRadius, 1, 3, OnSliderValueChanged, () => !Config.AutoHarvest || Config.BalancedMode));
+                tab.AddOptionsElement(new ModifiedCheckBox("ProtectNectarProducingFlower", 25, Config.ProtectNectarProducingFlower, OnCheckboxValueChanged, i => !Config.AutoHarvest));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Auto Destroy Dead Crops"));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoDestroyDeadCrops", 12, InstanceHolder.Config.AutoDestroyDeadCrops, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoDestroyDeadCrops", 12, Config.AutoDestroyDeadCrops, OnCheckboxValueChanged));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Auto Refill Watering Can"));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoRefillWateringCan", 13, InstanceHolder.Config.AutoRefillWateringCan, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoRefillWateringCan", 13, Config.AutoRefillWateringCan, OnCheckboxValueChanged));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Auto Collect Collectibles"));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoCollectCollectibles", 14, InstanceHolder.Config.AutoCollectCollectibles, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedSlider("AutoCollectRadius", 6, InstanceHolder.Config.AutoCollectRadius, 1, 3, OnSliderValueChanged, () => !InstanceHolder.Config.AutoCollectCollectibles || InstanceHolder.Config.BalancedMode));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoCollectCollectibles", 14, Config.AutoCollectCollectibles, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedSlider("AutoCollectRadius", 6, Config.AutoCollectRadius, 1, 3, OnSliderValueChanged, () => !Config.AutoCollectCollectibles || Config.BalancedMode));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Auto Shake Fruited Plants"));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoShakeFruitedPlants", 15, InstanceHolder.Config.AutoShakeFruitedPlants, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedSlider("AutoShakeRadius", 7, InstanceHolder.Config.AutoShakeRadius, 1, 3, OnSliderValueChanged, () => !InstanceHolder.Config.AutoShakeFruitedPlants || InstanceHolder.Config.BalancedMode));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoShakeFruitedPlants", 15, Config.AutoShakeFruitedPlants, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedSlider("AutoShakeRadius", 7, Config.AutoShakeRadius, 1, 3, OnSliderValueChanged, () => !Config.AutoShakeFruitedPlants || Config.BalancedMode));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Auto Dig Artifact Spot"));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoDigArtifactSpot", 17, InstanceHolder.Config.AutoDigArtifactSpot, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedSlider("AutoDigRadius", 8, InstanceHolder.Config.AutoDigRadius, 1, 3, OnSliderValueChanged, () => !InstanceHolder.Config.AutoDigArtifactSpot || InstanceHolder.Config.BalancedMode));
-                tab.AddOptionsElement(new ModifiedCheckBox("FindHoeFromInventory", 18, InstanceHolder.Config.FindHoeFromInventory, OnCheckboxValueChanged, i => !InstanceHolder.Config.AutoDigArtifactSpot));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoDigArtifactSpot", 17, Config.AutoDigArtifactSpot, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedSlider("AutoDigRadius", 8, Config.AutoDigRadius, 1, 3, OnSliderValueChanged, () => !Config.AutoDigArtifactSpot || Config.BalancedMode));
+                tab.AddOptionsElement(new ModifiedCheckBox("FindHoeFromInventory", 18, Config.FindHoeFromInventory, OnCheckboxValueChanged, i => !Config.AutoDigArtifactSpot));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Auto Deposit/Pull Machines"));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoDepositIngredient", 22, InstanceHolder.Config.AutoDepositIngredient, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoPullMachineResult", 23, InstanceHolder.Config.AutoPullMachineResult, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedSlider("MachineRadius", 10, InstanceHolder.Config.MachineRadius, 1, 3, OnSliderValueChanged, () => !(InstanceHolder.Config.AutoPullMachineResult || InstanceHolder.Config.AutoDepositIngredient) || InstanceHolder.Config.BalancedMode));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoDepositIngredient", 22, Config.AutoDepositIngredient, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoPullMachineResult", 23, Config.AutoPullMachineResult, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedSlider("MachineRadius", 10, Config.MachineRadius, 1, 3, OnSliderValueChanged, () => !(Config.AutoPullMachineResult || Config.AutoDepositIngredient) || Config.BalancedMode));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Auto Loot Treasures"));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoLootTreasures", 30, InstanceHolder.Config.AutoLootTreasures, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedCheckBox("CloseTreasureWhenAllLooted", 31, InstanceHolder.Config.CloseTreasureWhenAllLooted, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoLootTreasures", 30, Config.AutoLootTreasures, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("CloseTreasureWhenAllLooted", 31, Config.CloseTreasureWhenAllLooted, OnCheckboxValueChanged));
 
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Auto Pick Up Trash"));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoPickUpTrash", 34, InstanceHolder.Config.AutoPickUpTrash, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedSlider("ScavengingRadius", 13, InstanceHolder.Config.ScavengingRadius, 1, 3, OnSliderValueChanged, () => !InstanceHolder.Config.AutoPickUpTrash || InstanceHolder.Config.BalancedMode));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoPickUpTrash", 34, Config.AutoPickUpTrash, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedSlider("ScavengingRadius", 13, Config.ScavengingRadius, 1, 3, OnSliderValueChanged, () => !Config.AutoPickUpTrash || Config.BalancedMode));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Auto Shearing and Milking"));
-                tab.AddOptionsElement(new ModifiedCheckBox("AutoShearingAndMilking", 35, InstanceHolder.Config.AutoShearingAndMilking, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedSlider("AnimalHarvestRadius", 14, InstanceHolder.Config.AnimalHarvestRadius, 1, 3, OnSliderValueChanged, () => !InstanceHolder.Config.AutoShearingAndMilking || InstanceHolder.Config.BalancedMode));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoShearingAndMilking", 35, Config.AutoShearingAndMilking, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedSlider("AnimalHarvestRadius", 14, Config.AnimalHarvestRadius, 1, 3, OnSliderValueChanged, () => !Config.AutoShearingAndMilking || Config.BalancedMode));
                 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Collect Letter Attachments And Quests"));
-                tab.AddOptionsElement(new ModifiedCheckBox("CollectLetterAttachmentsAndQuests", 36, InstanceHolder.Config.CollectLetterAttachmentsAndQuests, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("CollectLetterAttachmentsAndQuests", 36, Config.CollectLetterAttachmentsAndQuests, OnCheckboxValueChanged));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 _tabs.Add(tab);
@@ -186,31 +187,31 @@ namespace JoysOfEfficiency.Menus
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Config Menu"));
-                tab.AddOptionsElement(new ModifiedCheckBox("FilterBackgroundInMenu", 32, InstanceHolder.Config.FilterBackgroundInMenu, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedCheckBox("ShowMousePositionWhenAssigningLocation", 38, InstanceHolder.Config.ShowMousePositionWhenAssigningLocation, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("FilterBackgroundInMenu", 32, Config.FilterBackgroundInMenu, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("ShowMousePositionWhenAssigningLocation", 38, Config.ShowMousePositionWhenAssigningLocation, OnCheckboxValueChanged));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Mine Info GUI"));
-                tab.AddOptionsElement(new ModifiedCheckBox("MineInfoGUI", 0, InstanceHolder.Config.MineInfoGui, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("MineInfoGUI", 0, Config.MineInfoGui, OnCheckboxValueChanged));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Gift Information Tooltip"));
-                tab.AddOptionsElement(new ModifiedCheckBox("GiftInformation", 1, InstanceHolder.Config.GiftInformation, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("GiftInformation", 1, Config.GiftInformation, OnCheckboxValueChanged));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Fishing Info"));
-                tab.AddOptionsElement(new ModifiedCheckBox("FishingInfo", 8, InstanceHolder.Config.FishingInfo, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("FishingInfo", 8, Config.FishingInfo, OnCheckboxValueChanged));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Fishing Probabilities Information"));
-                tab.AddOptionsElement(new ModifiedCheckBox("FishingProbabilitiesInfo", 26, InstanceHolder.Config.FishingProbabilitiesInfo, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedClickListener(this, "ProbBoxLocation", 0, InstanceHolder.Config.ProbBoxCoordinates.X, InstanceHolder.Config.ProbBoxCoordinates.Y, translation, OnSomewhereClicked, OnStartListeningClick));
-                tab.AddOptionsElement(new ModifiedCheckBox("MorePreciseProbabilities", 37, InstanceHolder.Config.MorePreciseProbabilities, OnCheckboxValueChanged, i => !InstanceHolder.Config.FishingProbabilitiesInfo));
-                tab.AddOptionsElement(new ModifiedSlider("TrialOfExamine", 15, InstanceHolder.Config.TrialOfExamine, 1, 10, OnSliderValueChanged, () => !(InstanceHolder.Config.FishingProbabilitiesInfo && InstanceHolder.Config.MorePreciseProbabilities)));
+                tab.AddOptionsElement(new ModifiedCheckBox("FishingProbabilitiesInfo", 26, Config.FishingProbabilitiesInfo, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedClickListener(this, "ProbBoxLocation", 0, Config.ProbBoxCoordinates.X, Config.ProbBoxCoordinates.Y, translation, OnSomewhereClicked, OnStartListeningClick));
+                tab.AddOptionsElement(new ModifiedCheckBox("MorePreciseProbabilities", 37, Config.MorePreciseProbabilities, OnCheckboxValueChanged, i => !Config.FishingProbabilitiesInfo));
+                tab.AddOptionsElement(new ModifiedSlider("TrialOfExamine", 15, Config.TrialOfExamine, 1, 10, OnSliderValueChanged, () => !(Config.FishingProbabilitiesInfo && Config.MorePreciseProbabilities)));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Show Shipping Price"));
-                tab.AddOptionsElement(new ModifiedCheckBox("EstimateShippingPrice", 28, InstanceHolder.Config.EstimateShippingPrice, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("EstimateShippingPrice", 28, Config.EstimateShippingPrice, OnCheckboxValueChanged));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 _tabs.Add(tab);
@@ -221,17 +222,17 @@ namespace JoysOfEfficiency.Menus
                 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Crafting From Chests"));
-                tab.AddOptionsElement(new ModifiedCheckBox("CraftingFromChests", 27, InstanceHolder.Config.CraftingFromChests, OnCheckboxValueChanged, i => ModEntry.IsCcOn || !ModEntry.HarmonyPatched));
-                tab.AddOptionsElement(new ModifiedSlider("RadiusCraftingFromChests", 11, InstanceHolder.Config.RadiusCraftingFromChests, 1, 5, OnSliderValueChanged, () => !InstanceHolder.Config.CraftingFromChests || InstanceHolder.Config.BalancedMode || !ModEntry.HarmonyPatched));
+                tab.AddOptionsElement(new ModifiedCheckBox("CraftingFromChests", 27, Config.CraftingFromChests, OnCheckboxValueChanged, i => ModEntry.IsCcOn || !ModEntry.HarmonyPatched));
+                tab.AddOptionsElement(new ModifiedSlider("RadiusCraftingFromChests", 11, Config.RadiusCraftingFromChests, 1, 5, OnSliderValueChanged, () => !Config.CraftingFromChests || Config.BalancedMode || !ModEntry.HarmonyPatched));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Unify Flower Colors"));
-                tab.AddOptionsElement(new ModifiedCheckBox("UnifyFlowerColors", 29, InstanceHolder.Config.UnifyFlowerColors, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("UnifyFlowerColors", 29, Config.UnifyFlowerColors, OnCheckboxValueChanged));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Pause When Idle"));
-                tab.AddOptionsElement(new ModifiedCheckBox("PauseWhenIdle", 33, InstanceHolder.Config.PauseWhenIdle, OnCheckboxValueChanged));
-                tab.AddOptionsElement(new ModifiedSlider("IdleTimeout", 12, InstanceHolder.Config.IdleTimeout, 1, 300, OnSliderValueChanged, () => !InstanceHolder.Config.PauseWhenIdle, (which, value) => value + "s"));
+                tab.AddOptionsElement(new ModifiedCheckBox("PauseWhenIdle", 33, Config.PauseWhenIdle, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedSlider("IdleTimeout", 12, Config.IdleTimeout, 1, 300, OnSliderValueChanged, () => !Config.PauseWhenIdle, (which, value) => value + "s"));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 _tabs.Add(tab);
@@ -242,11 +243,15 @@ namespace JoysOfEfficiency.Menus
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Config Menu"));
-                tab.AddOptionsElement(new ModifiedInputListener(this, "KeyShowMenu", 0, InstanceHolder.Config.ButtonShowMenu, translation, OnInputListenerChanged, OnStartListening));
+                tab.AddOptionsElement(new ModifiedInputListener(this, "KeyShowMenu", 0, Config.ButtonShowMenu, translation, OnInputListenerChanged, OnStartListening));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Auto Harvest"));
-                tab.AddOptionsElement(new ModifiedInputListener(this, "KeyToggleBlackList", 1, InstanceHolder.Config.ButtonToggleBlackList, translation, OnInputListenerChanged, OnStartListening));
+                tab.AddOptionsElement(new ModifiedInputListener(this, "KeyToggleBlackList", 1, Config.ButtonToggleBlackList, translation, OnInputListenerChanged, OnStartListening));
+
+                tab.AddOptionsElement(new EmptyLabel());
+                tab.AddOptionsElement(new LabelComponent("Unify Flower Colors"));
+                tab.AddOptionsElement(new ModifiedInputListener(this, "ButtonToggleFlowerColorUnification", 2, Config.ButtonToggleFlowerColorUnification, translation, OnInputListenerChanged, OnStartListening));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 _tabs.Add(tab);
@@ -271,7 +276,7 @@ namespace JoysOfEfficiency.Menus
             switch (index)
             {
                 case 0:
-                    InstanceHolder.Config.ProbBoxCoordinates = point;
+                    Config.ProbBoxCoordinates = point;
                     break;
                 default: return;
             }
@@ -282,10 +287,16 @@ namespace JoysOfEfficiency.Menus
             switch (index)
             {
                 case 0:
-                    InstanceHolder.Config.ButtonShowMenu = value; break;
+                    Config.ButtonShowMenu = value;
+                    break;
                 case 1:
-                    InstanceHolder.Config.ButtonToggleBlackList = value; break;
-                default: return;
+                    Config.ButtonToggleBlackList = value;
+                    break;
+                case 2:
+                    Config.ButtonToggleFlowerColorUnification = value;
+                    break;
+                default:
+                    return;
             }
             InstanceHolder.WriteConfig();
             _isListening = false;
@@ -295,42 +306,42 @@ namespace JoysOfEfficiency.Menus
         {
             switch (index)
             {
-                case 0: InstanceHolder.Config.MineInfoGui = value; break;
-                case 1: InstanceHolder.Config.GiftInformation = value; break;
-                case 2: InstanceHolder.Config.AutoWaterNearbyCrops = value; break;
-                case 3: InstanceHolder.Config.AutoPetNearbyAnimals = value; break;
-                case 4: InstanceHolder.Config.AutoAnimalDoor = value; break;
-                case 5: InstanceHolder.Config.AutoFishing = value; break;
-                case 6: InstanceHolder.Config.AutoReelRod = value; break;
-                case 8: InstanceHolder.Config.FishingInfo = value; break;
-                case 9: InstanceHolder.Config.AutoGate = value; break;
-                case 10: InstanceHolder.Config.AutoEat = value; break;
-                case 11: InstanceHolder.Config.AutoHarvest = value; break;
-                case 12: InstanceHolder.Config.AutoDestroyDeadCrops = value; break;
-                case 13: InstanceHolder.Config.AutoRefillWateringCan = value; break;
-                case 14: InstanceHolder.Config.AutoCollectCollectibles = value; break;
-                case 15: InstanceHolder.Config.AutoShakeFruitedPlants = value; break;
-                case 16: InstanceHolder.Config.FindCanFromInventory = value; break;
-                case 17: InstanceHolder.Config.AutoDigArtifactSpot = value; break;
-                case 18: InstanceHolder.Config.FindHoeFromInventory = value; break;
-                case 20: InstanceHolder.Config.BalancedMode = value; break;
-                case 22: InstanceHolder.Config.AutoDepositIngredient = value; break;
-                case 23: InstanceHolder.Config.AutoPullMachineResult = value; break;
-                case 24: InstanceHolder.Config.AutoPetNearbyPets = value; break;
-                case 25: InstanceHolder.Config.ProtectNectarProducingFlower = value; break;
-                case 26: InstanceHolder.Config.FishingProbabilitiesInfo = value; break;
-                case 27: InstanceHolder.Config.CraftingFromChests = value; break;
-                case 28: InstanceHolder.Config.EstimateShippingPrice = value; break;
-                case 29: InstanceHolder.Config.UnifyFlowerColors = value; break;
-                case 30: InstanceHolder.Config.AutoLootTreasures = value; break;
-                case 31: InstanceHolder.Config.CloseTreasureWhenAllLooted = value; break;
-                case 32: InstanceHolder.Config.FilterBackgroundInMenu = value; break;
-                case 33: InstanceHolder.Config.PauseWhenIdle = value; break;
-                case 34: InstanceHolder.Config.AutoPickUpTrash = value; break;
-                case 35: InstanceHolder.Config.AutoShearingAndMilking = value; break;
-                case 36: InstanceHolder.Config.CollectLetterAttachmentsAndQuests = value; break;
-                case 37: InstanceHolder.Config.MorePreciseProbabilities = value; break;
-                case 38: InstanceHolder.Config.ShowMousePositionWhenAssigningLocation = value; break;
+                case 0: Config.MineInfoGui = value; break;
+                case 1: Config.GiftInformation = value; break;
+                case 2: Config.AutoWaterNearbyCrops = value; break;
+                case 3: Config.AutoPetNearbyAnimals = value; break;
+                case 4: Config.AutoAnimalDoor = value; break;
+                case 5: Config.AutoFishing = value; break;
+                case 6: Config.AutoReelRod = value; break;
+                case 8: Config.FishingInfo = value; break;
+                case 9: Config.AutoGate = value; break;
+                case 10: Config.AutoEat = value; break;
+                case 11: Config.AutoHarvest = value; break;
+                case 12: Config.AutoDestroyDeadCrops = value; break;
+                case 13: Config.AutoRefillWateringCan = value; break;
+                case 14: Config.AutoCollectCollectibles = value; break;
+                case 15: Config.AutoShakeFruitedPlants = value; break;
+                case 16: Config.FindCanFromInventory = value; break;
+                case 17: Config.AutoDigArtifactSpot = value; break;
+                case 18: Config.FindHoeFromInventory = value; break;
+                case 20: Config.BalancedMode = value; break;
+                case 22: Config.AutoDepositIngredient = value; break;
+                case 23: Config.AutoPullMachineResult = value; break;
+                case 24: Config.AutoPetNearbyPets = value; break;
+                case 25: Config.ProtectNectarProducingFlower = value; break;
+                case 26: Config.FishingProbabilitiesInfo = value; break;
+                case 27: Config.CraftingFromChests = value; break;
+                case 28: Config.EstimateShippingPrice = value; break;
+                case 29: Config.UnifyFlowerColors = value; break;
+                case 30: Config.AutoLootTreasures = value; break;
+                case 31: Config.CloseTreasureWhenAllLooted = value; break;
+                case 32: Config.FilterBackgroundInMenu = value; break;
+                case 33: Config.PauseWhenIdle = value; break;
+                case 34: Config.AutoPickUpTrash = value; break;
+                case 35: Config.AutoShearingAndMilking = value; break;
+                case 36: Config.CollectLetterAttachmentsAndQuests = value; break;
+                case 37: Config.MorePreciseProbabilities = value; break;
+                case 38: Config.ShowMousePositionWhenAssigningLocation = value; break;
                 default: return;
             }
             InstanceHolder.WriteConfig();
@@ -339,21 +350,21 @@ namespace JoysOfEfficiency.Menus
         {
             switch (index)
             {
-                case 0: InstanceHolder.Config.CpuThresholdFishing = value / 10.0f; break;
-                case 1: InstanceHolder.Config.StaminaToEatRatio = value / 10.0f; break;
-                case 2: InstanceHolder.Config.HealthToEatRatio = value / 10.0f; break;
-                case 3: InstanceHolder.Config.AutoWaterRadius = value; break;
-                case 4: InstanceHolder.Config.AutoPetRadius = value; break;
-                case 5: InstanceHolder.Config.AutoHarvestRadius = value; break;
-                case 6: InstanceHolder.Config.AutoCollectRadius = value; break;
-                case 7: InstanceHolder.Config.AutoShakeRadius = value; break;
-                case 8: InstanceHolder.Config.AutoDigRadius = value; break;
-                case 10: InstanceHolder.Config.MachineRadius = value; break;
-                case 11: InstanceHolder.Config.RadiusCraftingFromChests = value; break;
-                case 12: InstanceHolder.Config.IdleTimeout = value; break;
-                case 13: InstanceHolder.Config.ScavengingRadius = value; break;
-                case 14: InstanceHolder.Config.AnimalHarvestRadius = value; break;
-                case 15: InstanceHolder.Config.TrialOfExamine = value; break;
+                case 0: Config.CpuThresholdFishing = value / 10.0f; break;
+                case 1: Config.StaminaToEatRatio = value / 10.0f; break;
+                case 2: Config.HealthToEatRatio = value / 10.0f; break;
+                case 3: Config.AutoWaterRadius = value; break;
+                case 4: Config.AutoPetRadius = value; break;
+                case 5: Config.AutoHarvestRadius = value; break;
+                case 6: Config.AutoCollectRadius = value; break;
+                case 7: Config.AutoShakeRadius = value; break;
+                case 8: Config.AutoDigRadius = value; break;
+                case 10: Config.MachineRadius = value; break;
+                case 11: Config.RadiusCraftingFromChests = value; break;
+                case 12: Config.IdleTimeout = value; break;
+                case 13: Config.ScavengingRadius = value; break;
+                case 14: Config.AnimalHarvestRadius = value; break;
+                case 15: Config.TrialOfExamine = value; break;
                 default: return;
             }
 
@@ -488,7 +499,7 @@ namespace JoysOfEfficiency.Menus
         /// <param name="b">SpriteBatch instance to draw.</param>
         public override void draw(SpriteBatch b)
         {
-            if (InstanceHolder.Config.FilterBackgroundInMenu)
+            if (Config.FilterBackgroundInMenu)
             {
                 //Darken background.
                 b.Draw(Game1.fadeToBlackRect, new Rectangle(0, 0, Game1.viewport.Width, Game1.viewport.Height), Color.Black * 0.5f);
@@ -632,7 +643,7 @@ namespace JoysOfEfficiency.Menus
             {
                 CloseMenu();
             }
-            else if (key.ToSButton() == InstanceHolder.Config.ButtonShowMenu)
+            else if (key.ToSButton() == Config.ButtonShowMenu)
             {
                 if (!_isFirstTime)
                 {

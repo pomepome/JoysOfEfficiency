@@ -3,6 +3,7 @@ using JoysOfEfficiency.Automation;
 using JoysOfEfficiency.Core;
 using JoysOfEfficiency.Huds;
 using JoysOfEfficiency.Utils;
+using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Locations;
 using StardewValley.Menus;
@@ -14,7 +15,7 @@ namespace JoysOfEfficiency.EventHandler
     {
         private static Config Conf => InstanceHolder.Config;
 
-        public void OnPostRenderHud(object sender, EventArgs args)
+        public void OnRenderHud(object sender, RenderingHudEventArgs args)
         {
             if (Game1.currentLocation is MineShaft shaft && Conf.MineInfoGui)
             {
@@ -34,7 +35,7 @@ namespace JoysOfEfficiency.EventHandler
             }
         }
 
-        public void OnPostRenderGui(object sender, EventArgs args)
+        public void OnPostRenderGui(object sender, RenderedActiveMenuEventArgs args)
         {
             if (Game1.activeClickableMenu is BobberBar bar)
             {

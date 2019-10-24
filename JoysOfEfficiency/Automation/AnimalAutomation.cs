@@ -7,6 +7,7 @@ using Netcode;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Buildings;
+using StardewValley.Characters;
 using StardewValley.Tools;
 
 namespace JoysOfEfficiency.Automation
@@ -15,6 +16,7 @@ namespace JoysOfEfficiency.Automation
     {
         private static IMonitor Monitor => InstanceHolder.Monitor;
         private static IReflectionHelper Reflection => InstanceHolder.Reflection;
+        private static Config Config => InstanceHolder.Config;
 
         public static void LetAnimalsInHome()
         {
@@ -108,6 +110,43 @@ namespace JoysOfEfficiency.Automation
                 }
             }
         }
+
+        public static void PetNearbyPets()
+        {
+            GameLocation location = Game1.currentLocation;
+            Farmer player = Game1.player;
+
+            Rectangle bb = Util.Expand(player.GetBoundingBox(), Config.AutoPetRadius * Game1.tileSize);
+
+            foreach (Pet pet in location.characters.OfType<Pet>().Where(pet => pet.GetBoundingBox().Intersects(bb)))
+            {
+                bool wasPet = Reflection.GetField<bool>(pet, "wasPetToday").GetValue();
+                if (!wasPet)
+                {
+                    pet.checkAction(player, location); // Pet pet... lol
+                }
+            }
+        }
+
+        public static void PetNearbyAnimals()
+        {
+            int radius = Config.AutoPetRadius * Game1.tileSize;
+            Rectangle bb = Util.Expand(Game1.player.GetBoundingBox(), radius);
+            foreach (FarmAnimal animal in Util.GetAnimalsList(Game1.player))
+            {
+                if (!bb.Contains((int) animal.Position.X, (int) animal.Position.Y) || animal.wasPet.Value)
+                {
+                    continue;
+                }
+
+                if (Game1.timeOfDay >= 1900 && !animal.isMoving())
+                {
+                    continue;
+                }
+                animal.pet(Game1.player);
+            }
+        }
+
         public static void ShearingAndMilking(Farmer player)
         {
             int radius = InstanceHolder.Config.AnimalHarvestRadius * Game1.tileSize;

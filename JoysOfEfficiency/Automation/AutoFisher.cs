@@ -1,7 +1,9 @@
 ﻿using JoysOfEfficiency.Core;
 using JoysOfEfficiency.Utils;
 using StardewModdingAPI;
+using StardewValley;
 using StardewValley.Menus;
+using StardewValley.Tools;
 
 namespace JoysOfEfficiency.Automation
 {
@@ -12,7 +14,25 @@ namespace JoysOfEfficiency.Automation
         private static int AutoFishingCounter { get; set; }
 
         private static IReflectionHelper Reflection => InstanceHolder.Reflection;
+        private static Config Config => InstanceHolder.Config;
 
+        public static void AutoReelRod()
+        {
+            Farmer player = Game1.player;
+            if (!(player.CurrentTool is FishingRod rod) || Game1.activeClickableMenu != null)
+            {
+                return;
+            }
+            IReflectedField<int> whichFish = Reflection.GetField<int>(rod, "whichFish");
+
+            if (!rod.isNibbling || !rod.isFishing || whichFish.GetValue() != -1 || rod.isReeling || rod.hit ||
+                rod.isTimingCast || rod.pullingOutOfWater || rod.fishCaught)
+            {
+                return;
+            }
+
+            rod.DoFunction(player.currentLocation, 1, 1, 1, player);
+        }
         public static void AutoFishing(BobberBar bar)
         {
             AutoFishingCounter = (AutoFishingCounter + 1) % 3;

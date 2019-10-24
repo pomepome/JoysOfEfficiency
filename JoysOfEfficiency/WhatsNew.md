@@ -157,4 +157,7 @@ This is a changelog from 1.0.22
 
 ## 1.2.15
 - Added Flower Color Registration menu.
-- Fixed ProtectNectarProducingFlower was not working.
+- Fixed ProtectNectarProducingFlower was not working
+
+## 1.2.16
+- Added customized flower color unification.

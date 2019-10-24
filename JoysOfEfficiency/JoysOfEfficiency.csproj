@@ -73,13 +73,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Automation\AutoFisher.cs" />
+    <Compile Include="Automation\CollectibleCollector.cs" />
     <Compile Include="Automation\FlowerColorUnifier.cs" />
     <Compile Include="Automation\FoodAutomation.cs" />
     <Compile Include="Automation\HarvestAutomation.cs" />
     <Compile Include="Automation\InventoryAutomation.cs" />
     <Compile Include="Automation\MachineOperator.cs" />
     <Compile Include="Automation\MailAutomation.cs" />
+    <Compile Include="Automation\WateringCanRefiller.cs" />
     <Compile Include="Core\Config.cs" />
+    <Compile Include="EventHandler\ArtifactSpotDigger.cs" />
+    <Compile Include="EventHandler\FenceGateAutomation.cs" />
     <Compile Include="EventHandler\GraphicsEvents.cs" />
     <Compile Include="EventHandler\InputEvents.cs" />
     <Compile Include="Core\InstanceHolder.cs" />
@@ -89,6 +93,7 @@
     <Compile Include="EventHandler\UpdateEvents.cs" />
     <Compile Include="Huds\FishInformationHud.cs" />
     <Compile Include="Huds\FishingProbabilitiesBox.cs" />
+    <Compile Include="Huds\FpsCounter.cs" />
     <Compile Include="Huds\GiftInformationTooltip.cs" />
     <Compile Include="Huds\MineHud.cs" />
     <Compile Include="Huds\MineIcons.cs" />

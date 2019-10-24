@@ -1,4 +1,5 @@
-﻿using JoysOfEfficiency.EventHandler;
+﻿using System;
+using JoysOfEfficiency.EventHandler;
 using JoysOfEfficiency.Huds;
 using JoysOfEfficiency.Menus;
 using JoysOfEfficiency.ModCheckers;
@@ -29,7 +30,7 @@ namespace JoysOfEfficiency.Core
 
         public static bool HarmonyPatched { get; private set; }
 
-        private static bool DebugMode { get; set; }
+        public static bool DebugMode { get; private set; }
 
         /// <summary>
         /// Called firstly when SMAPI finished loading of the mod.

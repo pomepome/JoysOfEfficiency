@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 using JoysOfEfficiency.Core;
-
+using JoysOfEfficiency.Menus;
+using JoysOfEfficiency.Utils;
 using Microsoft.Xna.Framework;
 
 using StardewModdingAPI;
@@ -15,10 +15,22 @@ using Object = StardewValley.Object;
 namespace JoysOfEfficiency.Automation
 {
     using SVObject = Object;
+
+    internal class FlowerIndex
+    {
+        public const int Poppy = 376;
+        public const int Tulip = 591;
+        public const int BlueJazz = 597;
+        public const int SummerSpangle = 593;
+        public const int FairyRose = 595;
+    }
     internal class FlowerColorUnifier
     {
+
         private static IMonitor Monitor => InstanceHolder.Monitor;
         private static Config Config => InstanceHolder.Config;
+        private static ITranslationHelper Translation => InstanceHolder.Translation;
+
         public static void UnifyFlowerColors()
         {
             foreach (KeyValuePair<Vector2, TerrainFeature> featurePair in Game1.currentLocation.terrainFeatures.Pairs.Where(kv => kv.Value is HoeDirt))
@@ -33,23 +45,23 @@ namespace JoysOfEfficiency.Automation
                 Color oldColor = crop.tintColor.Value;
                 switch (crop.indexOfHarvest.Value)
                 {
-                    case 376:
+                    case FlowerIndex.Poppy:
                         //Poppy
                         crop.tintColor.Value = Config.PoppyColor;
                         break;
-                    case 591:
+                    case FlowerIndex.Tulip:
                         //Tulip
                         crop.tintColor.Value = Config.TulipColor;
                         break;
-                    case 597:
+                    case FlowerIndex.BlueJazz:
                         //Blue Jazz
                         crop.tintColor.Value = Config.JazzColor;
                         break;
-                    case 593:
+                    case FlowerIndex.SummerSpangle:
                         //Summer Spangle
                         crop.tintColor.Value = Config.SummerSpangleColor;
                         break;
-                    case 595:
+                    case FlowerIndex.FairyRose:
                         //Fairy Rose
                         crop.tintColor.Value = Config.FairyRoseColor;
                         break;
@@ -79,6 +91,80 @@ namespace JoysOfEfficiency.Automation
         private static Color? GetCustomizedFlowerColor(int indexOfHarvest)
         {
             return Config.CustomizedFlowerColors.TryGetValue(indexOfHarvest, out Color color) ? (Color?)color : null;
+        }
+
+        private static bool IsVanillaFlower(int index)
+        {
+            switch (index)
+            {
+                case FlowerIndex.Poppy:
+                case FlowerIndex.Tulip:
+                case FlowerIndex.BlueJazz:
+                case FlowerIndex.SummerSpangle:
+                case FlowerIndex.FairyRose: break;
+                default: return false;
+            }
+            return true;
+        }
+
+        public static void ToggleFlowerColorUnification()
+        {
+            GameLocation loc = Game1.currentLocation;
+            Vector2 tileLoc = Game1.currentCursorTile;
+            Dictionary<Vector2, HoeDirt> hoeDirts = 
+                loc.terrainFeatures.Pairs
+                    .Where(p => p.Value is HoeDirt)
+                    .ToDictionary(p => p.Key, p => p.Value as HoeDirt);
+            if (!hoeDirts.ContainsKey(tileLoc))
+            {
+                Monitor.Log("The given tile is not a hoe dirt.");
+                return;
+            }
+            HoeDirt dirt = hoeDirts[tileLoc];
+            Crop crop = dirt.crop;
+            if (crop == null)
+            {
+                Monitor.Log("There is no crop.");
+                return;
+            }
+            if (crop.dead.Value)
+            {
+                Monitor.Log("The crop is dead.");
+                return;
+            }
+
+            if (!crop.programColored.Value)
+            {
+                Monitor.Log("That crop may not be a flower.");
+                return;
+            }
+
+            int index = crop.indexOfHarvest.Value;
+
+            if (IsVanillaFlower(index))
+            {
+                Util.ShowHudMessage(Translation.Get("flower.vanilla"));
+                return;
+            }
+
+            if (GetCustomizedFlowerColor(index) != null)
+            {
+                // Unregister flower
+                Config.CustomizedFlowerColors.Remove(crop.indexOfHarvest.Value);
+                InstanceHolder.WriteConfig();
+                Util.ShowHudMessage(string.Format(Translation.Get("flower.unregister"), Util.GetItemName(index)));
+                return;
+            }
+
+            // Show flower registration menu
+            Game1.playSound("bigSelect");
+            Game1.activeClickableMenu = new RegisterFlowerMenu(800, 640, crop.tintColor.Value, index, RegisterFlowerColor);
+        }
+
+        private static void RegisterFlowerColor(int whichFlower, Color color)
+        {
+            Config.CustomizedFlowerColors.Add(whichFlower, color);
+            Util.ShowHudMessage(string.Format(Translation.Get("flower.register"), Util.GetItemName(whichFlower)));
         }
     }
 }

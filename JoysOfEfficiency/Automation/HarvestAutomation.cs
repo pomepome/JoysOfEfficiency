@@ -54,36 +54,44 @@ namespace JoysOfEfficiency.Automation
             {
                 Vector2 loc = kv.Key;
                 HoeDirt dirt = kv.Value;
-                if (dirt.crop == null)
-                    continue;
-
-                if (dirt.readyForHarvest())
+                if (dirt.crop == null || !dirt.readyForHarvest())
                 {
-                    if (IsBlackListed(dirt.crop) || (InstanceHolder.Config.ProtectNectarProducingFlower && IsProducingNectar(loc)))
-                        continue;
-                    if (Harvest((int)loc.X, (int)loc.Y, dirt))
-                    {
-                        if (dirt.crop.regrowAfterHarvest.Value == -1 || dirt.crop.forageCrop.Value)
-                        {
-                            //destroy crop if it does not regrow.
-                            dirt.destroyCrop(loc, true, location);
-                        }
-                    }
+                    continue;
+                }
+
+                if (IsBlackListed(dirt.crop) || Config.ProtectNectarProducingFlower && IsProducingNectar(loc))
+                {
+                    continue;
+                }
+
+                if (!Harvest((int) loc.X, (int) loc.Y, dirt))
+                {
+                    continue;
+                }
+
+                if (dirt.crop.regrowAfterHarvest.Value == -1 || dirt.crop.forageCrop.Value)
+                {
+                    //destroy crop if it does not regrow.
+                    dirt.destroyCrop(loc, true, location);
                 }
             }
             foreach (IndoorPot pot in Util.GetObjectsWithin<IndoorPot>(radius))
             {
                 HoeDirt dirt = pot.hoeDirt.Value;
                 if (dirt?.crop == null || !dirt.readyForHarvest())
-                    continue;
-                Vector2 tileLoc = Util.GetLocationOf(location, pot);
-                if (dirt.crop.harvest((int)tileLoc.X, (int)tileLoc.Y, dirt))
                 {
-                    if (dirt.crop.regrowAfterHarvest.Value == -1 || dirt.crop.forageCrop.Value)
-                    {
-                        //destroy crop if it does not regrow.
-                        dirt.destroyCrop(tileLoc, true, location);
-                    }
+                    continue;
+                }
+
+                Vector2 tileLoc = Util.GetLocationOf(location, pot);
+                if (!dirt.crop.harvest((int) tileLoc.X, (int) tileLoc.Y, dirt))
+                {
+                    continue;
+                }
+                if (dirt.crop.regrowAfterHarvest.Value == -1 || dirt.crop.forageCrop.Value)
+                {
+                    //destroy crop if it does not regrow.
+                    dirt.destroyCrop(tileLoc, true, location);
                 }
             }
         }
@@ -149,7 +157,7 @@ namespace JoysOfEfficiency.Automation
             }
             else
             {
-                string name = dirt.crop.forageCrop.Value ? new SVObject(dirt.crop.whichForageCrop.Value, 1).Name : new SVObject(dirt.crop.indexOfHarvest.Value, 1).Name;
+                string name = dirt.crop.forageCrop.Value ? Util.GetItemName(dirt.crop.whichForageCrop.Value) : Util.GetItemName(dirt.crop.indexOfHarvest.Value);
                 if (name == "")
                 {
                     return;
@@ -187,6 +195,73 @@ namespace JoysOfEfficiency.Automation
             }
         }
 
+        public static void ShakeNearbyFruitedBush()
+        {
+            int radius = InstanceHolder.Config.AutoShakeRadius;
+            foreach (Bush bush in Game1.currentLocation.largeTerrainFeatures.OfType<Bush>())
+            {
+                Vector2 loc = bush.tilePosition.Value;
+                Vector2 diff = loc - Game1.player.getTileLocation();
+                if (Math.Abs(diff.X) > radius || Math.Abs(diff.Y) > radius)
+                    continue;
+
+                if (!bush.townBush.Value && bush.tileSheetOffset.Value == 1 && bush.inBloom(Game1.currentSeason, Game1.dayOfMonth))
+                    bush.performUseAction(loc, Game1.currentLocation);
+            }
+        }
+
+        public static void ShakeNearbyFruitedTree()
+        {
+            foreach (KeyValuePair<Vector2, TerrainFeature> kv in Util.GetFeaturesWithin<TerrainFeature>(InstanceHolder.Config.AutoShakeRadius))
+            {
+                Vector2 loc = kv.Key;
+                TerrainFeature feature = kv.Value;
+                switch (feature)
+                {
+                    case Tree tree:
+                        if (tree.hasSeed.Value && !tree.stump.Value)
+                        {
+                            if (!Game1.IsMultiplayer && Game1.player.ForagingLevel < 1)
+                            {
+                                break;
+                            }
+                            int num2;
+                            switch (tree.treeType.Value)
+                            {
+                                case 3:
+                                    num2 = 311;
+                                    break;
+                                case 1:
+                                    num2 = 309;
+                                    break;
+                                case 2:
+                                    num2 = 310;
+                                    break;
+                                case 6:
+                                    num2 = 88;
+                                    break;
+                                default:
+                                    num2 = -1;
+                                    break;
+                            }
+                            if (Game1.currentSeason.Equals("fall") && tree.treeType.Value == 2 && Game1.dayOfMonth >= 14)
+                            {
+                                num2 = 408;
+                            }
+                            if (num2 != -1)
+                                Reflection.GetMethod(tree, "shake").Invoke(loc, false);
+                        }
+                        break;
+                    case FruitTree ftree:
+                        if (ftree.growthStage.Value >= 4 && ftree.fruitsOnTree.Value > 0 && !ftree.stump.Value)
+                        {
+                            ftree.shake(loc, false);
+                        }
+                        break;
+                }
+            }
+        }
+
         /// <summary>
         /// Is the dirt's crop is a flower and producing nectar
         /// </summary>
@@ -204,9 +279,13 @@ namespace JoysOfEfficiency.Automation
         {
             int index = crop.forageCrop.Value ? crop.whichForageCrop.Value : crop.indexOfHarvest.Value;
             if (IsBlackListed(crop))
+            {
                 InstanceHolder.Config.HarvestException.Remove(index);
+            }
             else
+            {
                 InstanceHolder.Config.HarvestException.Add(index);
+            }
 
             InstanceHolder.WriteConfig();
             return IsBlackListed(crop);

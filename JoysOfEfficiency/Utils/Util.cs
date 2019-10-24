@@ -6,7 +6,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using StardewModdingAPI;
 using StardewValley;
-using StardewValley.Characters;
 using StardewValley.Locations;
 using StardewValley.Menus;
 using StardewValley.Objects;
@@ -24,178 +23,20 @@ namespace JoysOfEfficiency.Utils
     using SVObject = Object;
     internal class Util
     {
-        private static IMonitor Monitor => InstanceHolder.Monitor;
+
         private static IReflectionHelper Reflection => InstanceHolder.Reflection;
         private static ITranslationHelper Translation => InstanceHolder.Translation;
+        private static Config Config => InstanceHolder.Config;
 
 
         private static int _lastItemIndex;
 
-        #region Public EntryPoint
-
-        public static void PetNearbyPets()
-        {
-            GameLocation location = currentLocation;
-            Player player = Game1.player;
-
-            Rectangle bb = Expand(player.GetBoundingBox(), InstanceHolder.Config.AutoPetRadius * tileSize);
-
-            foreach (Pet pet in location.characters.OfType<Pet>().Where(pet => pet.GetBoundingBox().Intersects(bb)))
-            {
-                bool wasPet = Reflection.GetField<bool>(pet, "wasPetToday").GetValue();
-                if (!wasPet)
-                {
-                    pet.checkAction(player, location); // Pet pet... lol
-                }
-            }
-        }
-
-        public static void ShakeNearbyFruitedBush()
-        {
-            int radius = InstanceHolder.Config.AutoShakeRadius;
-            foreach (Bush bush in currentLocation.largeTerrainFeatures.OfType<Bush>())
-            {
-                Vector2 loc = bush.tilePosition.Value;
-                Vector2 diff = loc - player.getTileLocation();
-                if (Math.Abs(diff.X) > radius || Math.Abs(diff.Y) > radius)
-                    continue;
-
-                if (!bush.townBush.Value && bush.tileSheetOffset.Value == 1 && bush.inBloom(currentSeason, dayOfMonth))
-                    bush.performUseAction(loc, currentLocation);
-            }
-        }
-
-        public static void ShakeNearbyFruitedTree()
-        {
-            foreach (KeyValuePair<Vector2, TerrainFeature> kv in GetFeaturesWithin<TerrainFeature>(InstanceHolder.Config.AutoShakeRadius))
-            {
-                Vector2 loc = kv.Key;
-                TerrainFeature feature = kv.Value;
-                switch (feature)
-                {
-                    case Tree tree:
-                        if (tree.hasSeed.Value && !tree.stump.Value)
-                        {
-                            if (!IsMultiplayer && player.ForagingLevel < 1)
-                            {
-                                break;
-                            }
-                            int num2;
-                            switch (tree.treeType.Value)
-                            {
-                                case 3:
-                                    num2 = 311;
-                                    break;
-                                case 1:
-                                    num2 = 309;
-                                    break;
-                                case 2:
-                                    num2 = 310;
-                                    break;
-                                case 6:
-                                    num2 = 88;
-                                    break;
-                                default:
-                                    num2 = -1;
-                                    break;
-                            }
-                            if (currentSeason.Equals("fall") && tree.treeType.Value == 2 && dayOfMonth >= 14)
-                            {
-                                num2 = 408;
-                            }
-                            if (num2 != -1)
-                                Reflection.GetMethod(tree, "shake").Invoke(loc, false);
-                        }
-                        break;
-                    case FruitTree ftree:
-                        if (ftree.growthStage.Value >= 4 && ftree.fruitsOnTree.Value > 0 && !ftree.stump.Value)
-                        {
-                            ftree.shake(loc, false);
-                        }
-                        break;
-                }
-            }
-        }
-
-        public static void DigNearbyArtifactSpots()
-        {
-            int radius = InstanceHolder.Config.AutoDigRadius;
-            Hoe hoe = FindToolFromInventory<Hoe>(player, InstanceHolder.Config.FindHoeFromInventory);
-            GameLocation location = player.currentLocation;
-            if (hoe != null)
-            {
-                bool flag = false;
-                for (int i = -radius; i <= radius; i++)
-                {
-                    for (int j = -radius; j <= radius; j++)
-                    {
-                        int x = player.getTileX() + i;
-                        int y = player.getTileY() + j;
-                        Vector2 loc = new Vector2(x, y);
-                        if (location.Objects.ContainsKey(loc) && location.Objects[loc].ParentSheetIndex == 590 && !location.isTileHoeDirt(loc))
-                        {
-                            location.digUpArtifactSpot(x, y, player);
-                            location.Objects.Remove(loc);
-                            location.terrainFeatures.Add(loc, new HoeDirt());
-                            flag = true;
-                        }
-                    }
-                }
-                if (flag)
-                    playSound("hoeHit");
-            }
-        }
-
-        public static void CollectNearbyCollectibles(GameLocation location)
-        {
-            foreach (SVObject obj in GetObjectsWithin<SVObject>(InstanceHolder.Config.AutoCollectRadius))
-                if (obj.IsSpawnedObject || obj.isAnimalProduct())
-                    CollectObj(location, obj);
-        }
-
-        
-
-        
-        
-        
-
-        
-
-        public static void TryToggleGate(Player player)
-        {
-            foreach (Fence fence in GetObjectsWithin<Fence>(2).Where(f => f.isGate.Value))
-            {
-                Vector2 loc = fence.TileLocation;
-
-                bool? isUpDown = IsUpsideDown(fence);
-                if (isUpDown == null)
-                {
-                    if (!fence.getBoundingBox(loc).Intersects(player.GetBoundingBox()))
-                    {
-                        fence.gatePosition.Value = 0;
-                    }
-                    continue;
-                }
-
-                int gatePosition = fence.gatePosition.Value;
-                bool flag = IsPlayerInClose(player, fence, fence.TileLocation, isUpDown);
-
-                if (flag && gatePosition == 0)
-                {
-                    fence.gatePosition.Value = 88;
-                    playSound("doorClose");
-                }
-                else if (!flag && gatePosition >= 88)
-                {
-                    fence.gatePosition.Value = 0;
-                    playSound("doorClose");
-                }
-            }
-        }
-
-        #endregion
-
         #region Public Utility
+
+        public static string GetItemName(int parentSheetIndex)
+        {
+            return new SVObject(parentSheetIndex, 1).DisplayName;
+        }
 
         public static T FindToolFromInventory<T>(bool fromEntireInventory) where T : Tool
         {
@@ -575,6 +416,11 @@ namespace JoysOfEfficiency.Utils
             {
                 return new Dictionary<Vector2, T>();
             }
+
+            if (Config.BalancedMode)
+            {
+                radius = 1;
+            }
             GameLocation location = player.currentLocation;
             Vector2 ov = player.getTileLocation();
             Dictionary<Vector2, T> list = new Dictionary<Vector2, T>();
@@ -598,60 +444,7 @@ namespace JoysOfEfficiency.Utils
             return location.Objects.Pairs.Any(kv => kv.Value == obj) ? location.Objects.Pairs.First(kv => kv.Value == obj).Key : new Vector2(-1, -1);
         }
 
-        private static void CollectObj(GameLocation loc, SVObject obj)
-        {
-            Player who = player;
-
-            Vector2 vector = GetLocationOf(loc, obj);
-
-            if ((int)vector.X == -1 && (int)vector.Y == -1) return;
-            if (obj.questItem.Value) return;
-
-            int quality = obj.Quality;
-            Random random = new Random((int)uniqueIDForThisGame / 2 + (int)stats.DaysPlayed + (int)vector.X + (int)vector.Y * 777);
-
-            if (who.professions.Contains(16) && obj.isForage(loc))
-                obj.Quality = 4;
-
-            else if (obj.isForage(loc))
-            {
-                if (random.NextDouble() < who.ForagingLevel / 30f)
-                    obj.Quality = 2;
-                else if (random.NextDouble() < who.ForagingLevel / 15f)
-                    obj.Quality = 1;
-            }
-
-            if (who.couldInventoryAcceptThisItem(obj))
-            {
-                Monitor.Log($"picked up {obj.DisplayName} at [{vector.X},{vector.Y}]");
-                if (who.IsLocalPlayer)
-                {
-                    loc.localSound("pickUpItem");
-                    DelayedAction.playSoundAfterDelay("coin", 300);
-                }
-                if (!who.isRidingHorse() && !who.ridingMineElevator)
-                    who.animateOnce(279 + who.FacingDirection);
-
-                if (!loc.isFarmBuildingInterior())
-                {
-                    if (obj.isForage(loc))
-                        who.gainExperience(2, 7);
-                }
-                else
-                    who.gainExperience(0, 5);
-
-                who.addItemToInventoryBool(obj.getOne());
-                stats.ItemsForaged++;
-                if (who.professions.Contains(13) && random.NextDouble() < 0.2 && !obj.questItem.Value && who.couldInventoryAcceptThisItem(obj) && !loc.isFarmBuildingInterior())
-                {
-                    who.addItemToInventoryBool(obj.getOne());
-                    who.gainExperience(2, 7);
-                }
-                loc.Objects.Remove(vector);
-                return;
-            }
-            obj.Quality = quality;
-        }
+        
 
         public static bool IsCaShippingBinMenu(ItemGrabMenu menu)
         {
@@ -696,83 +489,6 @@ namespace JoysOfEfficiency.Utils
         {
             return item is SVObject obj ? obj.sellToStorePrice() * 2 : item.salePrice();
         }
-
-        /// <summary>
-        /// Returns type of the gate
-        /// </summary>
-        /// <param name="fence">The fence</param>
-        /// <returns>true for horizontal, false for vertical, null for invalid</returns>
-        private static bool? IsUpsideDown(Fence fence)
-        {
-            int num2 = 0;
-            Vector2 tileLocation = fence.TileLocation;
-            int whichType = fence.whichType.Value;
-            tileLocation.X += 1f;
-            if (currentLocation.objects.ContainsKey(tileLocation) && currentLocation.objects[tileLocation].GetType() == typeof(Fence) && ((Fence)currentLocation.objects[tileLocation]).countsForDrawing(whichType))
-            {
-                num2 += 100;
-            }
-            tileLocation.X -= 2f;
-            if (currentLocation.objects.ContainsKey(tileLocation) && currentLocation.objects[tileLocation].GetType() == typeof(Fence) && ((Fence)currentLocation.objects[tileLocation]).countsForDrawing(whichType))
-            {
-                num2 += 10;
-            }
-            tileLocation.X += 1f;
-            tileLocation.Y += 1f;
-            if (currentLocation.objects.ContainsKey(tileLocation) && currentLocation.objects[tileLocation].GetType() == typeof(Fence) && ((Fence)currentLocation.objects[tileLocation]).countsForDrawing(whichType))
-            {
-                num2 += 500;
-            }
-            tileLocation.Y -= 2f;
-            if (currentLocation.objects.ContainsKey(tileLocation) && currentLocation.objects[tileLocation].GetType() == typeof(Fence) && ((Fence)currentLocation.objects[tileLocation]).countsForDrawing(whichType))
-            {
-                num2 += 1000;
-            }
-
-            if (fence.isGate.Value)
-            {
-                switch (num2)
-                {
-                    case 110:
-                        return true;
-                    case 1500:
-                        return false;
-                    default:
-                        return null;
-                }
-            }
-            return null;
-        }
-
-        private static bool IsPlayerInClose(Player player, Fence fence, Vector2 fenceLocation, bool? isUpDown)
-        {
-            if (isUpDown == null)
-            {
-                return fence.getBoundingBox(fence.TileLocation).Intersects(player.GetBoundingBox());
-            }
-            Vector2 playerTileLocation = player.getTileLocation();
-            if (playerTileLocation == fenceLocation)
-            {
-                return true;
-            }
-            if (!IsPlayerFaceOrBackToFence(isUpDown == true, player))
-            {
-                return false;
-            }
-            return isUpDown.Value ? ExpandSpecific(fence.getBoundingBox(fenceLocation), 0, 16).Intersects(player.GetBoundingBox()) : ExpandSpecific(fence.getBoundingBox(fenceLocation), 16, 0).Intersects(player.GetBoundingBox());
-        }
-
-        private static Rectangle ExpandSpecific(Rectangle rect, int deltaX, int deltaY)
-        {
-            return new Rectangle(rect.X - deltaX, rect.Y - deltaY, rect.Width + deltaX * 2, rect.Height + deltaY * 2);
-        }
-
-        private static bool IsPlayerFaceOrBackToFence(bool isUpDown, Player player)
-        {
-            return isUpDown ? player.FacingDirection % 2 == 0 : player.FacingDirection % 2 == 1;
-        }
-
-        
 
         public static void DrawString(SpriteBatch batch, SpriteFont font, ref Vector2 location, string text, Color color, float scale, bool next = false)
         {

@@ -3,7 +3,6 @@ using JoysOfEfficiency.Automation;
 using JoysOfEfficiency.Core;
 using JoysOfEfficiency.Huds;
 using JoysOfEfficiency.Utils;
-using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -81,7 +80,7 @@ namespace JoysOfEfficiency.EventHandler
             Farmer player = Game1.player;
             if (Conf.AutoGate)
             {
-                Util.TryToggleGate(player);
+                FenceGateAutomation.TryToggleGate(player);
             }
 
             if (player.CurrentTool is FishingRod rod)
@@ -111,20 +110,11 @@ namespace JoysOfEfficiency.EventHandler
 
             Farmer player = Game1.player;
             GameLocation location = Game1.currentLocation;
-            IReflectionHelper reflection = InstanceHolder.Reflection;
             try
             {
-                if (player.CurrentTool is FishingRod rod && Game1.activeClickableMenu == null)
+                if (Conf.AutoReelRod)
                 {
-                    IReflectedField<int> whichFish = reflection.GetField<int>(rod, "whichFish");
-
-                    if (rod.isNibbling && rod.isFishing && whichFish.GetValue() == -1 && !rod.isReeling && !rod.hit && !rod.isTimingCast && !rod.pullingOutOfWater && !rod.fishCaught)
-                    {
-                        if (Conf.AutoReelRod)
-                        {
-                            rod.DoFunction(player.currentLocation, 1, 1, 1, player);
-                        }
-                    }
+                    AutoFisher.AutoReelRod();
                 }
                 if (Game1.currentLocation is MineShaft shaft)
                 {
@@ -163,19 +153,7 @@ namespace JoysOfEfficiency.EventHandler
                 }
                 if (Conf.AutoPetNearbyAnimals)
                 {
-                    int radius = Conf.AutoPetRadius * Game1.tileSize;
-                    Rectangle bb = Util.Expand(player.GetBoundingBox(), radius);
-                    foreach (FarmAnimal animal in Util.GetAnimalsList(player))
-                    {
-                        if (!bb.Contains((int) animal.Position.X, (int) animal.Position.Y) || animal.wasPet.Value)
-                            continue;
-
-                        if (Game1.timeOfDay >= 1900 && !animal.isMoving())
-                        {
-                            continue;
-                        }
-                        animal.pet(player);
-                    }
+                    AnimalAutomation.PetNearbyAnimals();
                 }
 
                 if (Conf.AutoShearingAndMilking)
@@ -200,26 +178,20 @@ namespace JoysOfEfficiency.EventHandler
                 }
                 if (Conf.AutoRefillWateringCan)
                 {
-                    WateringCan can = Util.FindToolFromInventory<WateringCan>(Conf.FindCanFromInventory);
-                    if (can != null && can.WaterLeft < Util.GetMaxCan(can) && Util.IsThereAnyWaterNear(player.currentLocation, player.getTileLocation()))
-                    {
-                        can.WaterLeft = can.waterCanMax;
-                        Game1.playSound("slosh");
-                        DelayedAction.playSoundAfterDelay("glug", 250);
-                    }
+                    WateringCanRefiller.RefillWateringCan();
                 }
                 if (Conf.AutoCollectCollectibles)
                 {
-                    Util.CollectNearbyCollectibles(location);
+                    CollectibleCollector.CollectNearbyCollectibles(location);
                 }
                 if (Conf.AutoDigArtifactSpot)
                 {
-                    Util.DigNearbyArtifactSpots();
+                    ArtifactSpotDigger.DigNearbyArtifactSpots();
                 }
                 if (Conf.AutoShakeFruitedPlants)
                 {
-                    Util.ShakeNearbyFruitedTree();
-                    Util.ShakeNearbyFruitedBush();
+                    HarvestAutomation.ShakeNearbyFruitedTree();
+                    HarvestAutomation.ShakeNearbyFruitedBush();
                 }
                 if (Conf.AutoAnimalDoor && !DayEnded && Game1.timeOfDay >= 1900)
                 {
@@ -228,7 +200,7 @@ namespace JoysOfEfficiency.EventHandler
                 }
                 if (Conf.AutoPetNearbyPets)
                 {
-                    Util.PetNearbyPets();
+                    AnimalAutomation.PetNearbyPets();
                 }
             }
             catch (Exception ex)
