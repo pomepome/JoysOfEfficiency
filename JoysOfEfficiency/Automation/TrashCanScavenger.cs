@@ -1,5 +1,6 @@
 ﻿using System;
 using JoysOfEfficiency.Core;
+using JoysOfEfficiency.Utils;
 using Netcode;
 using StardewModdingAPI;
 using StardewValley;
@@ -12,7 +13,7 @@ namespace JoysOfEfficiency.Automation
     internal class TrashCanScavenger
     {
         private static IReflectionHelper Reflection => InstanceHolder.Reflection;
-        private static IMonitor Monitor => InstanceHolder.Monitor;
+        private static readonly Logger Logger = new Logger("TrashCanScavenger");
 
         public static void ScavengeTrashCan()
         {
@@ -112,7 +113,7 @@ namespace JoysOfEfficiency.Automation
                             break;
                     }
 
-                    Monitor.Log($"You picked up trash @ [{x},{y}]");
+                    Logger.Log($"You picked up trash @ [{x},{y}]");
                     Game1.player.addItemByMenuIfNecessary(new Object(parentSheetIndex, 1));
                 }
             }

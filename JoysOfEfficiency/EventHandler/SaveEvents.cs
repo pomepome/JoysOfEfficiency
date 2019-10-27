@@ -22,9 +22,6 @@ namespace JoysOfEfficiency.EventHandler
 
         public void OnDayStarted(object sender, EventArgs args)
         {
-            //Reset LastTimeOfDay
-            UpdateEvents.LastTimeOfDay = Game1.timeOfDay;
-
             if (!Context.IsWorldReady || !Conf.AutoAnimalDoor)
             {
                 return;

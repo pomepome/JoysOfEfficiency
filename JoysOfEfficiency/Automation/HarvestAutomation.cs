@@ -17,8 +17,9 @@ namespace JoysOfEfficiency.Automation
     internal class HarvestAutomation
     {
         private static IReflectionHelper Reflection => InstanceHolder.Reflection;
-        private static IMonitor Monitor => InstanceHolder.Monitor;
         private static Config Config => InstanceHolder.Config;
+
+        private static readonly Logger Logger = new Logger("HarvestAutomation");
 
         private static readonly List<Vector2> FlowerLocationProducingNectar = new List<Vector2>();
         public static void UpdateNectarInfo()
@@ -167,7 +168,7 @@ namespace JoysOfEfficiency.Automation
                     ? $"{name} has been added to AutoHarvest exception"
                     : $"{name} has been removed from AutoHarvest exception";
                 Util.ShowHudMessage(text, 1000);
-                Monitor.Log(text);
+                Logger.Log(text);
             }
         }
 

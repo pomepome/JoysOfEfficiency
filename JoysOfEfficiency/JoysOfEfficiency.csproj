@@ -100,6 +100,7 @@
     <Compile Include="Huds\PausedHud.cs" />
     <Compile Include="Menus\JoeMenu.cs" />
     <Compile Include="Menus\RegisterFlowerMenu.cs" />
+    <Compile Include="Misc\IdlePause.cs" />
     <Compile Include="ModCheckers\ModChecker.cs" />
     <Compile Include="Core\ModEntry.cs" />
     <Compile Include="OptionsElements\ButtonWithLabel.cs" />
@@ -123,6 +124,7 @@
     <Compile Include="Automation\AnimalAutomation.cs" />
     <Compile Include="Utils\HarmonyHelper.cs" />
     <Compile Include="Automation\TrashCanScavenger.cs" />
+    <Compile Include="Utils\Logger.cs" />
     <Compile Include="Utils\Util.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -146,8 +148,8 @@
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\packages\Pathoschild.Stardew.ModBuildConfig.2.2.0\analyzers\dotnet\cs\StardewModdingAPI.ModBuildConfig.Analyzer.dll" />
-    <Analyzer Include="..\packages\Pathoschild.Stardew.ModBuildConfig.2.2.0\analyzers\dotnet\cs\StardewModdingAPI.ModBuildConfig.Analyzer.dll" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
     <VisualStudio>
