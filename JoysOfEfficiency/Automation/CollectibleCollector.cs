@@ -2,7 +2,6 @@
 using JoysOfEfficiency.Core;
 using JoysOfEfficiency.Utils;
 using Microsoft.Xna.Framework;
-using StardewModdingAPI;
 using StardewValley;
 using SVObject = StardewValley.Object;
 

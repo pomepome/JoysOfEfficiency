@@ -2,7 +2,6 @@
 using JoysOfEfficiency.Automation;
 using JoysOfEfficiency.Core;
 using StardewModdingAPI;
-using StardewValley;
 
 namespace JoysOfEfficiency.EventHandler
 {

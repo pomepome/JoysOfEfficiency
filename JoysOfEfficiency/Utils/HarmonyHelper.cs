@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Reflection;
 using Harmony;
-using JoysOfEfficiency.Core;
-using StardewModdingAPI;
 
 namespace JoysOfEfficiency.Utils
 {
