@@ -161,3 +161,5 @@ This is a changelog from 1.0.22
 
 ## 1.2.16
 - Added customized flower color unification.
+
+## 1.2.17
