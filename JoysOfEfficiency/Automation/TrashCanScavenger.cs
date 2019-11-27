@@ -56,7 +56,7 @@ namespace JoysOfEfficiency.Automation
                 garbageChecked[num] = true;
                 Game1.currentLocation.playSound("trashcan");
                 Random random = new Random((int)Game1.uniqueIDForThisGame / 2 + (int)Game1.stats.DaysPlayed + 777 + num);
-                if (random.NextDouble() < 0.2 + Game1.dailyLuck)
+                if (random.NextDouble() < 0.2 + Game1.player.DailyLuck)
                 {
                     int parentSheetIndex = 168;
                     switch (random.Next(10))
@@ -94,7 +94,7 @@ namespace JoysOfEfficiency.Automation
                     }
                     switch (num)
                     {
-                        case 3 when random.NextDouble() < 0.2 + Game1.dailyLuck:
+                        case 3 when random.NextDouble() < 0.2 + Game1.player.DailyLuck:
                             parentSheetIndex = 535;
                             if (random.NextDouble() < 0.05)
                             {
@@ -102,13 +102,13 @@ namespace JoysOfEfficiency.Automation
                             }
 
                             break;
-                        case 4 when random.NextDouble() < 0.2 + Game1.dailyLuck:
+                        case 4 when random.NextDouble() < 0.2 + Game1.player.DailyLuck:
                             parentSheetIndex = 378 + random.Next(3) * 2;
                             break;
-                        case 5 when random.NextDouble() < 0.2 + Game1.dailyLuck && Game1.dishOfTheDay != null:
+                        case 5 when random.NextDouble() < 0.2 + Game1.player.DailyLuck && Game1.dishOfTheDay != null:
                             parentSheetIndex = Game1.dishOfTheDay.ParentSheetIndex != 217 ? Game1.dishOfTheDay.ParentSheetIndex : 216;
                             break;
-                        case 6 when random.NextDouble() < 0.2 + Game1.dailyLuck:
+                        case 6 when random.NextDouble() < 0.2 + Game1.player.DailyLuck:
                             parentSheetIndex = 223;
                             break;
                     }

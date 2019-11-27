@@ -260,7 +260,7 @@ namespace JoysOfEfficiency.Automation
                     case FruitTree ftree:
                         if (ftree.growthStage.Value >= 4 && ftree.fruitsOnTree.Value > 0 && !ftree.stump.Value)
                         {
-                            ftree.shake(loc, false);
+                            ftree.shake(loc, false, Game1.currentLocation);
                         }
                         break;
                 }
@@ -331,7 +331,7 @@ namespace JoysOfEfficiency.Automation
             Stats stats = Game1.stats;
             GameLocation currentLocation = Game1.currentLocation;
             ulong uniqueIdForThisGame = Game1.uniqueIDForThisGame;
-            double dailyLuck = Game1.dailyLuck;
+            double dailyLuck = Game1.player.DailyLuck;
 
             if (crop.dead.Value)
             {

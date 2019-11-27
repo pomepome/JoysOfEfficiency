@@ -23,8 +23,6 @@ namespace JoysOfEfficiency.Utils
     using SVObject = Object;
     internal class Util
     {
-
-        private static IReflectionHelper Reflection => InstanceHolder.Reflection;
         private static ITranslationHelper Translation => InstanceHolder.Translation;
         private static Config Config => InstanceHolder.Config;
 
@@ -140,7 +138,7 @@ namespace JoysOfEfficiency.Utils
                 Vector2 vector2 = new Vector2(x + tileSize / 4, y + (bottomY - stringSize.Y) / 2 + 8f);
                 Utility.drawTextWithShadow(batch, text, font, vector2, Color.Black);
             }
-            item?.drawInMenu(batch, new Vector2(x + (int)stringSize.X + 24, y + 16), 1.0f, 1.0f, 0.9f, false);
+            item?.drawInMenu(batch, new Vector2(x + (int)stringSize.X + 24, y + 16), 1.0f, 1.0f, 0.9f, StackDrawType.Draw_OneInclusive);
         }
 
         public static void DrawSimpleTextbox(SpriteBatch batch, string text, SpriteFont font, object context, bool isIcon = false, Item item = null)
@@ -382,7 +380,7 @@ namespace JoysOfEfficiency.Utils
             {
                 return;
             }
-            int shippingPrice = getFarm().shippingBin.Sum(item => GetTruePrice(item) / 2 * item.Stack);
+            int shippingPrice = getFarm().getShippingBin(player).Sum(item => GetTruePrice(item) / 2 * item.Stack);
             string title = Translation.Get("estimatedprice.title");
             string text = $" {shippingPrice}G";
             Vector2 sizeTitle = font.MeasureString(title) * 1.2f;

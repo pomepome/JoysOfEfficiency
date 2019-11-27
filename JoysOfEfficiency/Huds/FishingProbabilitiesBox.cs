@@ -252,7 +252,7 @@ namespace JoysOfEfficiency.Huds
                     return MagnifyProbabilities(GetFishes(waterDepth, who, "Forest"), 0.5);
                 case 2:
                     {
-                        double p = 0.05 + Game1.dailyLuck;
+                        double p = 0.05 + Game1.player.DailyLuck;
                         return ConcatDictionary(
                             new Dictionary<int, double> { { 734, p } },
                             MagnifyProbabilities(
@@ -279,7 +279,7 @@ namespace JoysOfEfficiency.Huds
             {
                 double d = kv.Value * ratio;
                 result.Add(kv.Key, d);
-                ratio = ratio * (1 - kv.Value);
+                ratio *= (1 - kv.Value);
             }
 
             return result;
