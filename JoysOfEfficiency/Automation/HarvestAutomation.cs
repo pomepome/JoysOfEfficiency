@@ -230,6 +230,7 @@ namespace JoysOfEfficiency.Automation
                             {
                                 break;
                             }
+
                             int num2;
                             switch (tree.treeType.Value)
                             {
@@ -249,13 +250,20 @@ namespace JoysOfEfficiency.Automation
                                     num2 = -1;
                                     break;
                             }
-                            if (Game1.currentSeason.Equals("fall") && tree.treeType.Value == 2 && Game1.dayOfMonth >= 14)
+
+                            if (Game1.currentSeason.Equals("fall") && tree.treeType.Value == 2 &&
+                                Game1.dayOfMonth >= 14)
                             {
                                 num2 = 408;
                             }
+
                             if (num2 != -1)
-                                Reflection.GetMethod(tree, "shake").Invoke(loc, false);
+                            { 
+                                Reflection.GetMethod(tree, "shake").Invoke(loc, false, Game1.currentLocation);
+                                Logger.Log($@"Shook fruited tree @{loc}");
+                            }
                         }
+
                         break;
                     case FruitTree ftree:
                         if (ftree.growthStage.Value >= 4 && ftree.fruitsOnTree.Value > 0 && !ftree.stump.Value)

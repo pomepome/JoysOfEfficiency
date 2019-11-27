@@ -2,7 +2,9 @@
   "button.awaiting": "Press the key or button to assign...",
   "button.conflict": "The key or button you pressed is conflicting",
   "button.esc": "Press Esc key to Cancel",
+
   "estimatedprice.title": "Estimated Shipping Price",
+
   "fishinfo.quality": "Quality: ",
   "fishinfo.size": "Size: {0}inch",
   "fishinfo.species": "Species: {0}",
@@ -10,10 +12,15 @@
   "fishinfo.treasure.caught": "Treasure caught!",
   "fishinfo.treasure.incoming": "Treasure is incoming in {0:f1}s.",
   "fishinfo.price": "Selling Price:{0}G",
+
   "hud.paused": "Game paused.",
+
   "ladder": "Ladder has appeared!",
+
   "location.awaiting": "Click somewhere to designate the location you want.",
+
   "monsters.tally": "{0}: {1}Kills",
+
   "options.AnimalHarvestRadius": "Tile radius for searching animals",
   "options.AutoAnimalDoor": "Open/Close Animal Door automatically",
   "options.AutoCollectCollectibles": "Auto-collect collectibles nearby",
@@ -72,7 +79,6 @@
   "options.ShowMousePositionWhenAssigningLocation": "Show mouse position when assigning coordinates",
   "options.ButtonToggleFlowerColorUnification": "Register/Unregister flower colors for unification",
 
-  //RegisterFlowerMenu strings
   "options.flower": "Flower:{0}",
   "options.R": "R",
   "options.G": "G",
@@ -80,12 +86,9 @@
   "options.previewColor": "Preview Color:",
   "options.register": "Register",
 
-  //Flower Color Unification register/unregister
   "flower.register": "{0}'s colors will be unified.",
   "flower.unregister": "{0}'s colors won't be unified anymore.",
   "flower.vanilla": "You can't unregister vanilla flowers.",
-
-  //Quality strings
 
   "quality.gold": "Gold",
   "quality.iridium": "Iridium",

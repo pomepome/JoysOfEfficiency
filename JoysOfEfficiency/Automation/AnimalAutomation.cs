@@ -25,7 +25,8 @@ namespace JoysOfEfficiency.Automation
             foreach (KeyValuePair<long, FarmAnimal> kv in farm.animals.Pairs.ToArray())
             {
                 FarmAnimal animal = kv.Value;
-                Logger.Log($"Warped {animal.displayName}({animal.shortDisplayType()}) to {animal.displayHouse}@[{animal.homeLocation.X}, {animal.homeLocation.Y}]");
+                Logger.Log(
+                    $"Warped {animal.displayName}({animal.shortDisplayType()}) to {animal.displayHouse}@[{animal.homeLocation.X}, {animal.homeLocation.Y}]");
                 animal.warpHome(farm, animal);
             }
         }
@@ -37,11 +38,13 @@ namespace JoysOfEfficiency.Automation
                 Logger.Log("Don't open the animal door because of rainy/snowy weather.");
                 return;
             }
+
             if (Game1.IsWinter)
             {
                 Logger.Log("Don't open the animal door because it's winter");
                 return;
             }
+
             Farm farm = Game1.getFarm();
             foreach (Building building in farm.buildings)
             {
@@ -58,6 +61,7 @@ namespace JoysOfEfficiency.Automation
                                 Reflection.GetField<NetInt>(coop, "animalDoorMotion").SetValue(new NetInt(-2));
                             }
                         }
+
                         break;
                     }
                     case Barn barn:
@@ -71,6 +75,7 @@ namespace JoysOfEfficiency.Automation
                                 Reflection.GetField<NetInt>(barn, "animalDoorMotion").SetValue(new NetInt(-3));
                             }
                         }
+
                         break;
                     }
                 }
@@ -94,6 +99,7 @@ namespace JoysOfEfficiency.Automation
                                 Reflection.GetField<NetInt>(coop, "animalDoorMotion").SetValue(new NetInt(2));
                             }
                         }
+
                         break;
                     }
                     case Barn barn:
@@ -106,6 +112,7 @@ namespace JoysOfEfficiency.Automation
                                 Reflection.GetField<NetInt>(barn, "animalDoorMotion").SetValue(new NetInt(2));
                             }
                         }
+
                         break;
                     }
                 }
@@ -121,9 +128,10 @@ namespace JoysOfEfficiency.Automation
 
             foreach (Pet pet in location.characters.OfType<Pet>().Where(pet => pet.GetBoundingBox().Intersects(bb)))
             {
-                bool wasPet = Reflection.GetField<bool>(pet, "wasPetToday").GetValue();
+                bool wasPet = WasPetToday(pet);
                 if (!wasPet)
                 {
+                    Logger.Log($"Petted {(pet is Dog ? "Dog" : "Cat")}'{pet.Name}' @{pet.getTileLocationPoint()}");
                     pet.checkAction(player, location); // Pet pet... lol
                 }
             }
@@ -144,6 +152,7 @@ namespace JoysOfEfficiency.Automation
                 {
                     continue;
                 }
+                Logger.Log($"Petted {animal.displayType}'{animal.Name}' @{animal.getTileLocationPoint()}");
                 animal.pet(Game1.player);
             }
         }
@@ -198,6 +207,12 @@ namespace JoysOfEfficiency.Automation
 
                 player.gainExperience(0, 5);
             }
+        }
+
+        private static bool WasPetToday(Pet pet)
+        {
+            return pet.lastPetDay.ContainsKey(Game1.player.UniqueMultiplayerID) &&
+                   pet.lastPetDay[Game1.player.UniqueMultiplayerID] == Game1.Date.TotalDays;
         }
     }
 }

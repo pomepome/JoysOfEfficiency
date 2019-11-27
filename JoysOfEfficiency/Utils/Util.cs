@@ -387,7 +387,7 @@ namespace JoysOfEfficiency.Utils
             Vector2 sizeText = font.MeasureString(text) * 1.2f;
             int width = Math.Max((int)sizeTitle.X, (int)sizeText.X) + 32;
             int height = 16 + (int)sizeTitle.Y + 8 + (int)sizeText.Y + 16;
-            Vector2 basePos = new Vector2(menu.xPositionOnScreen - width, menu.yPositionOnScreen + menu.height / 4 - height);
+            Vector2 basePos = new Vector2(menu.xPositionOnScreen, menu.yPositionOnScreen + menu.height / 4 - height);
 
             DrawWindow( (int)basePos.X, (int)basePos.Y, width, height);
             Utility.drawTextWithShadow(spriteBatch, title, font, basePos + new Vector2(16, 16), Color.Black, 1.2f);
