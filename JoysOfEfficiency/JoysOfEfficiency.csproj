@@ -55,12 +55,8 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="0Harmony, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Games\steamapps\common\Stardew Valley\smapi-internal\0Harmony.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="0Harmony, Version=1.2.0.1, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Lib.Harmony.1.2.0.1\lib\net45\0Harmony.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -100,6 +96,7 @@
     <Compile Include="Huds\PausedHud.cs" />
     <Compile Include="Menus\JoeMenu.cs" />
     <Compile Include="Menus\RegisterFlowerMenu.cs" />
+    <Compile Include="Misc\IdlePause.cs" />
     <Compile Include="ModCheckers\ModChecker.cs" />
     <Compile Include="Core\ModEntry.cs" />
     <Compile Include="OptionsElements\ButtonWithLabel.cs" />
@@ -123,6 +120,7 @@
     <Compile Include="Automation\AnimalAutomation.cs" />
     <Compile Include="Utils\HarmonyHelper.cs" />
     <Compile Include="Automation\TrashCanScavenger.cs" />
+    <Compile Include="Utils\Logger.cs" />
     <Compile Include="Utils\Util.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -145,7 +143,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Analyzer Include="..\packages\Pathoschild.Stardew.ModBuildConfig.2.2.0\analyzers\dotnet\cs\StardewModdingAPI.ModBuildConfig.Analyzer.dll" />
     <Analyzer Include="..\packages\Pathoschild.Stardew.ModBuildConfig.2.2.0\analyzers\dotnet\cs\StardewModdingAPI.ModBuildConfig.Analyzer.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
