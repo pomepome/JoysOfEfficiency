@@ -2,9 +2,7 @@
   "button.awaiting": "Нажмите любую кнопку, чтобы назначить её...",
   "button.conflict": "Нажатая вами Кнопка уже используется",
   "button.esc": "Нажмите Esc для Отмены",
-  
   "estimatedprice.title": "Примерная Стоимость",
-  
   "fishinfo.quality": "Качество: ",
   "fishinfo.size": "Размер: {0}дюймов",
   "fishinfo.species": "Особь: {0}",
@@ -14,11 +12,11 @@
   "fishinfo.price": "Цена продажи:{0}G",
   
   "hud.paused": "Игра на паузе.",
-  
+
   "ladder": "Лестница появилась!",
-  
+
   "location.awaiting": "Нажмите, чтобы выбрать локацию.",
-  
+
   "monsters.tally": "{0}: {1} убито",
   
   "options.AnimalHarvestRadius": "Дальность поиска животных в тайлах",
