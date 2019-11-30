@@ -2,7 +2,9 @@
   "button.awaiting": "Нажмите любую кнопку, чтобы назначить её...",
   "button.conflict": "Нажатая вами Кнопка уже используется",
   "button.esc": "Нажмите Esc для Отмены",
+  
   "estimatedprice.title": "Примерная Стоимость",
+  
   "fishinfo.quality": "Качество: ",
   "fishinfo.size": "Размер: {0}дюймов",
   "fishinfo.species": "Особь: {0}",
@@ -19,7 +21,7 @@
 
   "monsters.tally": "{0}: {1} убито",
   
-  "options.AnimalHarvestRadius": "Дальность поиска животных в тайлах",
+  "options.AnimalHarvestRadius": "Дальность поиска животных (в тайлах)",
   "options.AutoAnimalDoor": "Автоматически Открывать/Закрывать Двери Животных",
   "options.AutoCollectCollectibles": "Автоматически собирать дикие растения поблизости",
   "options.AutoCollectRadius": "Дальность автоматического сбора",
@@ -76,6 +78,10 @@
   "options.UnifyFlowerColors": "Объединять оттенки цветов",
   "options.ShowMousePositionWhenAssigningLocation": "Показывать местоположение мыши при установке координат",
   "options.ButtonToggleFlowerColorUnification": "Учитывать/Не учитывать оттенки цветов для объединения",
+  "options.RadiusFarmCleanup": "Радиус очистки фермы (в тайлах)",
+  "options.CutWeeds": "Срезать сорняки (Коса)",
+  "options.BreakRocks": "Ломать маленькие камушки (Кирка)",
+  "options.ChopTwigs": "Срубать ветки (Топор)",
 
   "options.flower": "Цветок:{0}",
   "options.R": "R",
