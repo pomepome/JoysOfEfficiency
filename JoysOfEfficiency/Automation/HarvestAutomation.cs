@@ -69,7 +69,15 @@ namespace JoysOfEfficiency.Automation
                     continue;
                 }
 
-                dirt.crop.harvest((int) loc.X, (int) loc.Y, dirt);
+                if (!dirt.crop.harvest((int) loc.X, (int) loc.Y, dirt))
+                {
+                    continue;
+                }
+
+                if (dirt.crop.regrowAfterHarvest.Value == -1 || dirt.crop.forageCrop.Value)
+                {
+                    dirt.destroyCrop(loc, true, location);
+                }
             }
             foreach (IndoorPot pot in Util.GetObjectsWithin<IndoorPot>(radius))
             {
@@ -79,15 +87,14 @@ namespace JoysOfEfficiency.Automation
                     continue;
                 }
 
-                Vector2 tileLoc = Util.GetLocationOf(location, pot);
-                if (!dirt.crop.harvest((int)tileLoc.X, (int)tileLoc.Y, dirt))
+                if (!dirt.crop.harvest((int)pot.TileLocation.X, (int)pot.TileLocation.Y, dirt))
                 {
                     continue;
                 }
+
                 if (dirt.crop.regrowAfterHarvest.Value == -1 || dirt.crop.forageCrop.Value)
                 {
-                    //destroy crop if it does not regrow.
-                    dirt.destroyCrop(tileLoc, true, location);
+                    dirt.destroyCrop(pot.TileLocation, true, location);
                 }
             }
         }
