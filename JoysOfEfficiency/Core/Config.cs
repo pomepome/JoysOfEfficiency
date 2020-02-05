@@ -7,10 +7,6 @@ namespace JoysOfEfficiency.Core
 {
     internal class Config
     {
-        /// <summary>
-        /// Safe Mode Section
-        /// </summary>
-        public bool SafeMode { get; set; } = false;
 
         public bool MineInfoGui { get; set; } = true;
 
@@ -74,9 +70,6 @@ namespace JoysOfEfficiency.Core
         public Point ProbBoxCoordinates { get; set; } = new Point(100, 400);
         public bool MorePreciseProbabilities { get; set; } = true;
         public int TrialOfExamine { get; set; } = 10;
-
-        public bool CraftingFromChests { get; set; } = false;
-        public int RadiusCraftingFromChests { get; set; } = 3;
 
         public bool EstimateShippingPrice { get; set; } = true;
 
