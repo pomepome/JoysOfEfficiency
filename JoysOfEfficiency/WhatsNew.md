@@ -178,3 +178,7 @@ This is a changelog from 1.0.22
 
 ## 1.3.3
 - Fixed AutoHarvest harvesting crops infinitely.
+
+## 1.3.4
+- Removed CraftingFromChests. If you want, I recommend using Convinient Chests instead.
+- Added support for double gates.

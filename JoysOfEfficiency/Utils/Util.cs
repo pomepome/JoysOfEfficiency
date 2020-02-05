@@ -8,10 +8,8 @@ using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Locations;
 using StardewValley.Menus;
-using StardewValley.Objects;
 using StardewValley.TerrainFeatures;
 using StardewValley.Tools;
-using xTile.Layers;
 using static System.String;
 using static StardewValley.Game1;
 using Object = StardewValley.Object;
@@ -97,7 +95,6 @@ namespace JoysOfEfficiency.Utils
         {
             return new Rectangle(rect.Left - radius, rect.Top - radius, 2 * radius, 2 * radius);
         }
-
         public static void DrawSimpleTextbox(SpriteBatch batch, string text, int x, int y, SpriteFont font, object ctx, Item item = null)
         {
             Vector2 stringSize = text == null ? Vector2.Zero : font.MeasureString(text);
@@ -271,72 +268,6 @@ namespace JoysOfEfficiency.Utils
 
             return remaining;
         }
-
-        public static Chest GetFridge()
-        {
-            if (!InstanceHolder.Config.CraftingFromChests)
-            {
-                return null;
-            }
-            int radius = InstanceHolder.Config.RadiusCraftingFromChests;
-            if (InstanceHolder.Config.BalancedMode)
-            {
-                radius = 1;
-            }
-
-            if (!(currentLocation is FarmHouse house) || house.upgradeLevel < 1)
-                return null;
-
-            Layer layer = house.Map.GetLayer("Buildings");
-            for (int dx = -radius; dx <= radius; dx++)
-            {
-                for (int dy = -radius; dy <= radius; dy++)
-                {
-                    int x = player.getTileX() + dx;
-                    int y = player.getTileY() + dy;
-                    if (x >= 0 && y >= 0 && x < layer.TileWidth && y < layer.TileHeight && layer.Tiles[x, y]?.TileIndex == 173)
-                    {
-                        //It's the fridge sprite
-                        return house.fridge.Value;
-                    }
-                }
-            }
-            return null;
-        }
-
-        public static List<Chest> GetNearbyChests(bool addFridge = true)
-        {
-            int radius = InstanceHolder.Config.BalancedMode ? 1 : InstanceHolder.Config.RadiusCraftingFromChests;
-            List<Chest> chests = new List<Chest>();
-            if (InstanceHolder.Config.CraftingFromChests)
-            {
-                foreach (Chest chest in GetObjectsWithin<Chest>(radius))
-                {
-                    chests.Add(chest);
-                }
-            }
-
-            Chest fridge = GetFridge();
-            if (addFridge && fridge != null)
-            {
-                chests.Add(fridge);
-            }
-
-            return chests;
-        }
-
-        public static List<Item> GetNearbyItems(Player player)
-        {
-            List<Item> items = new List<Item>(player.Items);
-            foreach (Chest chest in GetNearbyChests())
-            {
-                if(chest != null)
-                    items.AddRange(chest.items);
-                
-            }
-            return items;
-        }
-
 
         public static void DrawCursor()
         {
