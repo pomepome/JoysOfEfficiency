@@ -75,6 +75,7 @@
   "options.CutWeeds": "雑草刈り(鎌が必要)",
   "options.BreakRocks": "岩砕き(ツルハシが必要)",
   "options.ChopTwigs": "小枝刈り(斧が必要)",
+  "options.PriceBoxCoordinates": "情報ウィンドウの左上座標",
 
   //RegisterFlowerMenu strings
   "options.flower": "花:{0}",

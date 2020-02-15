@@ -96,6 +96,7 @@
     <Compile Include="Huds\MineHud.cs" />
     <Compile Include="Huds\MineIcons.cs" />
     <Compile Include="Huds\PausedHud.cs" />
+    <Compile Include="Huds\ShippingEstimationInfoBox.cs" />
     <Compile Include="Menus\JoeMenu.cs" />
     <Compile Include="Menus\RegisterFlowerMenu.cs" />
     <Compile Include="Misc\IdlePause.cs" />

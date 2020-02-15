@@ -68,7 +68,7 @@
   "options.MineInfoGui": "Draws Mine Info Icons",
   "options.MuchFasterBiting": "Shortens nibbling time to immediate",
   "options.PauseWhenIdle": "Pause when idle",
-  "options.ProbBoxLocation": "Top-left coordinate for the information box",
+  "options.ProbBoxLocation": "Top-left coordinates for the information box",
   "options.MorePreciseProbabilities": "Compute more precise probabilities",
   "options.TrialOfExamine": "Number of computing probabilities",
   "options.ProtectNectarProducingFlower": "Protect flowers near bee houses",
@@ -82,6 +82,7 @@
   "options.CutWeeds": "Cutting weeds (Scythe)",
   "options.BreakRocks": "Break small rocks (Pickaxe)",
   "options.ChopTwigs": "Chop twigs (Axe)",
+  "options.PriceBoxCoordinates": "Top-left coordinates for the information box",
 
   "options.flower": "Flower:{0}",
   "options.R": "R",

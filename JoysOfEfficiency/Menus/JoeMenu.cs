@@ -218,6 +218,10 @@ namespace JoysOfEfficiency.Menus
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Show Shipping Price"));
                 tab.AddOptionsElement(new ModifiedCheckBox("EstimateShippingPrice", 28, Config.EstimateShippingPrice, OnCheckboxValueChanged));
+                tab.AddOptionsElement(
+                    new ModifiedClickListener(this, "PriceBoxCoordinates", 1,
+                        Config.PriceBoxCoordinates.X, Config.PriceBoxCoordinates.Y, translation, OnSomewhereClicked,
+                        OnStartListeningClick));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 _tabs.Add(tab);
@@ -278,6 +282,9 @@ namespace JoysOfEfficiency.Menus
             {
                 case 0:
                     Config.ProbBoxCoordinates = point;
+                    break;
+                case 1:
+                    Config.PriceBoxCoordinates = point;
                     break;
                 default: return;
             }

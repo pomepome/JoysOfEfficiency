@@ -255,6 +255,8 @@ This utility shows estimated total shipping price when you opened shipping box.
 
 - EstimateShippingPrice("UIs", bool, default:true) - whether this utility is enabled.
 
+- PriceBoxCoordinates("UIs", Point, default:[100,100]) - Top-left coordinates of the window.
+
 ## Unify Flower Colors
 This utility unifies flower colors to reduce occupied spaces according to its species.
 In config file, you can change the color using "R, G, B, A" format.

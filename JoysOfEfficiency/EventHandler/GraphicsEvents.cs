@@ -50,7 +50,7 @@ namespace JoysOfEfficiency.EventHandler
             }
             if (Conf.EstimateShippingPrice && Game1.activeClickableMenu is ItemGrabMenu menu)
             {
-                Util.DrawShippingPrice(menu, Game1.dialogueFont);
+                ShippingEstimationInfoBox.DrawShippingPrice(menu, Game1.dialogueFont);
             }
         }
     }

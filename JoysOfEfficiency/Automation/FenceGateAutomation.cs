@@ -19,7 +19,7 @@ namespace JoysOfEfficiency.Automation
         public static void TryToggleGate(Farmer player)
         {
             GameLocation location = player.currentLocation;
-            foreach (Fence fence in Util.GetObjectsWithin<Fence>(2).Where(x=>x.isGate))
+            foreach (Fence fence in Util.GetObjectsWithin<Fence>(2, true).Where(x=>x.isGate))
             {
                 bool flag = false;
                 List<Fence> fencesToOperate = new List<Fence> {fence};

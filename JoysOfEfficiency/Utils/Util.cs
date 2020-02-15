@@ -27,8 +27,6 @@ namespace JoysOfEfficiency.Utils
 
         private static int _lastItemIndex;
 
-        #region Public Utility
-
         public static string GetItemName(int parentSheetIndex)
         {
             return new SVObject(parentSheetIndex, 1).DisplayName;
@@ -95,6 +93,7 @@ namespace JoysOfEfficiency.Utils
         {
             return new Rectangle(rect.Left - radius, rect.Top - radius, 2 * radius, 2 * radius);
         }
+
         public static void DrawSimpleTextbox(SpriteBatch batch, string text, int x, int y, SpriteFont font, object ctx, Item item = null)
         {
             Vector2 stringSize = text == null ? Vector2.Zero : font.MeasureString(text);
@@ -169,13 +168,13 @@ namespace JoysOfEfficiency.Utils
             return findFromInventory ? player.Items.OfType<T>().FirstOrDefault() : null;
         }
 
-        public static List<T> GetObjectsWithin<T>(int radius) where T : SVObject
+        public static List<T> GetObjectsWithin<T>(int radius, bool ignoreBalancedMode = false) where T : SVObject
         {
             if (!Context.IsWorldReady || currentLocation?.Objects == null)
             {
                 return new List<T>();
             }
-            if (InstanceHolder.Config.BalancedMode)
+            if (InstanceHolder.Config.BalancedMode && !ignoreBalancedMode)
             {
                 radius = 1;
             }
@@ -306,26 +305,6 @@ namespace JoysOfEfficiency.Utils
 
         }
 
-        public static void DrawShippingPrice(IClickableMenu menu, SpriteFont font)
-        {
-            if (!(menu is ItemGrabMenu grabMenu) || !(grabMenu.shippingBin || IsCaShippingBinMenu(grabMenu)))
-            {
-                return;
-            }
-            int shippingPrice = getFarm().getShippingBin(player).Sum(item => GetTruePrice(item) / 2 * item.Stack);
-            string title = Translation.Get("estimatedprice.title");
-            string text = $" {shippingPrice}G";
-            Vector2 sizeTitle = font.MeasureString(title) * 1.2f;
-            Vector2 sizeText = font.MeasureString(text) * 1.2f;
-            int width = Math.Max((int)sizeTitle.X, (int)sizeText.X) + 32;
-            int height = 16 + (int)sizeTitle.Y + 8 + (int)sizeText.Y + 16;
-            Vector2 basePos = new Vector2(menu.xPositionOnScreen, menu.yPositionOnScreen + menu.height / 4 - height);
-
-            DrawWindow( (int)basePos.X, (int)basePos.Y, width, height);
-            Utility.drawTextWithShadow(spriteBatch, title, font, basePos + new Vector2(16, 16), Color.Black, 1.2f);
-            Utility.drawTextWithShadow(spriteBatch, text, font, basePos + new Vector2(16, 16 + (int)sizeTitle.Y + 8), Color.Black, 1.2f);
-        }
-
         public static void DrawColoredBox(SpriteBatch batch, int x, int y, int width, int height, Color color)
         {
             batch.Draw(fadeToBlackRect, new Rectangle(x, y, width, height), color);
@@ -335,10 +314,6 @@ namespace JoysOfEfficiency.Utils
         {
             IClickableMenu.drawTextureBox(spriteBatch, x, y, width, height, Color.White);
         }
-
-        #endregion
-
-        #region Private Utility
 
         public static Dictionary<Vector2, T> GetFeaturesWithin<T>(int radius) where T : TerrainFeature
         {
@@ -376,10 +351,7 @@ namespace JoysOfEfficiency.Utils
 
         
 
-        public static bool IsCaShippingBinMenu(ItemGrabMenu menu)
-        {
-            return !menu.reverseGrab && menu.showReceivingMenu && menu.context is Farm;
-        }
+        
 
         
         
@@ -448,8 +420,5 @@ namespace JoysOfEfficiency.Utils
 
             return "";
         }
-
-
-        #endregion
     }
 }

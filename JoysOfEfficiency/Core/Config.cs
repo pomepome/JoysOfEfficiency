@@ -72,6 +72,7 @@ namespace JoysOfEfficiency.Core
         public int TrialOfExamine { get; set; } = 10;
 
         public bool EstimateShippingPrice { get; set; } = true;
+        public Point PriceBoxCoordinates { get; set; } = new Point(100, 100);
 
         public bool UnifyFlowerColors { get; set; } = false;
         public Color JazzColor { get; set; } = Color.Aqua;
