@@ -3,7 +3,7 @@
   "button.conflict": "そのキーかボタンはすでに割り当てられています",
   "button.esc": "Escキーを押すとキャンセルできます",
   "location.awaiting": "座標をマウスカーソルで指定してクリックしてください",
-  "estimatedprice.title": "推定出荷額",
+  "estimatedprice.title": "出荷額",
   "fishinfo.quality": "品質: ",
   "fishinfo.size": "大きさ: {0}センチ",
   "fishinfo.species": "種: {0}",
