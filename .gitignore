@@ -355,7 +355,12 @@ MigrationBackup/
 *.DotSettings
 
 #Working folder
-JoysOfEfficiency/
 !*.json
 manifest.json
+*.csproj
+*.resx
+*.cs
+*.png
+*.md
+*.config
 codepage.txt
