@@ -353,14 +353,4 @@ MigrationBackup/
 .ionide/
 
 *.DotSettings
-
-#Working folder
-!*.json
-manifest.json
-*.csproj
-*.resx
-*.cs
-*.png
-*.md
-*.config
 codepage.txt
