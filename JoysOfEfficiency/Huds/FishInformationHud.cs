@@ -163,11 +163,6 @@ namespace JoysOfEfficiency.Huds
             }
         }
 
-        private static bool IsFishInBar(float barPos, int barHeight, float fishPos)
-        {
-            return fishPos >= barPos && fishPos <= barPos + barHeight;
-        }
-
         private static string GetKeyForQuality(int fishQuality)
         {
             switch (fishQuality)
