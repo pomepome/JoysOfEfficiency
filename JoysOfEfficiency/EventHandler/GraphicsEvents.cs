@@ -2,7 +2,6 @@
 using JoysOfEfficiency.Core;
 using JoysOfEfficiency.Huds;
 using JoysOfEfficiency.Misc;
-using JoysOfEfficiency.Utils;
 using StardewModdingAPI.Events;
 using StardewValley;
 using StardewValley.Locations;
