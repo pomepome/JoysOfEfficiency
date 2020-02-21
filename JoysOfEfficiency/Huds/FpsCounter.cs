@@ -17,14 +17,16 @@ namespace JoysOfEfficiency.Huds
         public static void OnHudDraw(object sender, RenderingHudEventArgs args)
         {
             _frameCounter++;
-            if (_frameCounter == 50)
+            if (_frameCounter != 50)
             {
-                int current = Environment.TickCount;
-                int delta = current - _lastMilliseconds;
-                _fps = (1000.0 * _frameCounter / delta);
-                _frameCounter = 0;
-                _lastMilliseconds = Environment.TickCount;
+                return;
             }
+
+            int current = Environment.TickCount;
+            int delta = current - _lastMilliseconds;
+            _fps = (1000.0 * _frameCounter / delta);
+            _frameCounter = 0;
+            _lastMilliseconds = Environment.TickCount;
         }
 
         public static void PostHudDraw(object sender, RenderedHudEventArgs args)
