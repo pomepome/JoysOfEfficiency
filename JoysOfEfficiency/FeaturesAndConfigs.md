@@ -13,6 +13,13 @@ Config description will be like:
 
 # Features
 
+## Safe Mode
+
+If Safe Mode is enabled, JoE won't patch the game itself, so it's much safer.
+But, some features requiring patching mechanism won't work perfectly.
+
+- SafeMode("Not on menu", bool, default:false) - whether this utility is enabled.
+
 ## Config Menu
 You can open mod configuration menu when specified key(Default:R).
 You can't disable this feature because it's a core feature.
