@@ -42,7 +42,7 @@ namespace JoysOfEfficiency.Automation
             if (!rod.inUse() && !rod.castedButBobberStillInAir)
             {
 
-                if (player.Stamina <= (player.MaxStamina * Config.ThresholdStaminaPersentage) / 100.0f)
+                if (player.Stamina <= (player.MaxStamina * Config.ThresholdStaminaPercentage) / 100.0f)
                 {
                     AFKMode = false;
                     Util.ShowHudMessageTranslated("hud.afk.tired");

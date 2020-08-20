@@ -87,6 +87,8 @@
   "options.ThrowPower": "Bobber throwing strength",
   "options.ThresholdStaminaPersentage": "Stamina threshold to stop fishing",
 
+  "options.ToggleAFKFishing":  "Toggle AFK Fishing mode",
+
   "hud.afk.passedout": "You stopped fishing because you passed out.",
   "hud.afk.on": "AFK Fishing enabled.",
   "hud.afk.off": "AFK Fishing disabled.",

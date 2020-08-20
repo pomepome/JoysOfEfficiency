@@ -84,6 +84,7 @@
 
   "options.ThrowPower": "浮きを投げる強さ",
   "options.ThresholdStaminaPersentage": "釣りを止めるスタミナの割合",
+  "options.ToggleAFKFishing": "自動釣りモードの切り替え",
 
   "hud.afk.passedout": "気絶したので釣りを止めた。",
   "hud.afk.on": "自動釣りモード開始。",

@@ -27,7 +27,7 @@ namespace JoysOfEfficiency.Core
             Conf.AnimalHarvestRadius = (int)Util.Cap(Conf.AnimalHarvestRadius, 1, 3);
             Conf.TrialOfExamine = (int)Util.Cap(Conf.TrialOfExamine, 1, 50);
             Conf.RadiusFarmCleanup = (int)Util.Cap(Conf.RadiusFarmCleanup, 1, 3);
-            Conf.ThresholdStaminaPersentage = (int)Util.Cap(Conf.ThresholdStaminaPersentage, 10f, 60f);
+            Conf.ThresholdStaminaPercentage = (int)Util.Cap(Conf.ThresholdStaminaPercentage, 10f, 60f);
         }
     }
 }

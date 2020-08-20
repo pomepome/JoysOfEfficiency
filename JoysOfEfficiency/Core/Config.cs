@@ -28,13 +28,13 @@ namespace JoysOfEfficiency.Core
 
         public bool AutoAnimalDoor { get; set; } = true;
 
-        public SButton ToggleAFKFishing { get; set; } = SButton.End;
 
         public bool AutoFishing { get; set; } = false;
         public float CpuThresholdFishing { get; set; } = 0.2f;
         public bool AutoReelRod { get; set; } = true;
         public float ThrowPower { get; set; } = 1.0f;
-        public int ThresholdStaminaPersentage { get; set; } = 20;
+        public int ThresholdStaminaPercentage { get; set; } = 20;
+        public SButton ToggleAFKFishing { get; set; } = SButton.End;
 
         public bool FishingInfo { get; set; } = true;
 

@@ -109,7 +109,7 @@ namespace JoysOfEfficiency.Menus
                 tab.AddOptionsElement(new ModifiedSlider("CPUThresholdFishing", 0, (int)(Config.CpuThresholdFishing * 10), 0, 5, OnSliderValueChanged, () => !Config.AutoFishing, Format));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoReelRod", 6, Config.AutoReelRod, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedSlider("ThrowPower", 17, (int)(Config.ThrowPower * 10), 0, 10, OnSliderValueChanged, null, Format));
-                tab.AddOptionsElement(new ModifiedSlider("ThresholdStaminaPersentage", 18, Config.ThresholdStaminaPersentage, 10, 60, OnSliderValueChanged, null, Format));
+                tab.AddOptionsElement(new ModifiedSlider("ThresholdStaminaPersentage", 18, Config.ThresholdStaminaPercentage, 10, 60, OnSliderValueChanged, null, Format));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Auto Gate"));
@@ -179,7 +179,7 @@ namespace JoysOfEfficiency.Menus
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Farm Cleaner"));
-                tab.AddOptionsElement(new ModifiedSlider("ScavengingRadius", 16, Config.RadiusFarmCleanup, 1, 3, OnSliderValueChanged, ()=>!(Config.CutWeeds || Config.ChopTwigs || Config.BreakRocks)));
+                tab.AddOptionsElement(new ModifiedSlider("RadiusFarmCleanup", 16, Config.RadiusFarmCleanup, 1, 3, OnSliderValueChanged, ()=>!(Config.CutWeeds || Config.ChopTwigs || Config.BreakRocks)));
                 tab.AddOptionsElement(new ModifiedCheckBox("CutWeeds", 39, Config.CutWeeds, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("BreakRocks", 40, Config.BreakRocks, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("ChopTwigs", 41, Config.ChopTwigs, OnCheckboxValueChanged));
@@ -383,7 +383,7 @@ namespace JoysOfEfficiency.Menus
                 case 15: Config.TrialOfExamine = value; break;
                 case 16: Config.RadiusFarmCleanup = value; break;
                 case 17: Config.ThrowPower = value / 10.0f; break;
-                case 18: Config.ThresholdStaminaPersentage = value; break;
+                case 18: Config.ThresholdStaminaPercentage = value; break;
                 default: return;
             }
 
