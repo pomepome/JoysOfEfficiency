@@ -16,6 +16,10 @@ namespace JoysOfEfficiency.EventHandler
             {
                 return;
             }
+            if (args.Button == Conf.ToggleAFKFishing)
+            {
+                AutoFisher.ToggleAFKFishing();
+            }
             if (!Context.IsPlayerFree || Game1.activeClickableMenu != null)
             {
                 return;

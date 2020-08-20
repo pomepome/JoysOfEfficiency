@@ -190,3 +190,6 @@ This is a changelog from 1.0.22
 ## 1.3.6
 - Now FishInformationHud shows correct quality when you are fishing perfectly.
 - Fixed the problem that FishingProbabilitiesBox may throw an exception.
+
+## 1.3.7
+- Added AFK Fishing function.

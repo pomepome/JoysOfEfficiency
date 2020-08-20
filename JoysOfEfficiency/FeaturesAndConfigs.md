@@ -245,7 +245,7 @@ MachineRadius("Automation", int, default:1) - How far tiles can be affected by t
 - MorePreciseProbabilities("UIs", bool, default:true) - Displays more plactical and precise probabiilities.
 
 
-- TrialOfExamine("UIs", int, default:10 min:1 max:10) - Trial number of computing probabilities.
+- TrialOfExamine("UIs", int, default:10 min:1 max:50) - Trial number of computing probabilities.
 
 
 ## Show Shipping Price

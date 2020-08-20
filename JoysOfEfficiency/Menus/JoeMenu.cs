@@ -104,12 +104,12 @@ namespace JoysOfEfficiency.Menus
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoAnimalDoor", 4, Config.AutoAnimalDoor, OnCheckboxValueChanged));
 
                 tab.AddOptionsElement(new EmptyLabel());
-                tab.AddOptionsElement(new LabelComponent("Auto Fishing"));
+                tab.AddOptionsElement(new LabelComponent("AFK Fishing"));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoFishing", 5, Config.AutoFishing, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedSlider("CPUThresholdFishing", 0, (int)(Config.CpuThresholdFishing * 10), 0, 5, OnSliderValueChanged, () => !Config.AutoFishing, Format));
-
-                tab.AddOptionsElement(new EmptyLabel());
-                tab.AddOptionsElement(new LabelComponent("Fishing Tweaks")); tab.AddOptionsElement(new ModifiedCheckBox("AutoReelRod", 6, Config.AutoReelRod, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoReelRod", 6, Config.AutoReelRod, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedSlider("ThrowPower", 17, (int)(Config.ThrowPower * 10), 0, 10, OnSliderValueChanged, null, Format));
+                tab.AddOptionsElement(new ModifiedSlider("ThresholdStaminaPersentage", 18, Config.ThresholdStaminaPersentage, 10, 60, OnSliderValueChanged, null, Format));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Auto Gate"));
@@ -213,7 +213,7 @@ namespace JoysOfEfficiency.Menus
                 tab.AddOptionsElement(new ModifiedCheckBox("FishingProbabilitiesInfo", 26, Config.FishingProbabilitiesInfo, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedClickListener(this, "ProbBoxLocation", 0, Config.ProbBoxCoordinates.X, Config.ProbBoxCoordinates.Y, translation, OnSomewhereClicked, OnStartListeningClick));
                 tab.AddOptionsElement(new ModifiedCheckBox("MorePreciseProbabilities", 37, Config.MorePreciseProbabilities, OnCheckboxValueChanged, i => !Config.FishingProbabilitiesInfo));
-                tab.AddOptionsElement(new ModifiedSlider("TrialOfExamine", 15, Config.TrialOfExamine, 1, 10, OnSliderValueChanged, () => !(Config.FishingProbabilitiesInfo && Config.MorePreciseProbabilities)));
+                tab.AddOptionsElement(new ModifiedSlider("TrialOfExamine", 15, Config.TrialOfExamine, 1, 50, OnSliderValueChanged, () => !(Config.FishingProbabilitiesInfo && Config.MorePreciseProbabilities)));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Show Shipping Price"));
@@ -259,6 +259,10 @@ namespace JoysOfEfficiency.Menus
                 tab.AddOptionsElement(new ModifiedInputListener(this, "ButtonToggleFlowerColorUnification", 2, Config.ButtonToggleFlowerColorUnification, translation, OnInputListenerChanged, OnStartListening));
 
                 tab.AddOptionsElement(new EmptyLabel());
+                tab.AddOptionsElement(new LabelComponent("AFK Fishing"));
+                tab.AddOptionsElement(new ModifiedInputListener(this, "ToggleAFKFishing", 3, Config.ToggleAFKFishing, translation, OnInputListenerChanged, OnStartListening));
+
+                tab.AddOptionsElement(new EmptyLabel());
                 _tabs.Add(tab);
             }
         }
@@ -302,6 +306,9 @@ namespace JoysOfEfficiency.Menus
                     break;
                 case 2:
                     Config.ButtonToggleFlowerColorUnification = value;
+                    break;
+                case 3:
+                    Config.ToggleAFKFishing = value;
                     break;
                 default:
                     return;
@@ -375,6 +382,8 @@ namespace JoysOfEfficiency.Menus
                 case 14: Config.AnimalHarvestRadius = value; break;
                 case 15: Config.TrialOfExamine = value; break;
                 case 16: Config.RadiusFarmCleanup = value; break;
+                case 17: Config.ThrowPower = value / 10.0f; break;
+                case 18: Config.ThresholdStaminaPersentage = value; break;
                 default: return;
             }
 
@@ -383,9 +392,13 @@ namespace JoysOfEfficiency.Menus
 
         private static string Format(int id, int value)
         {
-            if (id >= 0 && id <= 2)
+            if (id >= 0 && id <= 2 || id == 17)
             {
                 return $"{value / 10f:f1}";
+            }
+            if(id == 18)
+            {
+                return $"{value}%";
             }
             return value + "";
         }

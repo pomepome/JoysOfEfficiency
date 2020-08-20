@@ -58,6 +58,12 @@
     <RunPostBuildEvent>Always</RunPostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="0Harmony, Version=1.2.0.1, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Lib.Harmony.1.2.0.1\lib\net45\0Harmony.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -78,6 +84,8 @@
     <Compile Include="Automation\MachineOperator.cs" />
     <Compile Include="Automation\MailAutomation.cs" />
     <Compile Include="Automation\WateringCanRefiller.cs" />
+    <Compile Include="Configs\ConfigCustomAnimalTool.cs" />
+    <Compile Include="Configs\CustomAnimalTool.cs" />
     <Compile Include="Core\Config.cs" />
     <Compile Include="Core\ConfigLimitation.cs" />
     <Compile Include="EventHandler\ArtifactSpotDigger.cs" />
@@ -89,6 +97,7 @@
     <Compile Include="EventHandler\MenuEvents.cs" />
     <Compile Include="EventHandler\SaveEvents.cs" />
     <Compile Include="EventHandler\UpdateEvents.cs" />
+    <Compile Include="Harmony\HarmonyPatcher.cs" />
     <Compile Include="Huds\FishInformationHud.cs" />
     <Compile Include="Huds\FishingProbabilitiesBox.cs" />
     <Compile Include="Huds\FpsCounter.cs" />
@@ -119,6 +128,8 @@
     </Compile>
     <Compile Include="Automation\AnimalAutomation.cs" />
     <Compile Include="Automation\TrashCanScavenger.cs" />
+    <Compile Include="Utils\ConfigHolder.cs" />
+    <Compile Include="Utils\CustomAnimalConfigHolder.cs" />
     <Compile Include="Utils\Logger.cs" />
     <Compile Include="Utils\Util.cs" />
   </ItemGroup>
@@ -140,6 +151,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Enums\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>

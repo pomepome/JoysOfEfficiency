@@ -1,5 +1,8 @@
-﻿using StardewModdingAPI;
+﻿using JoysOfEfficiency.Utils;
+using Microsoft.Xna.Framework.Input;
+using StardewModdingAPI;
 using StardewValley;
+using System.Reflection;
 
 namespace JoysOfEfficiency.Core
 {
@@ -16,6 +19,10 @@ namespace JoysOfEfficiency.Core
         public static IReflectionHelper Reflection => Helper.Reflection;
         public static Multiplayer Multiplayer => Reflection.GetField<Multiplayer>(typeof(Game1), "multiplayer").GetValue();
 
+        public static InputState Input => Reflection.GetField<InputState>(typeof(Game1), "input").GetValue();
+
+        public static CustomAnimalConfigHolder CustomAnimalTool;
+
         /// <summary>
         /// Sets mod's entry　point and configuration instance. 
         /// </summary>
@@ -25,6 +32,7 @@ namespace JoysOfEfficiency.Core
         {
             ModInstance = modInstance;
             Config = conf;
+            CustomAnimalTool = new CustomAnimalConfigHolder(modInstance.GetFilePath("customAnimalTools.json"));
         }
         
         /// <summary>
@@ -34,6 +42,11 @@ namespace JoysOfEfficiency.Core
         public static void WriteConfig()
         {
             Helper?.WriteConfig(Config);
+        }
+
+        public static Config LoadConfig()
+        {
+            return Config = Helper.ReadConfig<Config>();
         }
     }
 }

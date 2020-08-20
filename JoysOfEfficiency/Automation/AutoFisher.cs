@@ -1,5 +1,7 @@
 ﻿using JoysOfEfficiency.Core;
+using JoysOfEfficiency.Harmony;
 using JoysOfEfficiency.Utils;
+using Microsoft.Xna.Framework.Input;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Menus;
@@ -9,11 +11,59 @@ namespace JoysOfEfficiency.Automation
 {
     internal class AutoFisher
     {
+        private static Config Config => InstanceHolder.Config;
+
+        private static Logger Logger = new Logger("AFKFisher");
+
+        public static bool AFKMode { get; private set; } = false;
 
         private static bool CatchingTreasure { get; set; }
         private static int AutoFishingCounter { get; set; }
+        private static int AFKCooltimeCounter { get; set; }
 
         private static IReflectionHelper Reflection => InstanceHolder.Reflection;
+
+        public static void AFKFishing()
+        {
+            Farmer player = Game1.player;
+
+            if(AFKMode && player.passedOut)
+            {
+                AFKMode = false;
+                Util.ShowHudMessageTranslated("hud.afk.passedout");
+                return;
+            }
+
+            if (!AFKMode || !(player.CurrentTool is FishingRod rod) || Game1.activeClickableMenu != null)
+            {
+                return;
+            }
+
+            if (!rod.inUse() && !rod.castedButBobberStillInAir)
+            {
+
+                if (player.Stamina <= (player.MaxStamina * Config.ThresholdStaminaPersentage) / 100.0f)
+                {
+                    AFKMode = false;
+                    Util.ShowHudMessageTranslated("hud.afk.tired");
+                    return;
+                }
+                AFKCooltimeCounter++;
+                if(AFKCooltimeCounter < 10)
+                {
+                    return;
+                }
+                AFKCooltimeCounter = 0;
+                rod.beginUsing(player.currentLocation, 0, 0, player);
+            }
+            if (rod.isTimingCast)
+            {
+            }
+            if (rod.fishCaught)
+            {
+                HarmonyPatcher.OverrideUseButton();
+            }
+        }
 
         public static void AutoReelRod()
         {
@@ -76,7 +126,7 @@ namespace JoysOfEfficiency.Automation
                 return;
             }
 
-            float strength = (fishPos - (barPos + barHeight / 2f)) / 18f;
+            float strength = (fishPos - (barPos + barHeight / 2f)) / 16f;
             float distance = fishPos - top;
 
             float threshold = Util.Cap(InstanceHolder.Config.CpuThresholdFishing, 0, 0.5f);
@@ -86,6 +136,20 @@ namespace JoysOfEfficiency.Automation
             }
 
             bobberSpeed.SetValue(bobberBarSpeed);
+        }
+
+        public static void ToggleAFKFishing()
+        {
+            AFKMode = !AFKMode;
+            if (AFKMode)
+            {
+                Util.ShowHudMessageTranslated("hud.afk.on");
+            }
+            else
+            {
+                Util.ShowHudMessageTranslated("hud.afk.off");
+            }
+            Logger.Log($"AFK Mode is {(AFKMode ? "enabled" : "disabled")}.");
         }
     }
 }

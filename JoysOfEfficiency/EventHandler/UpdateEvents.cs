@@ -51,6 +51,11 @@ namespace JoysOfEfficiency.EventHandler
             if (player.CurrentTool is FishingRod rod)
             {
                 FishingProbabilitiesBox.UpdateProbabilities(rod);
+
+                if (true)
+                {
+                    AutoFisher.AFKFishing();
+                }
             }
 
             GiftInformationTooltip.UpdateTooltip();

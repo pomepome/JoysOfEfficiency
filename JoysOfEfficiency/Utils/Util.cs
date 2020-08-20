@@ -69,6 +69,11 @@ namespace JoysOfEfficiency.Utils
             addHUDMessage(hudMessage);
         }
 
+        public static void ShowHudMessageTranslated(string key, int duration = 3500)
+        {
+            ShowHudMessage(Translation.Get(key), duration);
+        }
+
         public static IEnumerable<FarmAnimal> GetAnimalsList(Character player)
         {
             List<FarmAnimal> list = new List<FarmAnimal>();
