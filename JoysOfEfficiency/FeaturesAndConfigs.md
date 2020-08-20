@@ -17,9 +17,7 @@ Config description will be like:
 
 If Safe Mode is enabled, JoE won't patch the game itself, so it's much safer.
 
-
 But, some features requiring patching mechanism won't work perfectly.
-
 
 - SafeMode("Not on menu", bool, default:false) - whether this utility is enabled.
 
@@ -27,9 +25,7 @@ But, some features requiring patching mechanism won't work perfectly.
 ## Config Menu
 You can open mod configuration menu when specified key(Default:R).
 
-
 You can't disable this feature because it's a core feature.
-
 
 **[CONFIG]**
 
@@ -44,10 +40,8 @@ You can't disable this feature because it's a core feature.
 ## Balanced Mode
 ﻿Did you thought following utilities are a bit cheaty?
 
-
 ﻿This utility lets them not to be executed so often(almost 1 executing per seconds), and
 ﻿automation radius will be 1 tile.
-
 ﻿
 ﻿This utility affects to ***AutoWaterNearbyCrops, AutoPetNearbyAnimals, AutoHarvest, AutoCollectCollectibles, AutoShakeFruitedPlants,
 AutoDigArtifactSpot, AutoDepositIngredient, and AutoPullMachineResult.***
