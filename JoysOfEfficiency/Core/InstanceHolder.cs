@@ -1,8 +1,6 @@
 ﻿using JoysOfEfficiency.Utils;
-using Microsoft.Xna.Framework.Input;
 using StardewModdingAPI;
 using StardewValley;
-using System.Reflection;
 
 namespace JoysOfEfficiency.Core
 {

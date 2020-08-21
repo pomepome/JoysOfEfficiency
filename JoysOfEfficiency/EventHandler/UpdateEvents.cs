@@ -52,10 +52,7 @@ namespace JoysOfEfficiency.EventHandler
             {
                 FishingProbabilitiesBox.UpdateProbabilities(rod);
 
-                if (true)
-                {
-                    AutoFisher.AFKFishing();
-                }
+                AutoFisher.AfkFishing();
             }
 
             GiftInformationTooltip.UpdateTooltip();

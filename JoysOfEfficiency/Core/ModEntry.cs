@@ -1,12 +1,11 @@
-﻿using JoysOfEfficiency.EventHandler;
+﻿using System.IO;
+using JoysOfEfficiency.EventHandler;
 using JoysOfEfficiency.Harmony;
 using JoysOfEfficiency.Huds;
 using JoysOfEfficiency.ModCheckers;
 using JoysOfEfficiency.Utils;
 using StardewModdingAPI;
-
 using StardewValley;
-using System.IO;
 
 namespace JoysOfEfficiency.Core
 {

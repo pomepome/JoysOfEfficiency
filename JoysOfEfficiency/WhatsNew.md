@@ -193,3 +193,9 @@ This is a changelog from 1.0.22
 
 ## 1.3.7
 - Added AFK Fishing function.
+
+## 1.3.8
+- Now auto-casting works even if SafeMode is on.
+- Fixed a bug that AutoDepositIngredient consume coffee beans if you don't have enough(<5) beans.
+- Updated chinese translation by Lake1059. Many thanks!
+- Now AutoShakeFruitedPlants supports tea bushes!

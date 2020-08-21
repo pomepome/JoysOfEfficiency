@@ -1,11 +1,11 @@
-﻿using StardewValley;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using JoysOfEfficiency.Core;
 using JoysOfEfficiency.Utils;
 using Microsoft.Xna.Framework;
 using StardewModdingAPI;
+using StardewValley;
 
 namespace JoysOfEfficiency.Huds
 {

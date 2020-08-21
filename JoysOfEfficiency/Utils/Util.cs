@@ -13,7 +13,6 @@ using StardewValley.Tools;
 using static System.String;
 using static StardewValley.Game1;
 using Object = StardewValley.Object;
-using Rectangle = Microsoft.Xna.Framework.Rectangle;
 
 namespace JoysOfEfficiency.Utils
 {

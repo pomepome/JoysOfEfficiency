@@ -42,6 +42,7 @@ You can't disable this feature because it's a core feature.
 
 ﻿This utility lets them not to be executed so often(almost 1 executing per seconds), and
 ﻿automation radius will be 1 tile.
+
 ﻿
 ﻿This utility affects to ***AutoWaterNearbyCrops, AutoPetNearbyAnimals, AutoHarvest, AutoCollectCollectibles, AutoShakeFruitedPlants,
 AutoDigArtifactSpot, AutoDepositIngredient, and AutoPullMachineResult.***

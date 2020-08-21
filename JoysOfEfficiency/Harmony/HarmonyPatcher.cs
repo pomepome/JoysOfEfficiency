@@ -1,4 +1,6 @@
 ﻿
+using System;
+using System.Collections.Generic;
 using Harmony;
 using JoysOfEfficiency.Automation;
 using JoysOfEfficiency.Core;
@@ -9,15 +11,10 @@ using Microsoft.Xna.Framework.Input;
 using Netcode;
 using StardewModdingAPI;
 using StardewValley;
-using StardewValley.BellsAndWhistles;
 using StardewValley.Menus;
-using StardewValley.Network;
 using StardewValley.Tools;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Object = StardewValley.Object;
+
 namespace JoysOfEfficiency.Harmony
 {
     internal class HarmonyPatcher
@@ -80,7 +77,7 @@ namespace JoysOfEfficiency.Harmony
 
             if (recastTimerMs.GetValue ()  > 0 && who.IsLocalPlayer)
             {
-                if (Input.GetMouseState().LeftButton == ButtonState.Pressed || Game1.didPlayerJustClickAtAll(false) || Game1.isOneOfTheseKeysDown(Game1.oldKBState, Game1.options.useToolButton))
+                if (Input.GetMouseState().LeftButton == ButtonState.Pressed || Game1.didPlayerJustClickAtAll() || Game1.isOneOfTheseKeysDown(Game1.oldKBState, Game1.options.useToolButton))
                 {
                     recastTimerMs.SetValue( recastTimerMs.GetValue() - time.ElapsedGameTime.Milliseconds);
                     if (recastTimerMs.GetValue() <= 0)
@@ -153,11 +150,11 @@ namespace JoysOfEfficiency.Harmony
                         float animationInterval = (float)(2.0 * (num2 / (double)y)) + ((float)Math.Sqrt(num2 * (double)num2 + 2.0 * y * 96.0) - num2) / y;
                         if (lastUser.IsLocalPlayer)
                             rod.bobber.Set(new Vector2(who.getStandingX() + (who.FacingDirection == 3 ? -1f : 1f) * num1, who.getStandingY()));
-                        rod.animations.Add(new TemporaryAnimatedSprite("LooseSprites\\Cursors", new Rectangle(170, 1903, 7, 8), animationInterval, 1, 0, who.Position + new Vector2(0.0f, -96f), false, false, who.getStandingY() / 10000f, 0.0f, Color.White, 4f, 0.0f, 0.0f, Game1.random.Next(-20, 20) / 100f, false)
+                        rod.animations.Add(new TemporaryAnimatedSprite("LooseSprites\\Cursors", new Rectangle(170, 1903, 7, 8), animationInterval, 1, 0, who.Position + new Vector2(0.0f, -96f), false, false, who.getStandingY() / 10000f, 0.0f, Color.White, 4f, 0.0f, 0.0f, Game1.random.Next(-20, 20) / 100f)
                         {
                             motion = new Vector2((who.FacingDirection == 3 ? -1f : 1f) * num2, -num2),
                             acceleration = new Vector2(0.0f, y),
-                            endFunction = new TemporaryAnimatedSprite.endBehavior(rod.castingEndFunction),
+                            endFunction = rod.castingEndFunction,
                             timeBasedMotion = true
                         });
                     }
@@ -177,12 +174,12 @@ namespace JoysOfEfficiency.Harmony
                             animationInterval *= 1.05f;
                         if (lastUser.IsLocalPlayer)
                             rod.bobber.Set(new Vector2(who.getStandingX(), who.getStandingY() - num1));
-                        rod.animations.Add(new TemporaryAnimatedSprite("LooseSprites\\Cursors", new Rectangle(170, 1903, 7, 8), animationInterval, 1, 0, who.Position + new Vector2(24f, -96f), false, false, rod.bobber.Y / 10000f, 0.0f, Color.White, 4f, 0.0f, 0.0f, Game1.random.Next(-20, 20) / 100f, false)
+                        rod.animations.Add(new TemporaryAnimatedSprite("LooseSprites\\Cursors", new Rectangle(170, 1903, 7, 8), animationInterval, 1, 0, who.Position + new Vector2(24f, -96f), false, false, rod.bobber.Y / 10000f, 0.0f, Color.White, 4f, 0.0f, 0.0f, Game1.random.Next(-20, 20) / 100f)
                         {
                             alphaFade = 0.0001f,
                             motion = new Vector2(0.0f, -num3),
                             acceleration = new Vector2(0.0f, y),
-                            endFunction = new TemporaryAnimatedSprite.endBehavior(rod.castingEndFunction),
+                            endFunction = rod.castingEndFunction,
                             timeBasedMotion = true
                         });
                     }
@@ -190,7 +187,7 @@ namespace JoysOfEfficiency.Harmony
                     rod.castedButBobberStillInAir = true;
                     rod.isCasting = false;
                     if (who.IsLocalPlayer)
-                        who.currentLocation.playSound("cast", NetAudio.SoundContext.Default);
+                        who.currentLocation.playSound("cast");
                     if (who.IsLocalPlayer && Game1.soundBank != null)
                     {
                         FishingRod.reelSound = Game1.soundBank.GetCue("slowReel");
@@ -219,7 +216,7 @@ namespace JoysOfEfficiency.Harmony
                     &&
                     (!usedGamePadToCast || !Game1.options.gamepadControls || !Input.GetGamePadState().IsButtonUp(Buttons.X))
                     || !Game1.areAllOfTheseKeysUp(Game1.GetKeyboardState(), Game1.options.useToolButton)
-                    || AutoFisher.AFKMode && Math.Abs(rod.castingPower - Config.ThrowPower) >= 0.005f)
+                    || AutoFisher.AfkMode && Math.Abs(rod.castingPower - Config.ThrowPower) >= 0.005f)
                 {
                     return;
                 }
@@ -227,20 +224,20 @@ namespace JoysOfEfficiency.Harmony
             }
             else if (rod.isReeling)
             {
-                if (who.IsLocalPlayer && Game1.didPlayerJustClickAtAll(false))
+                if (who.IsLocalPlayer && Game1.didPlayerJustClickAtAll())
                 {
                     if (Game1.isAnyGamePadButtonBeingPressed())
                         Game1.lastCursorMotionWasMouse = false;
                     switch (who.FacingDirection)
                     {
                         case 0:
-                            who.FarmerSprite.setCurrentSingleFrame(76, 32000, false, false);
+                            who.FarmerSprite.setCurrentSingleFrame(76);
                             break;
                         case 1:
-                            who.FarmerSprite.setCurrentSingleFrame(72, 100, false, false);
+                            who.FarmerSprite.setCurrentSingleFrame(72, 100);
                             break;
                         case 2:
-                            who.FarmerSprite.setCurrentSingleFrame(75, 32000, false, false);
+                            who.FarmerSprite.setCurrentSingleFrame(75);
                             break;
                         case 3:
                             who.FarmerSprite.setCurrentSingleFrame(72, 100, false, true);
@@ -254,13 +251,13 @@ namespace JoysOfEfficiency.Harmony
                     switch (who.FacingDirection)
                     {
                         case 0:
-                            who.FarmerSprite.setCurrentSingleFrame(36, 32000, false, false);
+                            who.FarmerSprite.setCurrentSingleFrame(36);
                             break;
                         case 1:
-                            who.FarmerSprite.setCurrentSingleFrame(48, 100, false, false);
+                            who.FarmerSprite.setCurrentSingleFrame(48, 100);
                             break;
                         case 2:
-                            who.FarmerSprite.setCurrentSingleFrame(66, 32000, false, false);
+                            who.FarmerSprite.setCurrentSingleFrame(66);
                             break;
                         case 3:
                             who.FarmerSprite.setCurrentSingleFrame(48, 100, false, true);
@@ -452,7 +449,7 @@ namespace JoysOfEfficiency.Harmony
                 rod.animations[0].position += vector2;
             }
             else if (rod.showingTreasure)
-                who.FarmerSprite.setCurrentSingleFrame(0, 32000, false, false);
+                who.FarmerSprite.setCurrentSingleFrame(0);
             else if (rod.fishCaught)
             {
                 if (!Game1.isFestival())
@@ -461,11 +458,11 @@ namespace JoysOfEfficiency.Harmony
                     who.FarmerSprite.setCurrentFrame(84);
                 }
                 if (Game1.random.NextDouble() < 0.025)
-                    who.currentLocation.temporarySprites.Add(new TemporaryAnimatedSprite("LooseSprites\\Cursors", new Rectangle(653, 858, 1, 1), 9999f, 1, 1, who.Position + new Vector2(Game1.random.Next(-3, 2) * 4, -32f), false, false, (float)(who.getStandingY() / 10000.0 + 1.0 / 500.0), 0.04f, Color.LightBlue, 5f, 0.0f, 0.0f, 0.0f, false)
+                    who.currentLocation.temporarySprites.Add(new TemporaryAnimatedSprite("LooseSprites\\Cursors", new Rectangle(653, 858, 1, 1), 9999f, 1, 1, who.Position + new Vector2(Game1.random.Next(-3, 2) * 4, -32f), false, false, (float)(who.getStandingY() / 10000.0 + 1.0 / 500.0), 0.04f, Color.LightBlue, 5f, 0.0f, 0.0f, 0.0f)
                     {
                         acceleration = new Vector2(0.0f, 0.25f)
                     });
-                if (!who.IsLocalPlayer || Input.GetMouseState().LeftButton != ButtonState.Pressed && !Game1.didPlayerJustClickAtAll(false) && !Game1.isOneOfTheseKeysDown(Game1.oldKBState, Game1.options.useToolButton) && !HarmonyPatcher.UseToolKeyDown)
+                if (!who.IsLocalPlayer || Input.GetMouseState().LeftButton != ButtonState.Pressed && !Game1.didPlayerJustClickAtAll() && !Game1.isOneOfTheseKeysDown(Game1.oldKBState, Game1.options.useToolButton) && !HarmonyPatcher.UseToolKeyDown)
                 {
                     return;
                 }
@@ -474,7 +471,7 @@ namespace JoysOfEfficiency.Harmony
                 if (!rod.treasureCaught)
                 {
                     recastTimerMs.SetValue(200);
-                    StardewValley.Object @object = new StardewValley.Object(whichFish, 1, false, -1, fishQuality);
+                    Object @object = new Object(whichFish, 1, false, -1, fishQuality);
                     if (whichFish == GameLocation.CAROLINES_NECKLACE_ITEM)
                         @object.questItem.Value = true;
                     if (whichFish == 79)
@@ -488,10 +485,10 @@ namespace JoysOfEfficiency.Harmony
                     bool fromFishPond = rod.fromFishPond;
                     lastUser.completelyStopAnimatingOrDoingAction();
                     rod.doneFishing(lastUser, !fromFishPond);
-                    if (Game1.isFestival() || lastUser.addItemToInventoryBool(@object, false))
+                    if (Game1.isFestival() || lastUser.addItemToInventoryBool(@object))
                         return;
-                    Game1.activeClickableMenu = new ItemGrabMenu(new List<Item>()
-          {
+                    Game1.activeClickableMenu = new ItemGrabMenu(new List<Item>
+                    {
              @object
           }, rod).setEssential(true);
                 }
@@ -503,12 +500,12 @@ namespace JoysOfEfficiency.Harmony
                     int initialStack = 1;
                     if (rod.caughtDoubleFish)
                         initialStack = 2;
-                    bool inventoryBool = lastUser.addItemToInventoryBool(new StardewValley.Object(whichFish, initialStack, false, -1, fishQuality), false);
-                    rod.animations.Add(new TemporaryAnimatedSprite("LooseSprites\\Cursors", new Rectangle(64, 1920, 32, 32), 500f, 1, 0, lastUser.Position + new Vector2(-32f, -160f), false, false, (float)(lastUser.getStandingY() / 10000.0 + 1.0 / 1000.0), 0.0f, Color.White, 4f, 0.0f, 0.0f, 0.0f, false)
+                    bool inventoryBool = lastUser.addItemToInventoryBool(new Object(whichFish, initialStack, false, -1, fishQuality));
+                    rod.animations.Add(new TemporaryAnimatedSprite("LooseSprites\\Cursors", new Rectangle(64, 1920, 32, 32), 500f, 1, 0, lastUser.Position + new Vector2(-32f, -160f), false, false, (float)(lastUser.getStandingY() / 10000.0 + 1.0 / 1000.0), 0.0f, Color.White, 4f, 0.0f, 0.0f, 0.0f)
                     {
                         motion = new Vector2(0.0f, -0.128f),
                         timeBasedMotion = true,
-                        endFunction = new TemporaryAnimatedSprite.endBehavior(rod.openChestEndFunction),
+                        endFunction = rod.openChestEndFunction,
                         extraInfoForEndBehavior = inventoryBool ? 0 : 1,
                         alpha = 0.0f,
                         alphaFade = -1f / 500f

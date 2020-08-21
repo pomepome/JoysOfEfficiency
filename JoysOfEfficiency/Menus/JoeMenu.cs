@@ -260,7 +260,7 @@ namespace JoysOfEfficiency.Menus
 
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("AFK Fishing"));
-                tab.AddOptionsElement(new ModifiedInputListener(this, "ToggleAFKFishing", 3, Config.ToggleAFKFishing, translation, OnInputListenerChanged, OnStartListening));
+                tab.AddOptionsElement(new ModifiedInputListener(this, "ToggleAFKFishing", 3, Config.ToggleAfkFishing, translation, OnInputListenerChanged, OnStartListening));
 
                 tab.AddOptionsElement(new EmptyLabel());
                 _tabs.Add(tab);
@@ -308,7 +308,7 @@ namespace JoysOfEfficiency.Menus
                     Config.ButtonToggleFlowerColorUnification = value;
                     break;
                 case 3:
-                    Config.ToggleAFKFishing = value;
+                    Config.ToggleAfkFishing = value;
                     break;
                 default:
                     return;

@@ -34,7 +34,7 @@ namespace JoysOfEfficiency.Core
         public bool AutoReelRod { get; set; } = true;
         public float ThrowPower { get; set; } = 1.0f;
         public int ThresholdStaminaPercentage { get; set; } = 20;
-        public SButton ToggleAFKFishing { get; set; } = SButton.End;
+        public SButton ToggleAfkFishing { get; set; } = SButton.End;
 
         public bool FishingInfo { get; set; } = true;
 
