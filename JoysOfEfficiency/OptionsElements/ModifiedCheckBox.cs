@@ -7,7 +7,7 @@ using StardewValley.Menus;
 
 namespace JoysOfEfficiency.OptionsElements
 {
-    internal class ModifiedCheckBox : OptionsElement
+    internal class ModifiedCheckBox : OptionsElementWithLabel
     {
 
         private bool IsChecked { get; set; }

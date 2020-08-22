@@ -7,7 +7,7 @@ using StardewValley.Menus;
 
 namespace JoysOfEfficiency.OptionsElements
 {
-    internal class ModifiedSlider : OptionsElement
+    internal class ModifiedSlider : OptionsElementWithLabel
     {
         private readonly string _label;
 

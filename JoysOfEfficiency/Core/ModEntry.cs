@@ -6,6 +6,7 @@ using JoysOfEfficiency.ModCheckers;
 using JoysOfEfficiency.Utils;
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.Tools;
 
 namespace JoysOfEfficiency.Core
 {
@@ -88,8 +89,6 @@ namespace JoysOfEfficiency.Core
         private static void OnDebugCommand(string name, string[] args)
         {
             DebugMode = !DebugMode;
-            Player player = Game1.player;
-            Logger.Log($"Facing:{player.FacingDirection}");
 
         }
 

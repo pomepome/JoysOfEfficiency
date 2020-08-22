@@ -199,3 +199,7 @@ This is a changelog from 1.0.22
 - Fixed a bug that AutoDepositIngredient consume coffee beans if you don't have enough(<5) beans.
 - Updated chinese translation by Lake1059. Many thanks!
 - Now AutoShakeFruitedPlants supports tea bushes!
+
+## 1.3.9
+- Added Korean translation. (provided by wally232. Many thanks!)
+- Graphical adjustment for Android.
