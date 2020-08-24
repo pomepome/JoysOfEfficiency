@@ -6,7 +6,6 @@ using JoysOfEfficiency.ModCheckers;
 using JoysOfEfficiency.Utils;
 using StardewModdingAPI;
 using StardewValley;
-using StardewValley.Tools;
 
 namespace JoysOfEfficiency.Core
 {

@@ -203,3 +203,8 @@ This is a changelog from 1.0.22
 ## 1.3.9
 - Added Korean translation. (provided by wally232. Many thanks!)
 - Graphical adjustment for Android.
+
+## 1.3.10
+- Adjusted MineInfoGui for Android.
+- Adjusted FishingInfo for Android.
+- Fixed a problem that GetTruePrice might throw NRE.

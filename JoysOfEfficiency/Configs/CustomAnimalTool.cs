@@ -14,6 +14,7 @@
 
     public enum ToolType
     {
+        None,
         Bucket,
         Shears
     }

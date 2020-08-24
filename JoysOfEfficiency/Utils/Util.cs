@@ -26,6 +26,11 @@ namespace JoysOfEfficiency.Utils
 
         private static int _lastItemIndex;
 
+        public static bool IsAndroid()
+        {
+            return Constants.TargetPlatform == GamePlatform.Android;
+        }
+
         public static string GetItemName(int parentSheetIndex)
         {
             return new SVObject(parentSheetIndex, 1).DisplayName;
@@ -393,6 +398,10 @@ namespace JoysOfEfficiency.Utils
 
         public static int GetTruePrice(Item item)
         {
+            if (item == null)
+            {
+                return 0;
+            }
             return item is SVObject obj ? obj.sellToStorePrice() * 2 : item.salePrice();
         }
 
