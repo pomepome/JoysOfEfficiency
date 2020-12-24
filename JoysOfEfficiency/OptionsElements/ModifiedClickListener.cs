@@ -37,7 +37,7 @@ namespace JoysOfEfficiency.OptionsElements
             _menu = parent;
         }
 
-        public override void draw(SpriteBatch b, int slotX, int slotY)
+        public override void draw(SpriteBatch b, int slotX, int slotY, IClickableMenu context = null)
         {
             string text = $"{label}: [{_point.X},{_point.Y}]";
             Vector2 size = Game1.dialogueFont.MeasureString(text);

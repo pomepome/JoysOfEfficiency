@@ -14,9 +14,9 @@ namespace JoysOfEfficiency.OptionsElements
             return Util.IsAndroid() ? bounds.Width + 8 : 0;
         }
 
-        public override void draw(SpriteBatch b, int slotX, int slotY)
+        public override void draw(SpriteBatch b, int slotX, int slotY, IClickableMenu context = null)
         {
-            base.draw(b, slotX + GetOffsetLabel(), slotY);
+            base.draw(b, slotX + GetOffsetLabel(), slotY, context);
         }
     }
 }

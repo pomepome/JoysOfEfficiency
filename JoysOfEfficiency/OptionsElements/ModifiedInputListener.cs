@@ -89,9 +89,9 @@ namespace JoysOfEfficiency.OptionsElements
             }
         }
 
-        public override void draw(SpriteBatch b, int slotX, int slotY)
+        public override void draw(SpriteBatch b, int slotX, int slotY, IClickableMenu context = null)
         {
-            string text = $"{label}: {_button.ToString()}";
+            string text = $"{label}: {_button}";
             Vector2 size = Game1.dialogueFont.MeasureString(text);
             b.DrawString(Game1.dialogueFont, text, new Vector2(slotX+16, slotY + 8), Color.Black, 0, new Vector2(), 1f, SpriteEffects.None, 1.0f);
 

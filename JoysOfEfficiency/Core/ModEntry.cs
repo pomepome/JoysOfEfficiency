@@ -73,6 +73,10 @@ namespace JoysOfEfficiency.Core
             {
                 HarmonyPatcher.DoPatching();
             }
+            else
+            {
+                Logger.Log("Bypassing patching...");
+            }
 
             helper.WriteConfig(Conf);
             MineIcons.Init(helper);

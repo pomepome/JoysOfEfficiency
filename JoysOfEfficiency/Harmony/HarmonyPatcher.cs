@@ -1,7 +1,7 @@
 ﻿
 using System;
 using System.Collections.Generic;
-using Harmony;
+using HarmonyLib;
 using JoysOfEfficiency.Automation;
 using JoysOfEfficiency.Core;
 using JoysOfEfficiency.Utils;
@@ -14,18 +14,19 @@ using StardewValley;
 using StardewValley.Menus;
 using StardewValley.Tools;
 using Object = StardewValley.Object;
+using HarmonyObj = HarmonyLib.Harmony;
 
 namespace JoysOfEfficiency.Harmony
 {
     internal class HarmonyPatcher
     {
-        private static HarmonyInstance harmony = HarmonyInstance.Create("com.pome.joysofefficiency");
+        private static readonly HarmonyObj Harmony = new HarmonyObj("com.pome.joysofefficiency");
 
         public static bool UseToolKeyDown { get; set; }
 
         public static void DoPatching()
         {
-            harmony.PatchAll();
+            Harmony.PatchAll();
         }
 
         public static void OverrideUseButton()
