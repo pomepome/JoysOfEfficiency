@@ -30,18 +30,11 @@ namespace JoysOfEfficiency.Core
         /// <param name="helper"></param>
         public override void Entry(IModHelper helper)
         {
-
-
-            // Loads configuration from file.
-            Config conf = Helper.ReadConfig<Config>();
-
             // Initialize Logger
             Logger.Init(Monitor);
 
             // Initialize InstanceHolder.
-            InstanceHolder.Init(this, conf);
-
-
+            InstanceHolder.Init(this);
 
             // Register events.
             EventHolder.RegisterEvents(Helper.Events);

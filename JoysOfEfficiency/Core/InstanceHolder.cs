@@ -26,10 +26,10 @@ namespace JoysOfEfficiency.Core
         /// </summary>
         /// <param name="modInstance">the mod instance</param>
         /// <param name="conf">the configuration instance</param>
-        public static void Init(ModEntry modInstance, Config conf)
+        public static void Init(ModEntry modInstance)
         {
             ModInstance = modInstance;
-            Config = conf;
+            Config = LoadConfig();
             CustomAnimalTool = new CustomAnimalConfigHolder(modInstance.GetFilePath("customAnimalTools.json"));
         }
         
@@ -44,7 +44,7 @@ namespace JoysOfEfficiency.Core
 
         public static Config LoadConfig()
         {
-            return Config = Helper.ReadConfig<Config>();
+            return Helper != null ? Config = Helper.ReadConfig<Config>() : new Config();
         }
     }
 }

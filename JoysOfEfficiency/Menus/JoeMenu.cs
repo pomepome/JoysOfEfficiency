@@ -16,6 +16,8 @@ namespace JoysOfEfficiency.Menus
     {
         private static Config Config => InstanceHolder.Config;
 
+        private static Logger Logger = new Logger("JoeMenu");
+
         private readonly List<MenuTab> _tabs = new List<MenuTab>();
 
         private readonly ClickableTextureComponent _upCursor;
@@ -39,9 +41,6 @@ namespace JoysOfEfficiency.Menus
         private readonly string _tabUIsString;
         private readonly string _tabMiscString;
         private readonly string _tabControlsString;
-
-        private bool _isListening;
-        private bool _isListeningClick;
 
         private bool _isFirstTime;
 
@@ -269,20 +268,25 @@ namespace JoysOfEfficiency.Menus
         }
         private void OnStartListening(int i, ModifiedInputListener option)
         {
-            _isListening = true;
             _listener = option;
         }
 
         private void OnStartListeningClick(int i, ModifiedClickListener option)
         {
-            _isListeningClick = true;
             _clickListener = option;
         }
 
         private void OnSomewhereClicked(int index, Point point)
         {
-            _isListeningClick = false;
             _clickListener = null;
+
+            if (index == -1)
+            {
+                //Assertion was cancelled
+                Logger.Log("Assertion Cancelled");
+                return;
+            }
+
             switch (index)
             {
                 case 0:
@@ -315,7 +319,6 @@ namespace JoysOfEfficiency.Menus
                     return;
             }
             InstanceHolder.WriteConfig();
-            _isListening = false;
             _listener = null;
         }
         private void OnCheckboxValueChanged(int index, bool value)
@@ -413,7 +416,7 @@ namespace JoysOfEfficiency.Menus
 
         public override void gamePadButtonHeld(Buttons b)
         {
-            if (_isListening || _isListeningClick)
+            if (_listener != null || _clickListener != null)
             {
                 return;
             }
@@ -429,16 +432,13 @@ namespace JoysOfEfficiency.Menus
 
         public override void receiveGamePadButton(Buttons b)
         {
-            if (_isListeningClick)
+            if (_clickListener != null)
             {
                 return;
             }
-            if (_isListening)
+            if (_listener != null)
             {
-                foreach (ModifiedInputListener element in _tabs[_tabIndex].GetElements().OfType<ModifiedInputListener>())
-                {
-                    element.ReceiveButtonPress(b);
-                }
+                _listener.ReceiveButtonPress(b);
                 return;
             }
             if ((b.HasFlag(Buttons.DPadUp) || b.HasFlag(Buttons.LeftThumbstickUp)) && _upCursor.visible)
@@ -501,7 +501,7 @@ namespace JoysOfEfficiency.Menus
         /// <param name="direction">amount and direction of the rotation</param>
         public override void receiveScrollWheelAction(int direction)
         {
-            if (_isListening || _isListeningClick)
+            if (_listener != null || _clickListener != null)
             {
                 return;
             }
@@ -588,7 +588,7 @@ namespace JoysOfEfficiency.Menus
             _upCursor.draw(b);
             _downCursor.draw(b);
 
-            if (_isListening)
+            if (_listener != null)
             {
                 //Draw the window of active ModifiedInputListener.
                 Point size = _listener.GetListeningMessageWindowSize();
@@ -596,7 +596,7 @@ namespace JoysOfEfficiency.Menus
                 _listener.DrawStrings(b, (Game1.viewport.Width - size.X) / 2, (Game1.viewport.Height - size.Y) / 2);
             }
 
-            if (_isListeningClick)
+            if (_clickListener != null)
             {
                 //Draw the window of active ModifiedClickListener.
                 Point size = _clickListener.GetListeningMessageWindowSize();
@@ -638,7 +638,7 @@ namespace JoysOfEfficiency.Menus
                     ChangeIndexOfScrollBar(index);
                 }
             }
-            if (_isListening)
+            if (_listener != null)
             {
                 return;
             }
@@ -655,13 +655,13 @@ namespace JoysOfEfficiency.Menus
 
         public override void receiveKeyPress(Keys key)
         {
-            base.receiveKeyPress(key);
-            if (_isListening)
+            if (_listener != null)
             {
-                foreach (OptionsElement element in _tabs[_tabIndex].GetElements())
-                {
-                    element.receiveKeyPress(key);
-                }
+                _listener.receiveKeyPress(key);
+            }
+            else if (_clickListener != null)
+            {
+                _clickListener.receiveKeyPress(key);
             }
             else if (key == Keys.Escape)
             {
@@ -675,6 +675,13 @@ namespace JoysOfEfficiency.Menus
                     return;
                 }
                 CloseMenu();
+            }
+            else
+            {
+                foreach (OptionsElement element in _tabs[_tabIndex].GetElements())
+                {
+                    element.receiveKeyPress(key);
+                }
             }
         }
 
@@ -693,16 +700,14 @@ namespace JoysOfEfficiency.Menus
         public override void receiveLeftClick(int x, int y, bool playSound = true)
         {
             base.receiveLeftClick(x, y, playSound);
-            if (_isListening)
+            if (_listener != null)
             {
+                _listener.receiveLeftClick(x, y);
                 return;
             }
-            if (_isListeningClick)
+            if (_clickListener != null)
             {
-                foreach (ModifiedClickListener listener in _tabs[_tabIndex].GetElements().OfType<ModifiedClickListener>())
-                {
-                    listener.receiveLeftClick(x, y);
-                }
+                _clickListener.receiveLeftClick(x, y);
                 return;
             }
             if (_scrollBar.visible && _scrollBarRunner.Contains(x, y))
@@ -755,16 +760,14 @@ namespace JoysOfEfficiency.Menus
         {
             _isScrolling = false;
             base.releaseLeftClick(x, y);
-            if (_isListeningClick)
+            if (_listener != null)
             {
-                foreach (ModifiedClickListener listener in _tabs[_tabIndex].GetElements().OfType<ModifiedClickListener>())
-                {
-                    listener.leftClickReleased(x, y);
-                }
+                _listener.leftClickReleased(x, y);
                 return;
             }
-            if (_isListening)
+            if (_clickListener != null)
             {
+                _clickListener.leftClickReleased(x, y);
                 return;
             }
             foreach (OptionsElement element in GetElementsToShow())

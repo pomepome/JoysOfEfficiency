@@ -110,9 +110,8 @@ namespace JoysOfEfficiency.OptionsElements
             {
                 return;
             }
-            x += _menu.xPositionOnScreen;
-            y += _buttonRect.Height / 2;
-            if (x < _buttonRect.Left || x > _buttonRect.Right)
+            x += _menu.xPositionOnScreen - 16;
+            if (x < _buttonRect.Left || x > _buttonRect.Right + _buttonRect.Width / 2)
                 return;
             _onStartListening(whichOption, this);
             _isListening = true;
@@ -143,7 +142,7 @@ namespace JoysOfEfficiency.OptionsElements
         public Point GetListeningMessageWindowSize()
         {
             int x = 32;
-            int y = 16;
+            int y = 32;
 
             {
                 Vector2 size = Font.MeasureString(_translation.Get("button.awaiting"));
