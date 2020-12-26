@@ -213,5 +213,5 @@ This is a changelog from 1.0.22
 - Updated for SDV 1.5 and SMAPI 3.8.
 
 ## 1.4.1
-- Fixed Harmony related clash.
+- Fixed Harmony related crash.
 - Improved usability around menus.
