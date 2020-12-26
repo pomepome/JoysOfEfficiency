@@ -16,8 +16,7 @@ namespace JoysOfEfficiency.Automation
 
         public static void CollectMailAttachmentsAndQuests(LetterViewerMenu menu)
         {
-            IReflectedField<int> questIdField = Reflection.GetField<int>(menu, "questID");
-            int questId = questIdField.GetValue();
+            int questId = menu.questID;
 
             if (menu.itemsLeftToGrab())
             {
@@ -52,7 +51,7 @@ namespace JoysOfEfficiency.Automation
             Logger.Log($"You started Quest: '{Quest.getQuestFromId(questId).questTitle}'.");
             Game1.player.addQuest(questId);
             Game1.playSound("newArtifact");
-            questIdField.SetValue(-1);
+            menu.questID = -1;
         }
 
         private static bool CanPlayerAcceptsItemPartially(Item item)

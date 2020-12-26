@@ -208,3 +208,6 @@ This is a changelog from 1.0.22
 - Adjusted MineInfoGui for Android.
 - Adjusted FishingInfo for Android.
 - Fixed a problem that GetTruePrice might throw NRE.
+
+## 1.4.0
+- Updated for SDV 1.5 and SMAPI 3.8.
