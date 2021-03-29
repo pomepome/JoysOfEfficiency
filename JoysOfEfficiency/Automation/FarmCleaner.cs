@@ -21,7 +21,7 @@ namespace JoysOfEfficiency.Automation
 
         public static void OnEighthUpdate()
         {
-            var farm = Game1.currentLocation;
+            GameLocation farm = Game1.currentLocation;
             if (!(farm is Farm || farm is IslandWest))
             {
                 return;

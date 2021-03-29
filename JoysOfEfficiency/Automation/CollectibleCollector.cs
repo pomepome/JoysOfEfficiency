@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using JoysOfEfficiency.Core;
 using JoysOfEfficiency.Utils;
 using Microsoft.Xna.Framework;
@@ -21,12 +22,11 @@ namespace JoysOfEfficiency.Automation
                 if (obj.IsSpawnedObject || obj.isAnimalProduct())
                     CollectObj(location, obj);
 
-            var hoe = Util.FindToolFromInventory<Hoe>(true);
+            Hoe hoe = Util.FindToolFromInventory<Hoe>(true);
             if (hoe == null) return;
-            foreach (var kv in Util.GetFeaturesWithin<HoeDirt>(reach))
+            foreach (KeyValuePair<Vector2, HoeDirt> kv in Util.GetFeaturesWithin<HoeDirt>(reach))
                 if (IsGinger(kv.Value.crop))
                     CollectGinger(location, kv.Key, kv.Value);
-
         }
         private static void CollectObj(GameLocation loc, SVObject obj)
         {
@@ -103,8 +103,8 @@ namespace JoysOfEfficiency.Automation
 
         private static void CollectGinger(GameLocation loc, Vector2 pos, HoeDirt dirt)
         {
-            var who = Game1.player;
-            var stamina = 2 - who.FarmingLevel * 0.1f;
+            Farmer who = Game1.player;
+            float stamina = 2 - who.FarmingLevel * 0.1f;
             if (who.Stamina < stamina)
             {
                 return;
