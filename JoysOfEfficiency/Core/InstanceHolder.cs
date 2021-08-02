@@ -22,10 +22,10 @@ namespace JoysOfEfficiency.Core
         public static CustomAnimalConfigHolder CustomAnimalTool;
 
         /// <summary>
-        /// Sets mod's entry　point and configuration instance. 
+        /// Sets mod's entry　point instance. 
         /// </summary>
         /// <param name="modInstance">the mod instance</param>
-        /// <param name="conf">the configuration instance</param>
+        
         public static void Init(ModEntry modInstance)
         {
             ModInstance = modInstance;

@@ -215,3 +215,6 @@ This is a changelog from 1.0.22
 ## 1.4.1
 - Fixed Harmony related crash.
 - Improved usability around menus.
+
+## 1.4.2
+- JoE Menu size is no longer too big to use.
