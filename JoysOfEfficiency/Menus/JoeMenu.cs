@@ -50,11 +50,11 @@ namespace JoysOfEfficiency.Menus
         public static void OpenMenu()
         {
             Game1.playSound("bigSelect");
-            Game1.activeClickableMenu = new JoeMenu(900, 560);
+            Game1.activeClickableMenu = new JoeMenu(1100, 560);
         }
 
         internal JoeMenu(int width, int height)
-            : base(Game1.uiViewport.Width / 2 - width / 2, Game1.uiViewport.Height / 2 - height / 2, width, height, true)
+            : base(Game1.viewport.Width / 2 - width / 2, Game1.viewport.Height / 2 - height / 2, width, height, true)
         {
 
             ITranslationHelper translation = InstanceHolder.Translation;
@@ -526,7 +526,7 @@ namespace JoysOfEfficiency.Menus
             if (Config.FilterBackgroundInMenu)
             {
                 //Darken background.
-                b.Draw(Game1.fadeToBlackRect, Game1.graphics.GraphicsDevice.Viewport.Bounds, Color.Black * 0.5f);
+                b.Draw(Game1.fadeToBlackRect, new Rectangle(0, 0, Game1.viewport.Width, Game1.viewport.Height), Color.Black * 0.5f);
             }
 
             const int x = 16;
