@@ -16,6 +16,7 @@
   "options.AutoCollectCollectibles": "Colecciona objetos de colección en las cercanías",
   "options.AutoCollectRadius": "Azulejos para coleccionar",
   "options.AutoDepositIngredient": "Deposite el ingrediente que aferró a las máquinas",
+  "options.AutoDepositSeedMaker": "\tDeposite el ingrediente en los Seed Makers",
   "options.AutoDestroyDeadCrops": "Destruir las cosechas muertas cercanas",
   "options.AutoDigArtifactSpot": "Cavando un artefacto cercano",
   "options.AutoDigRadius": "Baldosas para excavación",

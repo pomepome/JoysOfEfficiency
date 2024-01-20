@@ -354,3 +354,6 @@ MigrationBackup/
 
 *.DotSettings
 codepage.txt
+
+# IDEA / JetBrains Rider
+.idea/

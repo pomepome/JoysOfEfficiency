@@ -18,7 +18,7 @@ namespace JoysOfEfficiency.Automation
         public static void TryToggleGate(Farmer player)
         {
             GameLocation location = player.currentLocation;
-            foreach (Fence fence in Util.GetObjectsWithin<Fence>(2, true).Where(x=>x.isGate))
+            foreach (Fence fence in Util.GetObjectsWithin<Fence>(2, true).Where(x=>x.isGate.Value))
             {
                 bool flag = false;
                 List<Fence> fencesToOperate = new List<Fence> {fence};
@@ -113,12 +113,12 @@ namespace JoysOfEfficiency.Automation
             if (type == FenceType.Horizontal)
             {
                 if (location.Objects.TryGetValue(fenceLoc + new Vector2(-1, 0), out Object obj) &&
-                    obj is Fence fence && fence.isGate)
+                    obj is Fence fence && fence.isGate.Value)
                 {
                     return fence;
                 }
                 if (location.Objects.TryGetValue(fenceLoc + new Vector2(1, 0), out obj) &&
-                    obj is Fence fence2 && fence2.isGate)
+                    obj is Fence fence2 && fence2.isGate.Value)
                 {
                     return fence2;
                 }
@@ -126,12 +126,12 @@ namespace JoysOfEfficiency.Automation
             else if (type == FenceType.Vertical)
             {
                 if (location.Objects.TryGetValue(fenceLoc + new Vector2(0, -1), out Object obj2) &&
-                    obj2 is Fence fence3 && fence3.isGate)
+                    obj2 is Fence fence3 && fence3.isGate.Value)
                 {
                     return fence3;
                 }
                 if (location.Objects.TryGetValue(fenceLoc + new Vector2(0, 1), out obj2) &&
-                    obj2 is Fence fence4 && fence4.isGate)
+                    obj2 is Fence fence4 && fence4.isGate.Value)
                 {
                     return fence4;
                 }
@@ -142,7 +142,7 @@ namespace JoysOfEfficiency.Automation
 
         private static bool IsSingleFence(GameLocation location, Fence fence)
         {
-            return GetSurroundingObjects<Fence>(location, fence.TileLocation).Any(f => !f.isGate);
+            return GetSurroundingObjects<Fence>(location, fence.TileLocation).Any(f => !f.isGate.Value);
         }
 
         private static bool IsGatesSerial(GameLocation location, Vector2 fenceLoc, int dX, int dY, out int gateCount)
@@ -158,7 +158,7 @@ namespace JoysOfEfficiency.Automation
                     return false;
                 }
 
-                if (!fence.isGate)
+                if (!fence.isGate.Value)
                 {
                     break;
                 }
@@ -174,7 +174,7 @@ namespace JoysOfEfficiency.Automation
                     return false;
                 }
 
-                if (!fence.isGate)
+                if (!fence.isGate.Value)
                 {
                     break;
                 }

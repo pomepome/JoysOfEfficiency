@@ -67,6 +67,7 @@ namespace JoysOfEfficiency.Core
         public bool BalancedMode { get; set; } = true;
 
         public bool AutoDepositIngredient { get; set; } = false;
+        public bool AutoDepositSeedMaker { get; set; } = false;
         public bool AutoPullMachineResult { get; set; } = true;
         public int MachineRadius { get; set; } = 1;
 

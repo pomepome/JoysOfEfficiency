@@ -1,7 +1,15 @@
 ﻿# Overview
-This is a changelog from 1.0.22
+This is a changelog from 1.4.9
 
 # Changelog
+
+## 1.4.9
+- Updated build files to work with net5.0
+- Updated code to work with HarmonyLib
+- Moved from Newtonsoft.Json to System.Text.Json
+- Reduce number of warnings
+- Added Heavy Tapper to machine list for auto-collection
+- Added new option to NOT auto-add to Seed Makers
 
 ## 1.0.22
 - Moved Utilities to Util.cs

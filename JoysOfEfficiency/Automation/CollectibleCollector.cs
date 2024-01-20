@@ -98,7 +98,7 @@ namespace JoysOfEfficiency.Automation
 
         private static bool IsGinger(Crop crop)
         {
-            return crop != null && crop.forageCrop && crop.whichForageCrop == Crop.forageCrop_ginger;
+            return crop != null && crop.forageCrop.Value && crop.whichForageCrop.Value == Crop.forageCrop_ginger;
         }
 
         private static void CollectGinger(GameLocation loc, Vector2 pos, HoeDirt dirt)

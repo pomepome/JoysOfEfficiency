@@ -332,7 +332,7 @@ namespace JoysOfEfficiency.Automation
 
         private static bool IsBerryBush(Bush bush)
         {
-            return bush.size.Value == Bush.mediumBush && !bush.townBush;
+            return bush.size.Value == Bush.mediumBush && !bush.townBush.Value;
         }
 
         private static bool IsBushFruited(Bush bush)

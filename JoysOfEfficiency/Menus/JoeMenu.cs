@@ -154,6 +154,7 @@ namespace JoysOfEfficiency.Menus
                 tab.AddOptionsElement(new EmptyLabel());
                 tab.AddOptionsElement(new LabelComponent("Auto Deposit/Pull Machines"));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoDepositIngredient", 22, Config.AutoDepositIngredient, OnCheckboxValueChanged));
+                tab.AddOptionsElement(new ModifiedCheckBox("AutoDepositSeedMaker", 42, Config.AutoDepositSeedMaker, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedCheckBox("AutoPullMachineResult", 23, Config.AutoPullMachineResult, OnCheckboxValueChanged));
                 tab.AddOptionsElement(new ModifiedSlider("MachineRadius", 10, Config.MachineRadius, 1, 3, OnSliderValueChanged, () => !(Config.AutoPullMachineResult || Config.AutoDepositIngredient) || Config.BalancedMode));
 
@@ -363,6 +364,7 @@ namespace JoysOfEfficiency.Menus
                 case 39: Config.CutWeeds = value; break;
                 case 40: Config.BreakRocks = value; break;
                 case 41: Config.ChopTwigs = value; break;
+                case 42: Config.AutoDepositSeedMaker = value; break;
                 default: return;
             }
             InstanceHolder.WriteConfig();

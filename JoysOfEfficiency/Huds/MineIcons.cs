@@ -19,9 +19,9 @@ namespace JoysOfEfficiency.Huds
 
         public static void Init(IModHelper helper)
         {
-            _iconPickaxe = helper.Content.Load<Texture2D>("icon_pickaxe.png");
-            _iconMonster = helper.Content.Load<Texture2D>("icon_monster.png");
-            _iconLadder = helper.Content.Load<Texture2D>("icon_ladder.png");
+            _iconPickaxe = helper.ModContent.Load<Texture2D>("assets/icon_pickaxe.png");
+            _iconMonster = helper.ModContent.Load<Texture2D>("assets/icon_monster.png");
+            _iconLadder = helper.ModContent.Load<Texture2D>("assets/icon_ladder.png");
             int x = 16 + OffsetX;
             
             _logger.Log($"x:{x}");
