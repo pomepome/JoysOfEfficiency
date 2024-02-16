@@ -146,6 +146,8 @@ namespace JoysOfEfficiency.Automation
                 case "Statue Of Perfection":
                 case "Tapper":
                 case "Heavy Tapper":
+                case "Coffee Maker":
+                case "Worm Bin":
                     return true;
                 default: return false;
             }
