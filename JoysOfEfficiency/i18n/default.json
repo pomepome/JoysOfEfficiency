@@ -26,6 +26,7 @@
   "options.AutoCollectCollectibles": "Auto-collect collectibles nearby",
   "options.AutoCollectRadius": "How far tiles to auto-collect",
   "options.AutoDepositIngredient": "Deposit ingredient you held to machines",
+  "options.AutoDepositSeedMaker": "    Deposit ingredient to Seed Makers",
   "options.AutoDestroyDeadCrops": "Auto-destroy dead crops nearby",
   "options.AutoDigArtifactSpot": "Auto-dig nearby artifact spots",
   "options.AutoDigRadius": "How far tiles to auto-dig",

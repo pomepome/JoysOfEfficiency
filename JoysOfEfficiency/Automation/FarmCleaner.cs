@@ -72,7 +72,7 @@ namespace JoysOfEfficiency.Automation
 
             player.Stamina -= stamina;
 
-            obj.fragility.Value = 2;
+            obj.Fragility = 2;
             farm.playSound("axchop");
             farm.debris.Add(new Debris(new Object(388, 1), loc * 64f + new Vector2(32f, 32f)));
             Game1.createRadialDebris(farm, 12, (int)loc.X, (int)loc.Y, Game1.random.Next(4, 10), false);
@@ -98,12 +98,12 @@ namespace JoysOfEfficiency.Automation
             int x = num1 * 64;
             int y = num2 * 64;
             location.playSound("hammer");
-            if (@object.minutesUntilReady > 0)
+            if (@object.MinutesUntilReady > 0)
             {
-                int num3 = Math.Max(1, pickaxe.upgradeLevel + 1);
-                @object.minutesUntilReady.Value -= num3;
+                int num3 = Math.Max(1, pickaxe.UpgradeLevel + 1);
+                @object.MinutesUntilReady -= num3;
                 @object.shakeTimer = 200;
-                if (@object.minutesUntilReady > 0)
+                if (@object.MinutesUntilReady > 0)
                 {
                     Game1.createRadialDebris(Game1.currentLocation, 14, num1, num2, Game1.random.Next(2, 5), false);
                     return false;
@@ -114,7 +114,7 @@ namespace JoysOfEfficiency.Automation
             {
                 Multiplayer.broadcastSprites(location,
                     new TemporaryAnimatedSprite(@object.ParentSheetIndex + 1, 300f,
-                        1, 2, new Vector2(x - x % 64, y - y % 64), true, @object.flipped)
+                        1, 2, new Vector2(x - x % 64, y - y % 64), true, @object.Flipped)
                     {
                         alphaFade = 0.01f
                     });
@@ -131,8 +131,8 @@ namespace JoysOfEfficiency.Automation
                 acceleration = new Vector2(0.0f, 1f / 500f),
                 alphaFade = 0.015f
             });
-            location.OnStoneDestroyed(@object.parentSheetIndex, num1, num2, Game1.player);
-            if (@object.minutesUntilReady > 0)
+            location.OnStoneDestroyed(@object.ParentSheetIndex, num1, num2, Game1.player);
+            if (@object.MinutesUntilReady > 0)
                 return false;
             location.Objects.Remove(new Vector2(num1, num2));
             location.playSound("stoneCrack");

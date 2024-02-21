@@ -1,5 +1,5 @@
 ﻿using System.IO;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace JoysOfEfficiency.Utils
 {
@@ -29,12 +29,12 @@ namespace JoysOfEfficiency.Utils
             Logger.Log("Loaded "+ _configFileName);
 
             string jsonContent = File.ReadAllText(_configFileName);
-            Entry = JsonConvert.DeserializeObject<T>(jsonContent);
+            Entry = JsonSerializer.Deserialize<T>(jsonContent);
         }
 
         public void Save()
         {
-            string jsonContent = JsonConvert.SerializeObject(Entry, Formatting.Indented);
+            string jsonContent = JsonSerializer.Serialize(Entry);
             File.WriteAllText(_configFileName, jsonContent);
             Logger.Log("Saved " + Path.GetFullPath(_configFileName));
         }

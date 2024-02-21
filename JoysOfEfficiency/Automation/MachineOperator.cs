@@ -48,10 +48,22 @@ namespace JoysOfEfficiency.Automation
                         flag = true;
                     }
                 }
+                else if (obj.Name == "Seed Maker")
+                {
+                    if (InstanceHolder.Config.AutoDepositSeedMaker == false)
+                    {
+                        flag = false;
+                    }
+                    else
+                    {
+                        flag = true;
+                    }
+                }
                 else if (accepted)
                 {
                     flag = true;
                 }
+
                 if (!flag)
                     continue;
 
@@ -87,12 +99,12 @@ namespace JoysOfEfficiency.Automation
                 return false;
             switch (item.ParentSheetIndex)
             {
-                case 378:
-                case 380:
-                case 384:
-                case 386:
-                case 80:
-                case 82:
+                case 378:       // Copper Ore
+                case 380:       // Iron Ore
+                case 384:       // Gold Ore
+                case 386:       // Iridium Ore
+                case 80:        // Quartz
+                case 82:        // Fire Quartz
                     break;
                 default:
                     return false;
@@ -133,6 +145,9 @@ namespace JoysOfEfficiency.Automation
                 case "Statue Of Endless Fortune":
                 case "Statue Of Perfection":
                 case "Tapper":
+                case "Heavy Tapper":
+                case "Coffee Maker":
+                case "Worm Bin":
                     return true;
                 default: return false;
             }

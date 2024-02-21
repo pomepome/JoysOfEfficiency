@@ -155,7 +155,7 @@ namespace JoysOfEfficiency.Automation
                 bool fromFishPond = rod.fromFishPond;
                 who.completelyStopAnimatingOrDoingAction();
                 rod.doneFishing(who, !fromFishPond);
-                if (!Game1.isFestival() && !fromFishPond && (itemCategory == "Object" && Game1.player.team.specialOrders != null))
+                if (!Game1.isFestival() && !fromFishPond && (itemCategory == "Object" && Game1.player.team.specialOrders.Count > 0))
                 {
                     foreach (SpecialOrder specialOrder in Game1.player.team.specialOrders)
                     {
@@ -185,7 +185,7 @@ namespace JoysOfEfficiency.Automation
                 }
 
                 Object @object = new Object(whichFish, initialStack, false, -1, fishQuality);
-                if (Game1.player.team.specialOrders != null)
+                if (Game1.player.team.specialOrders.Count > 0)
                 {
                     foreach (SpecialOrder specialOrder in Game1.player.team.specialOrders)
                     {
